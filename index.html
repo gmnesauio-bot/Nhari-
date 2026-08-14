@@ -1170,6 +1170,101 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 }
 .crm-divider-or::before, .crm-divider-or::after { content: ''; flex: 1; height: 1px; background: #eee; }
 
+/* ธีมสีดำ-ทอง N HAIR STYLIST — จำกัดผลเฉพาะหน้าสมัครสมาชิก */
+:root {
+  --nhs-black-deep: #000000;
+  --nhs-black-dark: #0a0a0a;
+  --nhs-black-card: #111111;
+  --nhs-gold-main: #d4af37;
+  --nhs-gold-light: #f4d03f;
+  --nhs-gold-dark: #b8860b;
+  --nhs-gold-glow: rgba(212, 175, 55, 0.35);
+  --nhs-white-main: #ffffff;
+  --nhs-white-soft: #f0f0f0;
+  --nhs-white-dim: #aaaaaa;
+}
+body.member-theme {
+  background-color: var(--nhs-black-deep) !important;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 90%, rgba(212, 175, 55, 0.06) 0%, transparent 50%);
+  color: var(--nhs-white-main) !important;
+  min-height: 100vh;
+}
+body.member-theme #pg-crm-home {
+  background-color: transparent !important;
+  min-height: 100vh;
+}
+body.member-theme #pg-crm-home .crm-container {
+  max-width: 520px;
+}
+body.member-theme #pg-crm-home .crm-card,
+body.member-theme #pg-crm-home .member-card {
+  background-color: var(--nhs-black-dark) !important;
+  border: 1.5px solid var(--nhs-gold-dark) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.1), 0 8px 32px var(--nhs-gold-glow), 0 4px 16px rgba(0,0,0,0.6) !important;
+  color: var(--nhs-white-main) !important;
+}
+body.member-theme #pg-crm-home .crm-title,
+body.member-theme #pg-crm-home .member-title {
+  color: var(--nhs-gold-main) !important;
+  font-weight: 700 !important;
+  font-size: 26px !important;
+  text-align: center !important;
+  letter-spacing: 1.5px !important;
+  text-shadow: 0 0 12px var(--nhs-gold-glow) !important;
+  border-left: none !important;
+  padding-left: 0 !important;
+}
+body.member-theme #pg-crm-home .fc,
+body.member-theme #pg-crm-home .member-input {
+  background-color: var(--nhs-black-card) !important;
+  border: 1.5px solid var(--nhs-gold-dark) !important;
+  border-radius: 8px !important;
+  color: var(--nhs-white-main) !important;
+  padding: 12px 14px !important;
+  box-sizing: border-box !important;
+}
+body.member-theme #pg-crm-home .fc:focus,
+body.member-theme #pg-crm-home .member-input:focus {
+  border-color: var(--nhs-gold-main) !important;
+  box-shadow: 0 0 0 3px var(--nhs-gold-glow) !important;
+}
+body.member-theme #pg-crm-home .fl,
+body.member-theme #pg-crm-home .member-label {
+  color: var(--nhs-gold-light) !important;
+  font-weight: 600 !important;
+}
+body.member-theme #pg-crm-home .crm-field-hint { color: var(--nhs-white-dim) !important; }
+body.member-theme #pg-crm-home .crm-divider-or { color: var(--nhs-white-dim) !important; }
+body.member-theme #pg-crm-home .crm-divider-or::before,
+body.member-theme #pg-crm-home .crm-divider-or::after {
+  background: linear-gradient(90deg, transparent, var(--nhs-gold-main), transparent) !important;
+}
+body.member-theme #pg-crm-home .btn-gold,
+body.member-theme #pg-crm-home .member-btn-primary {
+  background: linear-gradient(135deg, var(--nhs-gold-dark) 0%, var(--nhs-gold-main) 50%, var(--nhs-gold-light) 100%) !important;
+  color: #1a1200 !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: 0 4px 14px var(--nhs-gold-glow) !important;
+}
+body.member-theme #pg-crm-home a.member-link {
+  color: var(--nhs-gold-main) !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+  border-bottom: 1px dashed var(--nhs-gold-dark) !important;
+}
+body.member-theme #pg-crm-home .member-divider {
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, var(--nhs-gold-main), transparent) !important;
+  border: none !important;
+  margin: 20px 0 !important;
+}
+body.member-theme #pg-crm-home .member-checkbox {
+  accent-color: var(--nhs-gold-main) !important;
+}
 </style>
 </head>
 <body>
@@ -1330,7 +1425,16 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
         <input type="number" min="0" id="rc-discount-custom" class="fc" style="display:none;margin-top:6px;" placeholder="ระบุตัวเลข" oninput="rc_calcTotals()">
       </div>
       <div class="rc-totals-row"><span id="rc-discount-label">ส่วนลดสมาชิก (<span id="rc-discount-pct">0</span>%)</span><span id="rc-discount">-฿0</span></div>
+      <div class="no-print" style="margin:10px 0 6px; padding:10px 12px; border:1.5px solid #B8860B; border-radius:10px; background:#FFFBEA; color:#5A3E00;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;font-weight:700;">
+          <input type="checkbox" id="rc-has-deposit" class="member-checkbox" onchange="rc_calcTotals()">
+          ลูกค้ามีมัดจำจองคิวไว้แล้ว (200 บาท)
+        </label>
+      </div>
+      <div class="rc-totals-row" id="rc-deposit-row" style="display:none;"><span>มัดจำค่าจองคิว</span><span id="rc-deposit">+฿0</span></div>
       <div class="rc-totals-row net"><span>ยอดสุทธิ</span><span id="rc-net">฿0</span></div>
+      <div class="rc-totals-row" id="rc-today-pay-row" style="display:none;"><span>วันนี้จ่ายเพิ่ม</span><span id="rc-today-pay">฿0</span></div>
+      <div class="rc-totals-row"><span>พอยท์ที่ได้รับ</span><span id="rc-earned-points">0</span></div>
       <div class="rc-words" id="rc-words">-</div>
     </div>
 
@@ -1835,7 +1939,7 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
                 <div style="font-weight:700; margin-bottom:15px; color:var(--l-gold-dark);">สมัครสมาชิกสะสมพอยท์</div>
                 <div class="fg"><label class="fl">ชื่อ-นามสกุล</label><input type="text" id="l-reg-name" class="fc"></div>
                 <div class="fg"><label class="fl">เบอร์โทรศัพท์</label><input type="tel" id="l-reg-phone" class="fc"></div>
-                <button class="btn btn-gold" onclick="l_register()">สมัครสมาชิกรับ 50 พอยท์!</button>
+                <button class="btn btn-gold" onclick="l_register()">สมัครสมาชิกรับ 1 พอยท์!</button>
             </div>
         </div>
         <div id="mem-info-section" style="display:none;">
@@ -3921,7 +4025,7 @@ window.onload = () => { initGrids(); loadData(); $('dash-month').value = new Dat
 
 // === LOYALTY SYSTEM FUNCTIONS ===
 const L_PREFIX = "nhs-";
-const L_START_PTS = 50;
+const L_START_PTS = 1;
 
 function l_init() {
     let member = null;
@@ -4365,7 +4469,7 @@ async function crm_register() {
         nhs_id: nhs_id,
         source_channel: source || null,
         birthday: birthday || null,
-        points: 50,
+        points: 1,
         visits: 1,
         member_level: 'ทั่วไป',
         photo_url: linePhoto
@@ -4379,8 +4483,8 @@ async function crm_register() {
       cust = data;
     } else {
       const patch = {};
-      if (!cust.points && cust.points !== 0) patch.points = 50;
-      else if ((cust.points || 0) === 0) patch.points = 50;
+      if (!cust.points && cust.points !== 0) patch.points = 1;
+      else if ((cust.points || 0) === 0) patch.points = 1;
       if (!cust.birthday && birthday) patch.birthday = birthday;
       if (!cust.name && name) patch.name = name;
       if (!cust.photo_url && linePhoto) patch.photo_url = linePhoto;
@@ -4410,12 +4514,12 @@ async function crm_register() {
     } catch (e) {}
 
     localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
-    try { await crm_addHistory('สมัครสมาชิกใหม่', 50, 'in', phone); } catch (e) {}
+    try { await crm_addHistory('สมัครสมาชิกใหม่', 1, 'in', phone); } catch (e) {}
 
     crm_showMember();
     crm_showPage('pg-crm-home');
 
-    alert('✅ สมัครสมาชิกสำเร็จ!\n📋 รหัสสมาชิก: ' + (cust.nhs_id || nhs_id) + '\n🎁 ได้รับ 50 พอยท์ต้อนรับสมาชิกใหม่');
+    alert('✅ สมัครสมาชิกสำเร็จ!\n📋 รหัสสมาชิก: ' + (cust.nhs_id || nhs_id) + '\n🎁 ได้รับ 1 พอยท์ต้อนรับสมาชิกใหม่');
   } catch (err) {
     console.error('crm_register error:', err);
     alert('❌ เกิดข้อผิดพลาด บันทึกข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง\n' + (err && err.message ? ('(' + err.message + ')') : ''));
@@ -4433,7 +4537,7 @@ function crm_showRegSuccess(nhsId) {
       <div style="font-weight:800;font-size:18px;margin:10px 0 5px;font-family:'Playfair Display',serif;">ยินดีต้อนรับสู่ N HAIR STYLIST!</div>
       <div style="font-size:13px;color:var(--sub);margin-bottom:12px;">รหัสสมาชิกของคุณคือ</div>
       <div style="font-size:22px;font-weight:800;letter-spacing:1px;color:var(--goldD);background:var(--goldL);padding:10px;border-radius:10px;">${nhsId}</div>
-      <div style="font-size:13px;color:var(--sub);margin:12px 0;">ได้รับ 50 พอยท์ต้อนรับเรียบร้อย</div>
+      <div style="font-size:13px;color:var(--sub);margin:12px 0;">ได้รับ 1 พอยท์ต้อนรับเรียบร้อย</div>
       <button class="btn btn-gold" style="width:100%;" onclick="this.closest('.modal-overlay').remove()">ตกลง</button>
     </div>`;
   document.body.appendChild(box);
@@ -4460,6 +4564,7 @@ function crm_showMember() {
 
 function crm_showPage(id) {
   showPage(id);
+  document.body.classList.toggle('member-theme', id === 'pg-crm-home');
   if(id === 'pg-crm-home') crm_init();
   if(id === 'pg-crm-rewards') crm_renderRewards();
   if(id === 'pg-crm-my-rewards') crm_renderMyRewards();
@@ -5832,6 +5937,10 @@ let rcCurrentReceiptId = null; // set once saved -> locks the form
 let rcLocked = false;
 let allReceipts = [];
 
+// กฎใบเสร็จ NHS ที่ต้องคงที่: มัดจำเป็นส่วนหนึ่งของยอดสุทธิ และ 300 บาท = 1 พอยท์
+const NHS_RECEIPT_DEPOSIT_AMOUNT = 200;
+const NHS_RECEIPT_POINT_RATE = 300;
+
 const RC_DISCOUNT_BY_LEVEL = { 'ทั่วไป': 0, 'ทองแดง': 5, 'เงิน': 10, 'ทอง': 15 };
 // ยอดใช้จ่ายสะสมขั้นต่ำ (บาท) ที่จะได้อัปเกรดแต่ละระดับ — ปรับตัวเลขได้ตรงนี้
 const RC_LEVEL_THRESHOLDS = [ { level: 'ทอง', min: 25000 }, { level: 'เงิน', min: 10000 }, { level: 'ทองแดง', min: 3000 } ];
@@ -5909,6 +6018,7 @@ function rc_openNew(customer) {
   $('rc-time').textContent = '🕐 ' + rc_pad(now.getHours()) + ':' + rc_pad(now.getMinutes()) + ' น.';
   const discType = $('rc-discount-type'); if (discType) discType.value = 'member';
   const discCustom = $('rc-discount-custom'); if (discCustom) { discCustom.value = ''; discCustom.style.display = 'none'; }
+  const depositEl = $('rc-has-deposit'); if (depositEl) depositEl.checked = false;
   const staffNameEl = $('rc-staff-name'); if (staffNameEl) staffNameEl.value = '';
   if (customer) rc_bindCustomer(customer); else rc_clearCustomerBox();
   rc_addItem();
@@ -6019,14 +6129,25 @@ function rc_calcTotals() {
     discount = Math.round(subtotal * pct / 100);
   }
 
-  const net = Math.max(0, subtotal - discount);
+  const hasDeposit = !!($('rc-has-deposit') && $('rc-has-deposit').checked);
+  const deposit = hasDeposit ? NHS_RECEIPT_DEPOSIT_AMOUNT : 0;
+  const net = Math.max(0, subtotal + deposit - discount);
+  const todayPay = hasDeposit ? Math.max(0, net - deposit) : net;
+  const earnedPoints = Math.floor(net / NHS_RECEIPT_POINT_RATE);
   $('rc-subtotal').textContent = '฿' + subtotal.toLocaleString();
   const labelEl = $('rc-discount-label');
   if (labelEl) labelEl.innerHTML = labelHtml;
   $('rc-discount').textContent = '-฿' + discount.toLocaleString();
+  const depositRow = $('rc-deposit-row');
+  if (depositRow) depositRow.style.display = hasDeposit ? '' : 'none';
+  if ($('rc-deposit')) $('rc-deposit').textContent = '+฿' + deposit.toLocaleString();
   $('rc-net').textContent = '฿' + net.toLocaleString();
+  const todayPayRow = $('rc-today-pay-row');
+  if (todayPayRow) todayPayRow.style.display = hasDeposit ? '' : 'none';
+  if ($('rc-today-pay')) $('rc-today-pay').textContent = '฿' + todayPay.toLocaleString();
+  if ($('rc-earned-points')) $('rc-earned-points').textContent = String(earnedPoints);
   $('rc-words').textContent = '(' + thaiBahtText(net) + ')';
-  return { subtotal, discount, net, pct };
+  return { subtotal, discount, net, pct, hasDeposit, deposit, todayPay, earnedPoints };
 }
 
 function rc_applyLockState() {
@@ -6037,6 +6158,7 @@ function rc_applyLockState() {
   const pickBtn = document.querySelector('#pg-rc-form button[onclick="rc_pickCustomer()"]');
   if (pickBtn) pickBtn.style.display = rcLocked ? 'none' : '';
   document.querySelectorAll('input[name="rc-pay"]').forEach(r => r.disabled = rcLocked);
+  const depositEl = $('rc-has-deposit'); if (depositEl) depositEl.disabled = rcLocked;
   const discType = $('rc-discount-type'); if (discType) { discType.disabled = rcLocked; discType.style.display = rcLocked ? 'none' : ''; }
   const discCustom = $('rc-discount-custom'); if (discCustom) discCustom.disabled = rcLocked;
   const staffNameEl = $('rc-staff-name'); if (staffNameEl) staffNameEl.disabled = rcLocked;
@@ -6057,11 +6179,9 @@ async function rc_generateReceiptNo() {
   return prefix + seq;
 }
 
-// ยอดสะสม 100 บาท = 1 แต้ม (ใช้อัตราเดียวกับหน้าตั้งค่า Admin ถ้ามี ไม่งั้นใช้ค่าเริ่มต้นนี้)
+// ใบเสร็จใช้กฎกลาง: ยอดสุทธิ 300 บาท = 1 พอยท์ และปัดเศษทิ้ง
 function rc_getPointRate() {
-  // ใช้แคชจาก DB (โหลดผ่าน getPointRate) — fallback 20
-  if (_crmPointRateCache && _crmPointRateCache > 0) return _crmPointRateCache;
-  return 20;
+  return NHS_RECEIPT_POINT_RATE;
 }
 // โหลดเรทจาก DB ตอนเริ่มระบบ
 (function nhs_preloadPointRate() {
@@ -6083,9 +6203,8 @@ async function rc_save() {
   _rcSaving = true;
   toast('กำลังบันทึก...');
   try {
-  // โหลดเรทพอยท์จาก DB ก่อนคำนวณ
-  try { await getPointRate(); } catch (e) {}
-  const { subtotal, discount, net, pct } = rc_calcTotals();
+  // ใบเสร็จใช้กฎคงที่: มัดจำ 200 บวกเข้ายอดสุทธิ และยอดสุทธิ ÷ 300 ปัดเศษทิ้ง
+  const { subtotal, discount, net, pct, hasDeposit, deposit, todayPay, earnedPoints } = rc_calcTotals();
   const receiptNo = await rc_generateReceiptNo();
   const payMethod = document.querySelector('input[name="rc-pay"]:checked')?.value || 'เงินสด';
 
@@ -6099,7 +6218,13 @@ async function rc_save() {
     subtotal, discount_pct: pct, discount_amount: discount, net_total: net,
     payment_method: payMethod,
     issued_by: ($('rc-staff-name') && $('rc-staff-name').value.trim()) || 'พนักงาน',
-    receipt_date: new Date().toISOString()
+    receipt_date: new Date().toISOString(),
+    // ช่องใหม่เพิ่มต่อท้าย — ไม่เปลี่ยน 9 ฟิลด์หลักเดิม
+    service_only_amount: subtotal,
+    deposit_amount: deposit,
+    need_to_pay_today: todayPay,
+    earned_points: earnedPoints,
+    has_deposit: hasDeposit
   };
 
   // บันทึกลง localStorage และ พยายามบันทึกลง crm_rewards หากทำได้
@@ -6114,7 +6239,12 @@ async function rc_save() {
       customer_name: rcSelectedCustomer.name,
       customer_nhs_id: rcSelectedCustomer.nhs_id,
       net_total: net,
-      receipt_date: receiptData.receipt_date
+      receipt_date: receiptData.receipt_date,
+      service_only_amount: subtotal,
+      deposit_amount: deposit,
+      need_to_pay_today: todayPay,
+      earned_points: earnedPoints,
+      has_deposit: hasDeposit
     }, Math.round(net));
   } catch(e) {
     console.warn('crm_rewards receipt log note:', e);
@@ -6123,9 +6253,8 @@ async function rc_save() {
   const receiptRow = { id: receiptNo, ...receiptData };
 
   // 2) อัปเดตยอดสะสม + แต้ม + จำนวนครั้งในตาราง customers
-  // เรทจาก DB กลางร้าน + อ่านพอยท์ล่าสุดจาก customers
-  const rate = await getPointRate();
-  const earnedPts = Math.floor(net / rate);
+  // ใบเสร็จใช้ earnedPoints ที่คำนวณจากยอดสุทธิเต็มตามกฎ 300 บาทต่อ 1 พอยท์
+  const earnedPts = earnedPoints;
   let latestPts = rcSelectedCustomer.points || 0;
   try {
     const { data: latestCust } = await db.from('customers').select('points,total_spend,visits,member_level').eq('id', rcSelectedCustomer.id).maybeSingle();
@@ -6187,6 +6316,8 @@ function rc_view(r) {
   rcItemSeq = rcItems.length;
   rc_bindCustomer({ id: r.customer_id, nhs_id: r.customer_nhs_id, name: r.customer_name, member_level: '-', points: 0 });
   const staffNameEl = $('rc-staff-name'); if (staffNameEl) staffNameEl.value = r.issued_by || '';
+  const depositEl = $('rc-has-deposit');
+  if (depositEl) depositEl.checked = !!(r.has_deposit || r.has_deposit_flag || Number(r.deposit_amount || 0) > 0);
   $('rc-no').textContent = r.receipt_no;
   const d = new Date(r.receipt_date);
   $('rc-date').textContent = '📅 ' + rc_pad(d.getDate()) + '/' + rc_pad(d.getMonth() + 1) + '/' + d.getFullYear();
@@ -6246,7 +6377,7 @@ function printReceipt() {
   // สร้างเนื้อหาใบเสร็จจากข้อมูลจริงปัจจุบัน (ไม่ clone DOM ตรงๆ)
   // เพื่อป้องกันบั๊ก: ช่องทางชำระ/ราคา/จำนวนที่พิมพ์แก้ไขบนหน้าจอ อาจไม่ถูกสะท้อนตอนพิมพ์
   // เพราะ input/radio จะ serialize ตาม attribute เดิม ไม่ใช่ค่าปัจจุบันที่ผู้ใช้กรอก/เลือก
-  const { subtotal, discount, net } = rc_calcTotals();
+  const { subtotal, discount, net, hasDeposit, deposit, todayPay, earnedPoints } = rc_calcTotals();
   const discountLabelHtml = $('rc-discount-label') ? $('rc-discount-label').innerHTML : 'ส่วนลด';
   const payMethod = document.querySelector('input[name="rc-pay"]:checked')?.value || 'เงินสด';
   const staffName = ($('rc-staff-name') && $('rc-staff-name').value.trim()) || '-';
@@ -6310,6 +6441,8 @@ function printReceipt() {
         <div class="rc-totals-row"><span>ยอดรวมก่อนส่วนลด</span><span>฿${subtotal.toLocaleString()}</span></div>
         <div class="rc-totals-row"><span>${discountLabelHtml}</span><span>-฿${discount.toLocaleString()}</span></div>
         <div class="rc-totals-row net"><span>ยอดสุทธิ</span><span>฿${net.toLocaleString()}</span></div>
+        ${hasDeposit ? `<div class="rc-totals-row"><span>มัดจำค่าจองคิว</span><span>+฿${deposit.toLocaleString()}</span></div><div class="rc-totals-row"><span>วันนี้จ่ายเพิ่ม</span><span>฿${todayPay.toLocaleString()}</span></div>` : ''}
+        <div class="rc-totals-row"><span>พอยท์ที่ได้รับ</span><span>${earnedPoints}</span></div>
         <div class="rc-words">(${thaiBahtText(net)})</div>
       </div>
       <div class="rc-section">
@@ -6360,7 +6493,8 @@ function printReceipt() {
 function rc_sendLine() {
   // เปิดแอปไลน์ให้พนักงาน "แชร์" ใบเสร็จเอง (ยังไม่ใช่การส่งอัตโนมัติ — ต้องมี LINE Messaging API + backend ถึงจะอัตโนมัติได้)
   const totals = rc_calcTotals();
-  const text = `ใบเสร็จ ${RC_SHOP.name}\nเลขที่: ${$('rc-no').textContent}\nลูกค้า: ${$('rc-cust-name').textContent}\nยอดสุทธิ: ${$('rc-net').textContent}\nสอบถามเพิ่มเติม LINE: ${RC_SHOP.line}`;
+  const depositText = totals.hasDeposit ? `\nมัดจำ: +฿${totals.deposit.toLocaleString()}\nวันนี้จ่ายเพิ่ม: ฿${totals.todayPay.toLocaleString()}` : '';
+  const text = `ใบเสร็จ ${RC_SHOP.name}\nเลขที่: ${$('rc-no').textContent}\nลูกค้า: ${$('rc-cust-name').textContent}\nยอดสุทธิ: ${$('rc-net').textContent}${depositText}\nพอยท์ที่ได้รับ: ${totals.earnedPoints}\nสอบถามเพิ่มเติม LINE: ${RC_SHOP.line}`;
   if (navigator.share) {
     navigator.share({ text }).catch(() => {});
   } else {
@@ -6372,10 +6506,10 @@ function rc_csvEscape(v) { return String(v ?? '').replace(/"/g, '""'); }
 
 function rc_exportRow() {
   const totals = rc_calcTotals();
-  let csv = 'เลขที่ใบเสร็จ,วันที่,ลูกค้า,รหัสสมาชิก,ยอดรวม,ส่วนลด,ยอดสุทธิ,ช่องทางชำระ,ผู้รับเงิน\n';
+  let csv = 'เลขที่ใบเสร็จ,วันที่,ลูกค้า,รหัสสมาชิก,ยอดรวม,ส่วนลด,ยอดสุทธิ,ช่องทางชำระ,ผู้รับเงิน,ยอดบริการ,มัดจำ,วันนี้จ่ายเพิ่ม,พอยท์ที่ได้รับ,มีมัดจำ\n';
   const pay = document.querySelector('input[name="rc-pay"]:checked')?.value || '';
   const staffName = ($('rc-staff-name') && $('rc-staff-name').value.trim()) || '';
-  csv += `"${rc_csvEscape($('rc-no').textContent)}","${rc_csvEscape($('rc-date').textContent)}","${rc_csvEscape($('rc-cust-name').textContent)}","${rc_csvEscape($('rc-cust-nhs').textContent)}","${totals.subtotal}","${totals.discount}","${totals.net}","${rc_csvEscape(pay)}","${rc_csvEscape(staffName)}"\n`;
+  csv += `"${rc_csvEscape($('rc-no').textContent)}","${rc_csvEscape($('rc-date').textContent)}","${rc_csvEscape($('rc-cust-name').textContent)}","${rc_csvEscape($('rc-cust-nhs').textContent)}","${totals.subtotal}","${totals.discount}","${totals.net}","${rc_csvEscape(pay)}","${rc_csvEscape(staffName)}","${totals.subtotal}","${totals.deposit}","${totals.todayPay}","${totals.earnedPoints}","${totals.hasDeposit ? 'ใช่' : 'ไม่ใช่'}"\n`;
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

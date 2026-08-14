@@ -1284,58 +1284,77 @@ body.member-theme #pg-crm-home .member-checkbox {
 
 <!-- PAGE 1: DASHBOARD -->
 <div class="page active" id="pg-dash">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-    <div style="font-weight:700; font-size:18px">📊 ภาพรวมร้าน <span id="dash-date-display" style="font-size:12px; color:var(--sub); font-weight:normal"></span></div>
-    <input type="month" id="dash-month" onchange="loadData()" class="btn-sm" style="border:1px solid var(--bd); border-radius:5px">
+  <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:0 0 20px 0;">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <div style="font-weight:700;font-size:18px;min-width:100%;">📊 แผงควบคุมหลัก <span id="dash-date-display" style="font-size:12px;color:var(--sub);font-weight:normal"></span></div>
+      <select id="nhs-dash-summary-type" class="fc" style="width:auto;min-width:150px;padding:10px 14px;" onchange="renderDash()" aria-label="รูปแบบสรุป">
+        <option value="monthly" selected>สรุปรายเดือน</option>
+        <option value="weekly">สรุปรายสัปดาห์</option>
+        <option value="yearly">สรุปรายปี</option>
+      </select>
+      <input type="month" id="dash-month" onchange="loadData(true);renderDash()" class="fc" style="width:auto;min-width:150px;padding:10px 14px;" aria-label="เดือนที่ต้องการดู">
+      <input type="search" id="nhs-dash-search" class="fc" placeholder="ค้นหาบริการหรือลูกค้า" oninput="renderDash()" style="width:auto;min-width:190px;padding:10px 14px;" aria-label="ค้นหาในแดชบอร์ด">
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn btn-sm btn-outline" type="button" onclick="document.getElementById('nhs-dash-search').focus()">🔍 ค้นหา</button>
+      <button class="btn btn-sm btn-info" type="button" onclick="loadData()">🔄 รีเฟรช</button>
+    </div>
   </div>
 
-  <div class="card">
-    <div style="display:flex; justify-content:space-between; margin-bottom:10px">
-      <span style="font-size:13px; font-weight:600">🎯 เป้าหมายรายได้รายเดือน</span>
-      <span style="font-size:13px; font-weight:700; color:var(--goldD)">80,000 บาท</span>
-    </div>
-    <div style="height:20px; background:#eee; border-radius:10px; overflow:hidden">
-      <div id="goal-progress" style="height:100%; background:var(--gold); width:0%; transition:1s"></div>
-    </div>
-    <div id="goal-text" style="text-align:right; font-size:11px; margin-top:5px; color:var(--sub)">0% ของเป้าหมาย</div>
-  </div>
-
-  <div class="stat-grid">
-    <div class="stat-card" style="border-left-color:var(--ok)"><div class="stat-val" id="st-income-day">฿0</div><div class="stat-lbl">รายรับวันนี้</div></div>
-    <div class="stat-card" style="border-left-color:var(--info)"><div class="stat-val" id="st-income">฿0</div><div class="stat-lbl">รายรับเดือนนี้</div></div>
-    <div class="stat-card" style="border-left-color:var(--gold)"><div class="stat-val" id="st-profit">฿0</div><div class="stat-lbl">กำไรสุทธิ</div></div>
-    <div class="stat-card" style="border-left-color:var(--warn)"><div class="stat-val" id="st-qcount">0</div><div class="stat-lbl">คิววันนี้</div></div>
-  </div>
-
-  <div class="card">
-    <div style="font-weight:700; font-size:14px; margin-bottom:10px">📈 รายการรายรับ-รายจ่าย</div>
-    <div style="position:relative">
-      <canvas id="profitChart" height="200" onclick="showChartDetails()"></canvas>
-    </div>
-    <div id="chart-details" style="display:none; margin-top:15px; border-top:1px solid #eee; padding-top:10px">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-        <b style="font-size:13px">รายการละเอียด</b>
-        <input type="date" id="chart-detail-date" class="btn-sm" onchange="renderChartDetails(this.value)" style="border:1px solid var(--bd); border-radius:5px">
+  <div style="background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <h3 style="color:#333;margin:0 0 14px 0;font-size:16px;">ประสิทธิภาพหลัก (KPIs)</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:160px;">
+        <div style="color:#666;font-size:14px;">รายได้รวม</div>
+        <div style="font-size:30px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-revenue">฿0</div>
+        <div id="nhs-kpi-revenue-change" style="color:#22c55e;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↑</span><span>0%</span></div>
       </div>
-      <div id="chart-detail-list" style="font-size:12px"></div>
+      <div style="flex:1.2;min-width:180px;height:80px;">
+        <svg id="nhs-trend-line-chart" viewBox="0 0 200 70" style="width:100%;height:100%;" role="img" aria-label="แนวโน้มรายได้">
+          <defs><linearGradient id="nhs-trend-grad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02"/></linearGradient></defs>
+          <path id="nhs-trend-area" fill="url(#nhs-trend-grad)" d=""/>
+          <path id="nhs-trend-line" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d=""/>
+        </svg>
+      </div>
+    </div>
+    <div style="display:flex;gap:20px;margin-top:16px;flex-wrap:wrap;">
+      <div><div style="color:#666;font-size:14px;">จำนวนรายการ</div><div style="font-size:22px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-orders">0 รายการ</div><div id="nhs-kpi-orders-change" style="color:#ef4444;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↓</span><span>0%</span></div></div>
+      <div><div style="color:#666;font-size:14px;">ยอดเฉลี่ย/บิล (AOV)</div><div style="font-size:22px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-aov">฿0</div><div id="nhs-kpi-aov-change" style="color:#22c55e;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↑</span><span>0%</span></div></div>
+      <div><div style="color:#666;font-size:14px;">กำไรสุทธิ</div><div style="font-size:22px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-profit">฿0</div><div id="nhs-kpi-profit-change" style="color:#22c55e;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↑</span><span>0%</span></div></div>
     </div>
   </div>
 
-  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+  <div style="background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <h3 style="color:#333;margin:0 0 14px 0;font-size:16px;">ยอดขายตามช่องทาง</h3>
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div style="position:relative;width:120px;height:120px;"><svg viewBox="0 0 100 100" style="transform:rotate(-90deg);"><circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" stroke-width="18"/><circle id="nhs-ch-1" cx="50" cy="50" r="40" fill="none" stroke="#3b82f6" stroke-width="18" stroke-dasharray="0 251.2"/><circle id="nhs-ch-2" cx="50" cy="50" r="40" fill="none" stroke="#22c55e" stroke-width="18" stroke-dasharray="0 251.2"/><circle id="nhs-ch-3" cx="50" cy="50" r="40" fill="none" stroke="#a855f7" stroke-width="18" stroke-dasharray="0 251.2"/><circle id="nhs-ch-4" cx="50" cy="50" r="40" fill="none" stroke="#f59e0b" stroke-width="18" stroke-dasharray="0 251.2"/></svg></div>
+      <div id="nhs-channel-list" style="flex:1;min-width:190px;"><div style="color:#888;text-align:center;padding:10px;">รอข้อมูล...</div></div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <h3 id="nhs-weekly-title" style="color:#333;margin:0 0 14px 0;font-size:16px;">แนวโน้มรายได้</h3>
+    <div id="nhs-weekly-bars" style="display:flex;align-items:flex-end;justify-content:space-around;height:160px;gap:8px;padding:0 10px;"></div>
+  </div>
+
+  <div style="background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:20px;">
+    <h3 style="color:#333;margin:0 0 14px 0;font-size:16px;">3 อันดับบริการยอดนิยม</h3>
+    <div id="nhs-top-services-list"><div style="color:#888;text-align:center;padding:20px;">รอข้อมูล...</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
     <button class="btn btn-gold" onclick="showPage('pg-inc')">💰 ลงรายรับ</button>
     <button class="btn btn-no" onclick="showPage('pg-exp')">💸 ลงรายจ่าย</button>
     <button class="btn btn-info" onclick="openCalendarModal()">📅 คิวนัดหมาย</button>
     <button class="btn btn-outline" onclick="showPage('pg-crm')">👥 จัดการลูกค้า</button>
-
-    <button class="btn btn-gold" style="grid-column: span 2; margin-top: 5px; background: #C9A84C; border: 2px solid #8B7520;" onclick="showPage('pg-consult')">📋 แบบฟอร์มประเมินสภาพเส้นผม (7 ส่วน)</button>
-    <button class="btn btn-outline staff-only-btn" style="grid-column: span 2; margin-top: 5px; border: 2px solid var(--gold);" onclick="openConsultLinkModal()">🔗 สร้างลิงก์ให้ลูกค้ากรอกเอง</button>
-    <button class="btn btn-gold" style="grid-column: span 2; margin-top: 5px; background: #1A1A1A; color: #C9A84C; border: 2px solid #C9A84C;" onclick="crm_showPage('pg-crm-home')">💳 ระบบสมาชิกสะสมพอยท์ (Member System)</button>
-    <button class="btn btn-gold" style="grid-column: span 2; margin-top: 5px; background: #2C1A0E; color: #C9A84C; border: 2px solid #C9A84C;" onclick="openCrmPreview()">📱 พรีวิวหน้าจอลูกค้า (มือถือ)</button>
-    <button class="btn btn-gold" style="grid-column: span 2; margin-top: 5px; background: #1A1A1A; color: #C9A84C; border: 2px solid #C9A84C;" onclick="showPage('pg-rc-list')">📄 ใบเสร็จอิเล็กทรอนิกส์</button>
-    <button class="btn btn-outline staff-only-btn" style="grid-column: span 2; margin-top: 5px;" onclick="crm_openAdminPanel()">⚙️ จัดการระบบสมาชิก (Admin Panel)</button>
+    <button class="btn btn-gold" style="grid-column:span 2;margin-top:5px;background:#C9A84C;border:2px solid #8B7520;" onclick="showPage('pg-consult')">📋 แบบฟอร์มประเมินสภาพเส้นผม (7 ส่วน)</button>
+    <button class="btn btn-outline staff-only-btn" style="grid-column:span 2;margin-top:5px;border:2px solid var(--gold);" onclick="openConsultLinkModal()">🔗 สร้างลิงก์ให้ลูกค้ากรอกเอง</button>
+    <button class="btn btn-gold" style="grid-column:span 2;margin-top:5px;background:#1A1A1A;color:#C9A84C;border:2px solid #C9A84C;" onclick="crm_showPage('pg-crm-home')">💳 ระบบสมาชิกสะสมพอยท์ (Member System)</button>
+    <button class="btn btn-gold" style="grid-column:span 2;margin-top:5px;background:#2C1A0E;color:#C9A84C;border:2px solid #C9A84C;" onclick="openCrmPreview()">📱 พรีวิวหน้าจอลูกค้า (มือถือ)</button>
+    <button class="btn btn-gold" style="grid-column:span 2;margin-top:5px;background:#1A1A1A;color:#C9A84C;border:2px solid #C9A84C;" onclick="showPage('pg-rc-list')">📄 ใบเสร็จอิเล็กทรอนิกส์</button>
+    <button class="btn btn-outline staff-only-btn" style="grid-column:span 2;margin-top:5px;" onclick="crm_openAdminPanel()">⚙️ จัดการระบบสมาชิก (Admin Panel)</button>
   </div>
 </div>
-
   <!-- PAGE: RECEIPT LIST -->
 <div class="page" id="pg-rc-list">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
@@ -2984,35 +3003,198 @@ async function loadData(silent) {
   }
 }
 
-function renderDash() {
-  const today = new Date().toISOString().split('T')[0];
-  const m = $('dash-month').value || today.substring(0, 7);
-  $('dash-date-display').textContent = `(ข้อมูล ณ วันที่ ${today})`;
-
-  const mIncs = allIncs.filter(x => (x.record_date||'').startsWith(m));
-  const mExps = allExps.filter(x => (x.record_date||'').startsWith(m));
-  const tInc = mIncs.reduce((s,x)=>s+x.amount, 0);
-  const tExp = mExps.reduce((s,x)=>s+x.amount, 0);
-
-  const dInc = allIncs.filter(x => x.record_date === today).reduce((s,x)=>s+x.amount, 0);
-  const dQs = allQs.filter(x => x.queue_date === today).length;
-
-  $('st-income-day').textContent = '฿' + dInc.toLocaleString();
-  $('st-income').textContent = '฿' + tInc.toLocaleString();
-  $('st-profit').textContent = '฿' + (tInc-tExp).toLocaleString();
-  $('st-qcount').textContent = dQs;
-
-  const goal = 80000;
-  const perc = Math.min(100, Math.round((tInc / goal) * 100));
-  $('goal-progress').style.width = perc + '%';
-  $('goal-text').textContent = `฿${tInc.toLocaleString()} / ฿${goal.toLocaleString()} (${perc}%)`;
-  renderChart(tInc, tExp);
-  renderTables();
-
-  if(!$('chart-detail-date').value) $('chart-detail-date').value = today;
-  renderChartDetails($('chart-detail-date').value);
+function nhs_dashNum(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
 }
-
+function nhs_dashMoney(v) {
+  return '฿' + nhs_dashNum(v).toLocaleString('th-TH', { maximumFractionDigits: 0 });
+}
+function nhs_dashDate(v) {
+  const s = String(v || '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+}
+function nhs_dashDatePlusMonths(year, monthIndex, delta) {
+  const d = new Date(year, monthIndex + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+}
+function nhs_dashRange(type, selectedMonth) {
+  const fallback = new Date().toISOString().slice(0, 7);
+  const selected = /^\d{4}-\d{2}$/.test(selectedMonth) ? selectedMonth : fallback;
+  const [year, month] = selected.split('-').map(Number);
+  let start = `${year}-${String(month).padStart(2, '0')}-01`;
+  let end = nhs_dashDatePlusMonths(year, month - 1, 1);
+  let previousStart = nhs_dashDatePlusMonths(year, month - 1, -1);
+  let previousEnd = start;
+  let label = `${year}-${String(month).padStart(2, '0')}`;
+  if (type === 'yearly') {
+    start = `${year}-01-01`;
+    end = `${year + 1}-01-01`;
+    previousStart = `${year - 1}-01-01`;
+    previousEnd = start;
+    label = `${year}`;
+  }
+  return { type, selected, year, month, start, end, previousStart, previousEnd, label };
+}
+function nhs_dashInRange(row, start, end) {
+  const d = nhs_dashDate(row && (row.record_date || row.payment_date || row.created_at));
+  return !!d && d >= start && d < end;
+}
+function nhs_dashRows(rows, range) {
+  return (rows || []).filter(row => nhs_dashInRange(row, range.start, range.end));
+}
+function nhs_dashSum(rows) {
+  return (rows || []).reduce((sum, row) => sum + nhs_dashNum(row.amount), 0);
+}
+function nhs_dashSetDelta(id, current, previous, goodWhenUp = true) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const pct = previous > 0 ? Math.round(((current - previous) / previous) * 100) : (current > 0 ? 100 : 0);
+  const up = pct >= 0;
+  const good = goodWhenUp ? up : !up;
+  el.style.color = good ? '#22c55e' : '#ef4444';
+  el.innerHTML = `<span>${up ? '↑' : '↓'}</span><span>${Math.abs(pct)}%</span>`;
+}
+function nhs_dashDrawTrend(values) {
+  const safe = values.length ? values : [0];
+  const max = Math.max(...safe, 1);
+  const points = safe.map((value, index) => {
+    const x = safe.length === 1 ? 100 : 10 + (index / (safe.length - 1)) * 180;
+    const y = 60 - (nhs_dashNum(value) / max) * 50;
+    return `${x},${y}`;
+  });
+  const lineD = `M${points.join('L')}`;
+  const areaD = `${lineD} L190,70 L10,70 Z`;
+  const line = document.getElementById('nhs-trend-line');
+  const area = document.getElementById('nhs-trend-area');
+  if (line) line.setAttribute('d', lineD);
+  if (area) area.setAttribute('d', areaD);
+}
+function nhs_dashBuckets(range, rows, type) {
+  const values = [0, 0, 0, 0];
+  const labels = type === 'yearly' ? ['ไตรมาส 1', 'ไตรมาส 2', 'ไตรมาส 3', 'ไตรมาส 4'] : ['สัปดาห์ 1', 'สัปดาห์ 2', 'สัปดาห์ 3', 'สัปดาห์ 4'];
+  (rows || []).forEach(row => {
+    const d = nhs_dashDate(row.record_date || row.payment_date || row.created_at);
+    if (!d) return;
+    const date = new Date(`${d}T00:00:00`);
+    let index = 0;
+    if (type === 'yearly') {
+      index = Math.min(3, Math.floor(date.getMonth() / 3));
+    } else {
+      index = Math.min(3, Math.floor((date.getDate() - 1) / 7));
+    }
+    values[index] += nhs_dashNum(row.amount);
+  });
+  return { values, labels };
+}
+function nhs_dashRenderBars(values, labels) {
+  const host = document.getElementById('nhs-weekly-bars');
+  if (!host) return;
+  const max = Math.max(...values, 1);
+  host.innerHTML = labels.map((label, index) => {
+    const value = nhs_dashNum(values[index]);
+    const height = value > 0 ? Math.max(10, Math.round((value / max) * 120)) : 0;
+    return `<div style="flex:1;text-align:center;min-width:46px;display:flex;flex-direction:column;justify-content:flex-end;height:160px;">
+      <div title="${label}: ${nhs_dashMoney(value)}" style="background:#3b82f6;border-radius:6px 6px 0 0;width:100%;height:${height}px;transition:height .6s ease;"></div>
+      <div style="font-size:12px;color:#666;margin-top:6px;white-space:nowrap;">${label}</div>
+      <div style="font-size:11px;color:#333;margin-top:2px;">${nhs_dashMoney(value)}</div>
+    </div>`;
+  }).join('');
+}
+function nhs_dashRenderChannels(rows) {
+  const map = {};
+  (rows || []).forEach(row => {
+    const key = String(row.channel || row.source_channel || 'ไม่ระบุ').trim() || 'ไม่ระบุ';
+    map[key] = (map[key] || 0) + nhs_dashNum(row.amount);
+  });
+  const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
+  const total = entries.reduce((sum, item) => sum + item[1], 0);
+  const colors = ['#3b82f6', '#22c55e', '#a855f7', '#f59e0b'];
+  const circles = ['nhs-ch-1', 'nhs-ch-2', 'nhs-ch-3', 'nhs-ch-4'];
+  let offset = 0;
+  circles.forEach(id => {
+    const circle = document.getElementById(id);
+    if (circle) circle.style.strokeDasharray = `0 251.2`;
+  });
+  entries.slice(0, 4).forEach(([name, amount], index) => {
+    const pct = total > 0 ? (amount / total) * 100 : 0;
+    const circle = document.getElementById(circles[index]);
+    if (circle) {
+      const dash = pct / 100 * 251.2;
+      circle.style.strokeDasharray = `${dash} 251.2`;
+      circle.style.strokeDashoffset = -offset;
+      offset += dash;
+    }
+  });
+  const list = document.getElementById('nhs-channel-list');
+  if (!list) return;
+  list.innerHTML = entries.length ? entries.slice(0, 4).map(([name, amount], index) => {
+    const pct = total > 0 ? Math.round(amount / total * 100) : 0;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <div style="width:12px;height:12px;background:${colors[index]};border-radius:3px;"></div>
+      <span style="font-size:14px;color:#333;flex:1;">${name}</span><b style="font-size:13px;">${nhs_dashMoney(amount)} (${pct}%)</b>
+    </div>`;
+  }).join('') : '<div style="color:#888;text-align:center;padding:10px;">ยังไม่มีข้อมูลช่องทางในช่วงนี้</div>';
+}
+function nhs_dashRenderTopServices(rows, search) {
+  const map = {};
+  const term = String(search || '').trim().toLowerCase();
+  (rows || []).forEach(row => {
+    const service = String(row.category || row.note || 'บริการอื่นๆ').trim() || 'บริการอื่นๆ';
+    const customer = String(row.customer_name || '').trim();
+    if (term && !`${service} ${customer}`.toLowerCase().includes(term)) return;
+    map[service] = (map[service] || 0) + nhs_dashNum(row.amount);
+  });
+  const entries = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const total = Object.values(map).reduce((sum, value) => sum + value, 0);
+  const list = document.getElementById('nhs-top-services-list');
+  if (!list) return;
+  list.innerHTML = entries.length ? entries.map(([name, amount], index) => {
+    const pct = total > 0 ? Math.round(amount / total * 100) : 0;
+    return `<div style="display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #eee;"><div style="font-weight:600;">${index + 1}. ${name}</div><div style="color:#3b82f6;white-space:nowrap;">${nhs_dashMoney(amount)} (${pct}%)</div></div>`;
+  }).join('') : `<div style="color:#888;text-align:center;padding:20px;">${term ? 'ไม่พบข้อมูลที่ค้นหา' : 'ยังไม่มีข้อมูล'}</div>`;
+}
+function renderDash() {
+  const type = document.getElementById('nhs-dash-summary-type')?.value || 'monthly';
+  const selectedMonth = document.getElementById('dash-month')?.value || new Date().toISOString().slice(0, 7);
+  const range = nhs_dashRange(type, selectedMonth);
+  const incomeRows = nhs_dashRows(allIncs || [], range);
+  const expenseRows = nhs_dashRows(allExps || [], range);
+  const previousIncomeRows = (allIncs || []).filter(row => nhs_dashInRange(row, range.previousStart, range.previousEnd));
+  const previousExpenseRows = (allExps || []).filter(row => nhs_dashInRange(row, range.previousStart, range.previousEnd));
+  const revenue = nhs_dashSum(incomeRows);
+  const expenses = nhs_dashSum(expenseRows);
+  const previousRevenue = nhs_dashSum(previousIncomeRows);
+  const previousExpenses = nhs_dashSum(previousExpenseRows);
+  const orders = incomeRows.length;
+  const previousOrders = previousIncomeRows.length;
+  const aov = orders ? Math.round(revenue / orders) : 0;
+  const previousAov = previousOrders ? Math.round(previousRevenue / previousOrders) : 0;
+  const profit = revenue - expenses;
+  const previousProfit = previousRevenue - previousExpenses;
+  const search = document.getElementById('nhs-dash-search')?.value || '';
+  const today = new Date().toISOString().slice(0, 10);
+  const display = document.getElementById('dash-date-display');
+  if (display) display.textContent = `(ข้อมูลจริง · ${range.label} · อัปเดต ${today})`;
+  const revEl = document.getElementById('nhs-kpi-revenue');
+  const orderEl = document.getElementById('nhs-kpi-orders');
+  const aovEl = document.getElementById('nhs-kpi-aov');
+  const profitEl = document.getElementById('nhs-kpi-profit');
+  if (revEl) revEl.textContent = nhs_dashMoney(revenue);
+  if (orderEl) orderEl.textContent = `${orders.toLocaleString('th-TH')} รายการ`;
+  if (aovEl) aovEl.textContent = nhs_dashMoney(aov);
+  if (profitEl) profitEl.textContent = nhs_dashMoney(profit);
+  nhs_dashSetDelta('nhs-kpi-revenue-change', revenue, previousRevenue, true);
+  nhs_dashSetDelta('nhs-kpi-orders-change', orders, previousOrders, true);
+  nhs_dashSetDelta('nhs-kpi-aov-change', aov, previousAov, true);
+  nhs_dashSetDelta('nhs-kpi-profit-change', profit, previousProfit, true);
+  const buckets = nhs_dashBuckets(range, incomeRows, type);
+  nhs_dashDrawTrend(buckets.values);
+  nhs_dashRenderBars(buckets.values, buckets.labels);
+  nhs_dashRenderChannels(incomeRows);
+  nhs_dashRenderTopServices(incomeRows, search);
+  window.nhs_dashboardSnapshot = { type, range, revenue, expenses, profit, orders, aov, previousRevenue, previousExpenses, previousProfit, previousOrders, previousAov, channelCount: Object.keys(incomeRows.reduce((map, row) => { const key = String(row.channel || row.source_channel || 'ไม่ระบุ').trim() || 'ไม่ระบุ'; map[key] = true; return map; }, {})).length, topServices: Object.entries(incomeRows.reduce((map, row) => { const key = String(row.category || row.note || 'บริการอื่นๆ').trim() || 'บริการอื่นๆ'; map[key] = (map[key] || 0) + nhs_dashNum(row.amount); return map; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 3) };
+}
 function showChartDetails() {
   const el = $('chart-details');
   el.style.display = el.style.display === 'none' ? 'block' : 'none';

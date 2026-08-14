@@ -555,7 +555,7 @@ function printConsultForm() {
         .consult-agreement-list { font-size: 11px; }
         .consult-agreement-item { display: flex; gap: 8px; margin-bottom: 6px; }
         .consult-agreement-icon { font-size: 14px; }
-        .consult-section-bg { background: #F4F1EA; }
+        .consult-section-bg { background: #F7F4ED; }
         .consult-footer { text-align: center; font-size: 10px; color: #666; margin-top: 20px; }
         @media print { body { padding: 0; } .consult-container { box-shadow: none; border: none; } }
 
@@ -573,9 +573,9 @@ function printConsultForm() {
 <style>
 :root {
   --gold: #C9A84C; --goldD: #A68A3D; --goldL: #F5E6BE;
-  --bg: #F0F2F5; --card: #FFFFFF; --text: #1C1E21;
-  --sub: #65676B; --bd: #DADDE1; --ok: #2ECC71;
-  --no: #E74C3C; --info: #3498DB; --warn: #F39C12;
+  --bg: #F7F4ED; --card: #FFFFFF; --text: #1C1E21;
+  --sub: #65676B; --bd: #DADDE1; --ok: #A77A2F;
+  --no: #9B5048; --info: #3F3A34; --warn: #F39C12;
 
   --shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
 }
@@ -598,7 +598,7 @@ body {
 }
 #top-search {
   flex: 1; padding: 10px 15px; border-radius: 99px; border: 1.5px solid var(--bd);
-  font-size: 14px; outline: none; background: #F0F2F5;
+  font-size: 14px; outline: none; background: #F7F4ED;
 }
 .btn-home {
   background: var(--gold); color: #fff; border: none; padding: 8px 12px;
@@ -643,7 +643,7 @@ body {
 /* ICON GRID FOR SERVICES/EXPENSES */
 .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-bottom: 15px; }
 .icon-btn {
-  background: #f8f9fa; border: 1px solid #eee; border-radius: 10px; padding: 10px 5px;
+  background: #FBFAF7; border: 1px solid #eee; border-radius: 10px; padding: 10px 5px;
   text-align: center; cursor: pointer; transition: 0.2s;
 }
 .icon-btn:hover, .icon-btn.active { background: var(--goldL); border-color: var(--gold); }
@@ -664,7 +664,7 @@ body {
 
 /* ===== RECEIPT (ใบเสร็จอิเล็กทรอนิกส์) ===== */
 .rc-wrap { max-width: 720px; margin: 0 auto; background:#fff; border:1px solid #E5D7AE; border-radius:14px; overflow:hidden; }
-.rc-topbar { display:flex; justify-content:space-between; align-items:flex-start; padding:16px; background:linear-gradient(135deg,#1A1A1A,#2C1A0E); color:#fff; }
+.rc-topbar { display:flex; justify-content:space-between; align-items:flex-start; padding:16px; background:linear-gradient(135deg,#1A1A1A,#211D18); color:#fff; }
 .rc-brand { display:flex; align-items:center; gap:10px; }
 .rc-brand img { width:44px; height:44px; border-radius:10px; }
 .rc-brand-name { font-weight:800; font-size:16px; color:#E9C766; }
@@ -707,7 +707,7 @@ body {
 /* TABLES */
 .table-container { background: #fff; border-radius: 12px; overflow-x: auto; margin-bottom: 15px; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid var(--bd); color: var(--sub); }
+th { background: #FBFAF7; padding: 12px; text-align: left; border-bottom: 2px solid var(--bd); color: var(--sub); }
 td { padding: 12px; border-bottom: 1px solid var(--bd); }
 
 /* CALENDAR */
@@ -722,13 +722,13 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 .bug-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; font-family: sans-serif; }
 .bug-modal { background: #fff; border-radius: 15px; width: 100%; max-width: 450px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: bugSlideIn 0.3s ease-out; }
 @keyframes bugSlideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.bug-header { background: #E74C3C; color: #fff; padding: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.bug-header { background: #9B5048; color: #fff; padding: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
 .bug-body { padding: 20px; }
 .bug-title { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 10px; }
 .bug-desc { font-size: 14px; color: #666; margin-bottom: 15px; line-height: 1.5; }
-.bug-code { background: #f4f4f4; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; color: #e74c3c; overflow-x: auto; margin-bottom: 15px; border-left: 4px solid #e74c3c; }
-.bug-footer { padding: 15px; background: #f9f9f9; display: flex; gap: 10px; }
-.btn-bug-fix { flex: 1; background: #3498DB; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: 700; }
+.bug-code { background: #f4f4f4; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; color: #9B5048; overflow-x: auto; margin-bottom: 15px; border-left: 4px solid #9B5048; }
+.bug-footer { padding: 15px; background: #FBFAF7; display: flex; gap: 10px; }
+.btn-bug-fix { flex: 1; background: #3F3A34; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: 700; }
 .btn-bug-close { background: #eee; color: #333; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
 .cal-day.other { color: #ccc; }
 .cal-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); position: absolute; bottom: 5px; }
@@ -790,9 +790,9 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 .consult-agreement-icon { font-size: 14px; width: 18px; text-align: center; }
 .btn-consult { background: var(--gold); color: #fff; border: none; padding: 12px 20px; font-weight: 700; font-size: 14px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 15px; }
 .btn-consult:hover { background: var(--goldD); }
-.btn-share-link { background: #25D366; color: #fff; border: none; padding: 12px 20px; font-weight: 700; font-size: 14px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
+.btn-share-link { background: #1A1A1A; color: #fff; border: none; padding: 12px 20px; font-weight: 700; font-size: 14px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
 .consult-footer { font-size: 10px; color: var(--sub); text-align: center; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; }
-.consult-section-bg { background: #F4F1EA; }
+.consult-section-bg { background: #F7F4ED; }
 
 @media (max-width: 600px) {
   .consult-container { padding: 12px; }
@@ -809,25 +809,25 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 .customer-mode .consult-payment-section { display: none !important; }
 .customer-mode .consult-print-section { display: none !important; }
 .customer-mode .consult-mode-toggle { display: none !important; }
-.customer-mode .btn-consult { background: #4CAF50 !important; }
-.customer-mode .btn-consult:hover { background: #388E3C !important; }
+.customer-mode .btn-consult { background: #A77A2F !important; }
+.customer-mode .btn-consult:hover { background: #8E651F !important; }
 .customer-mode .consult-container { max-width: 100%; margin: 0; border-radius: 0; border-left: none; border-right: none; box-shadow: none; }
 .customer-mode .consult-header { flex-direction: column; }
-.customer-mode body { background: #f5f0e6; }
+.customer-mode body { background: #FAF8F4; }
 
 .customer-mode .staff-only-btn { display: none !important; }
 .customer-mode #consult-link-section { display: none !important; }
 
 .crm-preview-mode #top-header,
 .crm-preview-mode #bnav { display: none !important; }
-.crm-preview-mode body { background: #F5F0E8; }
+.crm-preview-mode body { background: #FAF8F4; }
 
 /* === LOYALTY SYSTEM STYLES === */
 :root {
     --l-gold: #C9A84C;
     --l-gold-dark: #A68A3D;
     --l-black: #1A1A1A;
-    --l-bg: #f5f0e6;
+    --l-bg: #FAF8F4;
     --l-white: #ffffff;
 }
 .loyalty-container { padding: 15px; max-width: 500px; margin: 0 auto; }
@@ -850,9 +850,9 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 .reward-info { padding: 15px; }
 .reward-name { font-weight: 700; font-size: 16px; margin-bottom: 5px; }
 .reward-points { color: var(--l-gold-dark); font-weight: 700; font-size: 18px; margin-bottom: 10px; }
-.reward-code { margin: 10px 0; padding: 12px; background: #f9f9f9; border-radius: 8px; font-family: monospace; text-align: center; border: 1px dashed var(--l-gold); font-size: 18px; font-weight: 700; }
+.reward-code { margin: 10px 0; padding: 12px; background: #FBFAF7; border-radius: 8px; font-family: monospace; text-align: center; border: 1px dashed var(--l-gold); font-size: 18px; font-weight: 700; }
 .history-item { background: var(--l-white); padding: 15px; border-radius: 12px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.amt-in { color: #4CAF50; font-weight: 800; }
+.amt-in { color: #A77A2F; font-weight: 800; }
 .amt-out { color: #F44336; font-weight: 800; }
 .profile-img-wrapper { width: 80px; height: 80px; border-radius: 50%; background: white; border: 3px solid var(--l-gold); margin: 0 auto 10px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 30px; }
 .profile-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
@@ -969,7 +969,7 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
   letter-spacing: -1.5px;
   text-shadow: 0 2px 14px rgba(0,0,0,0.4);
 }
-/* green vertical "พอยท์" badge — via sibling span in HTML */
+/* premium vertical "พอยท์" badge — via sibling span in HTML */
 .card-pts-badge {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
@@ -977,7 +977,7 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
   font-weight: 700;
   letter-spacing: 2px;
   color: #fff;
-  background: #2ECC71;
+  background: #A77A2F;
   padding: 7px 4px;
   border-radius: 4px;
   line-height: 1.05;
@@ -1064,7 +1064,7 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 }
 .nhs-profile-avatar {
   width: 100px; height: 100px; margin: 0 auto 10px; border-radius: 50%;
-  border: 3px solid #C9A84C; overflow: hidden; background: #f5f0e6;
+  border: 3px solid #C9A84C; overflow: hidden; background: #FAF8F4;
   box-shadow: 0 6px 18px rgba(166,138,61,0.25);
 }
 .nhs-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -1095,7 +1095,7 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 .reward-body { padding: 12px; flex: 1; }
 .reward-pts { color: var(--crm-gold-dark); font-weight: 700; }
 .hist-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
-.hist-in { color: #4CAF50; font-weight: 700; }
+.hist-in { color: #A77A2F; font-weight: 700; }
 .hist-out { color: #F44336; font-weight: 700; }
 
 /* Admin Panel */
@@ -1147,14 +1147,14 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 .fc:focus { box-shadow: 0 0 0 3px rgba(201,168,76,0.18); }
 .crm-line-btn {
   width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
-  background: #06C755; color: #fff; border: none; border-radius: 10px;
+  background: #1A1A1A; color: #fff; border: none; border-radius: 10px;
   padding: 13px; font-weight: 700; font-size: 14px; cursor: pointer; margin-bottom: 10px;
   transition: 0.2s;
 }
-.crm-line-btn:hover { background: #05a648; }
+.crm-line-btn:hover { background: #2C2A27; }
 .crm-oa-btn {
   width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
-  background: #fff; color: #06C755; border: 1.5px solid #06C755; border-radius: 10px;
+  background: #fff; color: #1A1A1A; border: 1.5px solid #1A1A1A; border-radius: 10px;
   padding: 11px; font-weight: 700; font-size: 13px; cursor: pointer; margin-bottom: 15px;
 }
 .crm-reg-photo-preview {
@@ -1162,7 +1162,7 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
   border: 2px solid var(--crm-gold); display: none; margin: 0 auto 12px;
 }
 .crm-line-badge {
-  display: none; align-items: center; gap: 6px; background: #E9FBF0; color: #06C755;
+  display: none; align-items: center; gap: 6px; background: #F3E7C7; color: #1A1A1A;
   font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 8px; margin-bottom: 12px;
 }
 .crm-field-hint { font-size: 11px; color: #999; margin-top: 4px; display: block; }
@@ -1266,6 +1266,167 @@ body.member-theme #pg-crm-home .member-divider {
 body.member-theme #pg-crm-home .member-checkbox {
   accent-color: var(--nhs-gold-main) !important;
 }
+
+
+/* === NHS UNIFIED LUXURY CLEAN THEME === */
+:root {
+  --nhs-theme-bg: #FAF8F4;
+  --nhs-theme-surface: #FFFFFF;
+  --nhs-theme-surface-soft: #F7F4ED;
+  --nhs-theme-ink: #1A1A1A;
+  --nhs-theme-ink-soft: #3F3A34;
+  --nhs-theme-muted: #756F67;
+  --nhs-theme-line: #E5DED2;
+  --nhs-theme-gold: #C9A84C;
+  --nhs-theme-gold-dark: #A77A2F;
+  --nhs-theme-gold-soft: #F3E7C7;
+  --nhs-theme-danger: #9B5048;
+  --nhs-theme-shadow: 0 10px 26px rgba(44, 36, 24, 0.08);
+  --nhs-theme-shadow-soft: 0 3px 12px rgba(44, 36, 24, 0.06);
+  --bg: var(--nhs-theme-bg);
+  --card: var(--nhs-theme-surface);
+  --text: var(--nhs-theme-ink);
+  --sub: var(--nhs-theme-muted);
+  --bd: var(--nhs-theme-line);
+  --gold: var(--nhs-theme-gold);
+  --goldD: var(--nhs-theme-gold-dark);
+  --goldL: var(--nhs-theme-gold-soft);
+  --ok: var(--nhs-theme-gold-dark);
+  --info: var(--nhs-theme-ink-soft);
+  --no: var(--nhs-theme-danger);
+  --warn: var(--nhs-theme-gold-dark);
+  --crm-bg: var(--nhs-theme-bg);
+  --l-bg: var(--nhs-theme-bg);
+}
+
+html, body {
+  background: var(--nhs-theme-bg) !important;
+  color: var(--nhs-theme-ink) !important;
+}
+body {
+  font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+button, input, select, textarea { font-family: inherit; }
+button, .btn, .icon-btn, .nav-item, .admin-tab-item, .admin-side-item {
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+button:active, .btn:active, .icon-btn:active { transform: scale(.97); }
+
+#top-header {
+  background: rgba(255,255,255,.96) !important;
+  border-bottom: 1px solid var(--nhs-theme-line) !important;
+  box-shadow: 0 4px 18px rgba(44,36,24,.06) !important;
+  backdrop-filter: blur(12px);
+}
+#top-search {
+  background: var(--nhs-theme-surface-soft) !important;
+  color: var(--nhs-theme-ink) !important;
+  border-color: var(--nhs-theme-line) !important;
+}
+#top-search::placeholder { color: #9B948B; }
+#bnav {
+  background: rgba(255,255,255,.98) !important;
+  border-top: 1px solid var(--nhs-theme-line) !important;
+  box-shadow: 0 -4px 18px rgba(44,36,24,.05) !important;
+}
+.nav-item { color: var(--nhs-theme-muted) !important; }
+.nav-item.active { color: var(--nhs-theme-gold-dark) !important; }
+.th-shopname { color: var(--nhs-theme-gold-dark) !important; }
+.btn-home, .btn-gold, .btn-ok {
+  background: linear-gradient(135deg, #A77A2F 0%, #C9A84C 52%, #F0D78C 100%) !important;
+  color: #1A1A1A !important;
+  border: 1px solid #A77A2F !important;
+  box-shadow: 0 5px 14px rgba(167,122,47,.16) !important;
+}
+.btn-info { background: var(--nhs-theme-ink-soft) !important; color: #FFFFFF !important; }
+.btn-no { background: var(--nhs-theme-danger) !important; color: #FFFFFF !important; }
+.btn-outline {
+  background: var(--nhs-theme-surface) !important;
+  color: var(--nhs-theme-gold-dark) !important;
+  border-color: var(--nhs-theme-gold) !important;
+}
+
+.page { color: var(--nhs-theme-ink); }
+.card, .table-container, .modal, .bug-modal, .consult-container, .crm-card,
+.reward-card, .reward-item, .history-item, .rc-wrap {
+  background: var(--nhs-theme-surface) !important;
+  border-color: var(--nhs-theme-line) !important;
+  box-shadow: var(--nhs-theme-shadow-soft) !important;
+}
+.stat-card { background: var(--nhs-theme-surface) !important; border-left-color: var(--nhs-theme-gold) !important; }
+.stat-val, .stat-lbl, .mtitle, .crm-title, .reward-pts, .reward-points { color: var(--nhs-theme-gold-dark) !important; }
+.fc, .fc:focus, .icon-btn, .consult-service-item {
+  background: var(--nhs-theme-surface) !important;
+  color: var(--nhs-theme-ink) !important;
+  border-color: var(--nhs-theme-line) !important;
+}
+.fc:focus { border-color: var(--nhs-theme-gold) !important; box-shadow: 0 0 0 3px rgba(201,168,76,.16) !important; }
+.fl, .consult-field-label { color: var(--nhs-theme-muted) !important; }
+.icon-btn:hover, .icon-btn.active, .consult-service-item.active { background: var(--nhs-theme-gold-soft) !important; border-color: var(--nhs-theme-gold) !important; }
+.icon-btn .label { color: var(--nhs-theme-ink-soft) !important; }
+.mhdr { border-bottom-color: var(--nhs-theme-line) !important; }
+.mclose, .btn-bug-close { background: var(--nhs-theme-surface-soft) !important; color: var(--nhs-theme-ink-soft) !important; }
+.overlay { background: rgba(26,26,26,.58) !important; }
+
+/* Dashboard cards and inline-generated content */
+#pg-dash > div[style*="background:#fff"],
+#pg-dash > div[style*="background:#FFF"],
+#pg-dash > div[style*="background: #fff"] {
+  background: var(--nhs-theme-surface) !important;
+  box-shadow: var(--nhs-theme-shadow) !important;
+  border: 1px solid var(--nhs-theme-line) !important;
+}
+#pg-dash h3, #pg-dash [id^="nhs-kpi-"] { color: var(--nhs-theme-ink) !important; }
+#pg-dash [id$="-change"] { color: var(--nhs-theme-gold-dark) !important; }
+#nhs-trend-line { stroke: var(--nhs-theme-gold-dark) !important; }
+#nhs-trend-area { fill: rgba(201,168,76,.16) !important; }
+#nhs-channel-list *, #nhs-weekly-bars *, #nhs-top-services-list * { color: var(--nhs-theme-ink-soft) !important; }
+#nhs-weekly-bars > div > div:first-child { background: var(--nhs-theme-gold) !important; }
+
+/* Receipt and consultation surfaces */
+.rc-topbar { background: linear-gradient(135deg, #171717, #2B251D) !important; }
+.rc-meta, .rc-actions { background: var(--nhs-theme-surface-soft) !important; border-color: var(--nhs-theme-line) !important; }
+.rc-item-table th { background: var(--nhs-theme-gold-soft) !important; color: var(--nhs-theme-ink-soft) !important; }
+.rc-item-table td, .rc-section { border-color: var(--nhs-theme-line) !important; }
+.rc-no-badge { background: linear-gradient(135deg, #A77A2F, #F0D78C) !important; }
+.rc-locked-note { background: var(--nhs-theme-gold-soft) !important; color: var(--nhs-theme-gold-dark) !important; }
+.consult-header { border-bottom-color: var(--nhs-theme-gold) !important; }
+.consult-section, .consult-sig-wrapper { border-color: var(--nhs-theme-line) !important; }
+.consult-section-bg { background: var(--nhs-theme-surface-soft) !important; }
+.btn-consult, .btn-share-link { background: linear-gradient(135deg, #A77A2F, #C9A84C) !important; color: #1A1A1A !important; }
+
+/* CRM and member screens use the same palette, with charcoal as the dark surface */
+.crm-container { background: linear-gradient(180deg, #FFFFFF 0%, #FAF8F4 100%) !important; }
+.crm-header-name, .crm-title, .nhs-profile-logo-row .ttl { color: var(--nhs-theme-ink) !important; }
+.crm-header-tagline, .nhs-profile-logo-row .sub { color: var(--nhs-theme-gold-dark) !important; }
+.crm-card { border-color: var(--nhs-theme-line) !important; }
+.crm-line-btn, .crm-oa-btn { background: var(--nhs-theme-ink) !important; color: #F0D78C !important; border-color: var(--nhs-theme-gold) !important; }
+.crm-oa-btn { background: var(--nhs-theme-surface) !important; }
+.crm-line-badge { background: var(--nhs-theme-gold-soft) !important; color: var(--nhs-theme-gold-dark) !important; }
+.crm-bnav { background: var(--nhs-theme-ink) !important; border-top-color: var(--nhs-theme-gold) !important; }
+.admin-sidebar, .admin-tab-nav { background: var(--nhs-theme-surface) !important; border-color: var(--nhs-theme-line) !important; }
+.admin-tab-item, .admin-side-item { color: var(--nhs-theme-muted) !important; }
+.admin-tab-item.active, .admin-side-item.active { color: var(--nhs-theme-gold-dark) !important; border-color: var(--nhs-theme-gold) !important; }
+.amt-in, .hist-in { color: var(--nhs-theme-gold-dark) !important; }
+.amt-out, .hist-out { color: var(--nhs-theme-danger) !important; }
+.card-pts-badge { background: linear-gradient(180deg, #A77A2F, #C9A84C) !important; box-shadow: 0 2px 6px rgba(167,122,47,.25) !important; }
+
+/* Member mode remains premium charcoal/gold and follows the approved palette */
+body.member-theme { background: #171717 !important; color: #FFFFFF !important; }
+body.member-theme #pg-crm-home .crm-container { background: transparent !important; }
+.customer-mode body, .crm-preview-mode body { background: var(--nhs-theme-bg) !important; }
+.customer-mode .btn-consult { background: linear-gradient(135deg, #A77A2F, #C9A84C) !important; color: #1A1A1A !important; }
+
+/* Tables, calendar, toast and error states */
+th { background: var(--nhs-theme-surface-soft) !important; color: var(--nhs-theme-muted) !important; border-color: var(--nhs-theme-line) !important; }
+td { border-color: var(--nhs-theme-line) !important; }
+.cal-grid { background: var(--nhs-theme-line) !important; border-color: var(--nhs-theme-line) !important; }
+.cal-day { background: var(--nhs-theme-surface) !important; }
+.cal-day.active { background: var(--nhs-theme-gold-dark) !important; color: #FFFFFF !important; }
+.cal-day.today { border-color: var(--nhs-theme-gold-dark) !important; }
+.bug-header { background: var(--nhs-theme-danger) !important; }
+.btn-bug-fix { background: var(--nhs-theme-ink-soft) !important; }
+#toast { background: rgba(26,26,26,.94) !important; color: #F0D78C !important; }
 </style>
 </head>
 <body>
@@ -1307,27 +1468,27 @@ body.member-theme #pg-crm-home .member-checkbox {
       <div style="flex:1;min-width:160px;">
         <div style="color:#666;font-size:14px;">รายได้รวม</div>
         <div style="font-size:30px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-revenue">฿0</div>
-        <div id="nhs-kpi-revenue-change" style="color:#22c55e;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↑</span><span>0%</span></div>
+        <div id="nhs-kpi-revenue-change" style="color:#A77A2F;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↑</span><span>0%</span></div>
       </div>
       <div style="flex:1.2;min-width:180px;height:80px;">
         <svg id="nhs-trend-line-chart" viewBox="0 0 200 70" style="width:100%;height:100%;" role="img" aria-label="แนวโน้มรายได้">
-          <defs><linearGradient id="nhs-trend-grad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02"/></linearGradient></defs>
+          <defs><linearGradient id="nhs-trend-grad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#B8860B" stop-opacity="0.3"/><stop offset="100%" stop-color="#B8860B" stop-opacity="0.02"/></linearGradient></defs>
           <path id="nhs-trend-area" fill="url(#nhs-trend-grad)" d=""/>
-          <path id="nhs-trend-line" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d=""/>
+          <path id="nhs-trend-line" fill="none" stroke="#B8860B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d=""/>
         </svg>
       </div>
     </div>
     <div style="display:flex;gap:20px;margin-top:16px;flex-wrap:wrap;">
-      <div><div style="color:#666;font-size:14px;">จำนวนรายการ</div><div style="font-size:22px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-orders">0 รายการ</div><div id="nhs-kpi-orders-change" style="color:#ef4444;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↓</span><span>0%</span></div></div>
-      <div><div style="color:#666;font-size:14px;">ยอดเฉลี่ย/บิล (AOV)</div><div style="font-size:22px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-aov">฿0</div><div id="nhs-kpi-aov-change" style="color:#22c55e;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↑</span><span>0%</span></div></div>
-      <div><div style="color:#666;font-size:14px;">กำไรสุทธิ</div><div style="font-size:22px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-profit">฿0</div><div id="nhs-kpi-profit-change" style="color:#22c55e;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↑</span><span>0%</span></div></div>
+      <div><div style="color:#666;font-size:14px;">จำนวนรายการ</div><div style="font-size:22px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-orders">0 รายการ</div><div id="nhs-kpi-orders-change" style="color:#9B5048;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↓</span><span>0%</span></div></div>
+      <div><div style="color:#666;font-size:14px;">ยอดเฉลี่ย/บิล (AOV)</div><div style="font-size:22px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-aov">฿0</div><div id="nhs-kpi-aov-change" style="color:#A77A2F;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↑</span><span>0%</span></div></div>
+      <div><div style="color:#666;font-size:14px;">กำไรสุทธิ</div><div style="font-size:22px;font-weight:700;color:#111;margin:4px 0;" id="nhs-kpi-profit">฿0</div><div id="nhs-kpi-profit-change" style="color:#A77A2F;font-size:13px;display:flex;align-items:center;gap:4px;"><span>↑</span><span>0%</span></div></div>
     </div>
   </div>
 
   <div style="background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
     <h3 style="color:#333;margin:0 0 14px 0;font-size:16px;">ยอดขายตามช่องทาง</h3>
     <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-      <div style="position:relative;width:120px;height:120px;"><svg viewBox="0 0 100 100" style="transform:rotate(-90deg);"><circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" stroke-width="18"/><circle id="nhs-ch-1" cx="50" cy="50" r="40" fill="none" stroke="#3b82f6" stroke-width="18" stroke-dasharray="0 251.2"/><circle id="nhs-ch-2" cx="50" cy="50" r="40" fill="none" stroke="#22c55e" stroke-width="18" stroke-dasharray="0 251.2"/><circle id="nhs-ch-3" cx="50" cy="50" r="40" fill="none" stroke="#a855f7" stroke-width="18" stroke-dasharray="0 251.2"/><circle id="nhs-ch-4" cx="50" cy="50" r="40" fill="none" stroke="#f59e0b" stroke-width="18" stroke-dasharray="0 251.2"/></svg></div>
+      <div style="position:relative;width:120px;height:120px;"><svg viewBox="0 0 100 100" style="transform:rotate(-90deg);"><circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" stroke-width="18"/><circle id="nhs-ch-1" cx="50" cy="50" r="40" fill="none" stroke="#B8860B" stroke-width="18" stroke-dasharray="0 251.2"/><circle id="nhs-ch-2" cx="50" cy="50" r="40" fill="none" stroke="#A77A2F" stroke-width="18" stroke-dasharray="0 251.2"/><circle id="nhs-ch-3" cx="50" cy="50" r="40" fill="none" stroke="#8A7560" stroke-width="18" stroke-dasharray="0 251.2"/><circle id="nhs-ch-4" cx="50" cy="50" r="40" fill="none" stroke="#C9A84C" stroke-width="18" stroke-dasharray="0 251.2"/></svg></div>
       <div id="nhs-channel-list" style="flex:1;min-width:190px;"><div style="color:#888;text-align:center;padding:10px;">รอข้อมูล...</div></div>
     </div>
   </div>
@@ -1350,7 +1511,7 @@ body.member-theme #pg-crm-home .member-checkbox {
     <button class="btn btn-gold" style="grid-column:span 2;margin-top:5px;background:#C9A84C;border:2px solid #8B7520;" onclick="showPage('pg-consult')">📋 แบบฟอร์มประเมินสภาพเส้นผม (7 ส่วน)</button>
     <button class="btn btn-outline staff-only-btn" style="grid-column:span 2;margin-top:5px;border:2px solid var(--gold);" onclick="openConsultLinkModal()">🔗 สร้างลิงก์ให้ลูกค้ากรอกเอง</button>
     <button class="btn btn-gold" style="grid-column:span 2;margin-top:5px;background:#1A1A1A;color:#C9A84C;border:2px solid #C9A84C;" onclick="crm_showPage('pg-crm-home')">💳 ระบบสมาชิกสะสมพอยท์ (Member System)</button>
-    <button class="btn btn-gold" style="grid-column:span 2;margin-top:5px;background:#2C1A0E;color:#C9A84C;border:2px solid #C9A84C;" onclick="openCrmPreview()">📱 พรีวิวหน้าจอลูกค้า (มือถือ)</button>
+    <button class="btn btn-gold" style="grid-column:span 2;margin-top:5px;background:#211D18;color:#C9A84C;border:2px solid #C9A84C;" onclick="openCrmPreview()">📱 พรีวิวหน้าจอลูกค้า (มือถือ)</button>
     <button class="btn btn-gold" style="grid-column:span 2;margin-top:5px;background:#1A1A1A;color:#C9A84C;border:2px solid #C9A84C;" onclick="showPage('pg-rc-list')">📄 ใบเสร็จอิเล็กทรอนิกส์</button>
     <button class="btn btn-outline staff-only-btn" style="grid-column:span 2;margin-top:5px;" onclick="crm_openAdminPanel()">⚙️ จัดการระบบสมาชิก (Admin Panel)</button>
   </div>
@@ -1485,7 +1646,7 @@ body.member-theme #pg-crm-home .member-checkbox {
     <div class="rc-actions no-print">
       <button class="btn btn-gold" onclick="rc_save()" id="rc-save-btn">💾 บันทึก</button>
       <button class="btn btn-outline" onclick="printReceipt()">🖨️ พิมพ์ / PDF</button>
-      <button class="btn btn-outline" style="border-color:#25D366;color:#25D366;" onclick="rc_sendLine()">💬 ส่งไลน์</button>
+      <button class="btn btn-outline" style="border-color:#1A1A1A;color:#1A1A1A;" onclick="rc_sendLine()">💬 ส่งไลน์</button>
       <button class="btn btn-outline" onclick="rc_exportRow()">📊 Excel</button>
     </div>
     <div class="rc-thanks">ขอบคุณที่ไว้วางใจใช้บริการ N Hair Stylist 🙏</div>
@@ -1621,10 +1782,10 @@ body.member-theme #pg-crm-home .member-checkbox {
   <!-- Consultation Form -->
   <div id="consult-success-msg" style="display:none; text-align:center; padding:60px 20px;">
     <div style="font-size:60px; margin-bottom:20px;">✅</div>
-    <h2 style="color:#4CAF50; margin-bottom:10px;">ส่งแบบฟอร์มสำเร็จ!</h2>
+    <h2 style="color:#A77A2F; margin-bottom:10px;">ส่งแบบฟอร์มสำเร็จ!</h2>
     <p style="color:#666; font-size:16px;">ขอบคุณที่เลือกใช้ N Hair Stylist</p>
     <p style="color:#666; font-size:14px; margin-top:10px;">ทีมงานจะติดต่อกลับโดยเร็วที่สุด</p>
-    <div style="margin-top:30px; padding:20px; background:#f9f9f9; border-radius:8px;">
+    <div style="margin-top:30px; padding:20px; background:#FBFAF7; border-radius:8px;">
       <p style="font-size:12px; color:#999;">© N Hair Stylist - Premium Hair Salon</p>
     </div>
   </div>
@@ -1800,7 +1961,7 @@ body.member-theme #pg-crm-home .member-checkbox {
     <!-- 05 & 06 -->
     <div class="consult-grid-2">
       <div class="consult-section consult-section-bg">
-        <div class="consult-section-header" style="background: #F4F1EA;">
+        <div class="consult-section-header" style="background: #F7F4ED;">
           <div class="consult-section-num">05</div>
           <div class="consult-section-title">STYLIST ASSESSMENT การประเมินโดยช่าง</div>
         </div>
@@ -1833,7 +1994,7 @@ body.member-theme #pg-crm-home .member-checkbox {
       </div>
 
       <div class="consult-section consult-section-bg">
-        <div class="consult-section-header" style="background: #F4F1EA;">
+        <div class="consult-section-header" style="background: #F7F4ED;">
           <div class="consult-section-num">06</div>
           <div class="consult-section-title">SERVICE DETAILS & PAYMENT รายละเอียดและค่าใช้จ่าย</div>
         </div>
@@ -2445,7 +2606,7 @@ body.member-theme #pg-crm-home .member-checkbox {
     <button onclick="closeCrmPreview()" style="align-self:flex-end; margin-bottom:8px; background:#fff; border:none; border-radius:50%; width:34px; height:34px; font-size:16px; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,0.3);">✕</button>
     <div style="width:375px; max-width:90vw; height:720px; max-height:80vh; background:#111; border-radius:36px; padding:14px 8px; box-shadow:0 20px 60px rgba(0,0,0,0.5); position:relative;">
       <div style="position:absolute; top:14px; left:50%; transform:translateX(-50%); width:120px; height:22px; background:#111; border-radius:12px; z-index:2;"></div>
-      <iframe id="crm-preview-iframe" style="width:100%; height:100%; border:none; border-radius:24px; background:#F5F0E8;"></iframe>
+      <iframe id="crm-preview-iframe" style="width:100%; height:100%; border:none; border-radius:24px; background:#FAF8F4;"></iframe>
     </div>
     <div style="color:#fff; font-size:12px; margin-top:10px; text-align:center; opacity:0.8;">📱 นี่คือหน้าจอจริงที่ลูกค้าจะเห็น — กดเมนู/ปุ่มด้านในเพื่อสลับหน้าได้ตามปกติ</div>
   </div>
@@ -3052,7 +3213,7 @@ function nhs_dashSetDelta(id, current, previous, goodWhenUp = true) {
   const pct = previous > 0 ? Math.round(((current - previous) / previous) * 100) : (current > 0 ? 100 : 0);
   const up = pct >= 0;
   const good = goodWhenUp ? up : !up;
-  el.style.color = good ? '#22c55e' : '#ef4444';
+  el.style.color = good ? '#A77A2F' : '#9B5048';
   el.innerHTML = `<span>${up ? '↑' : '↓'}</span><span>${Math.abs(pct)}%</span>`;
 }
 function nhs_dashDrawTrend(values) {
@@ -3095,7 +3256,7 @@ function nhs_dashRenderBars(values, labels) {
     const value = nhs_dashNum(values[index]);
     const height = value > 0 ? Math.max(10, Math.round((value / max) * 120)) : 0;
     return `<div style="flex:1;text-align:center;min-width:46px;display:flex;flex-direction:column;justify-content:flex-end;height:160px;">
-      <div title="${label}: ${nhs_dashMoney(value)}" style="background:#3b82f6;border-radius:6px 6px 0 0;width:100%;height:${height}px;transition:height .6s ease;"></div>
+      <div title="${label}: ${nhs_dashMoney(value)}" style="background:#B8860B;border-radius:6px 6px 0 0;width:100%;height:${height}px;transition:height .6s ease;"></div>
       <div style="font-size:12px;color:#666;margin-top:6px;white-space:nowrap;">${label}</div>
       <div style="font-size:11px;color:#333;margin-top:2px;">${nhs_dashMoney(value)}</div>
     </div>`;
@@ -3109,7 +3270,7 @@ function nhs_dashRenderChannels(rows) {
   });
   const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
   const total = entries.reduce((sum, item) => sum + item[1], 0);
-  const colors = ['#3b82f6', '#22c55e', '#a855f7', '#f59e0b'];
+  const colors = ['#B8860B', '#A77A2F', '#8A7560', '#C9A84C'];
   const circles = ['nhs-ch-1', 'nhs-ch-2', 'nhs-ch-3', 'nhs-ch-4'];
   let offset = 0;
   circles.forEach(id => {
@@ -3151,7 +3312,7 @@ function nhs_dashRenderTopServices(rows, search) {
   if (!list) return;
   list.innerHTML = entries.length ? entries.map(([name, amount], index) => {
     const pct = total > 0 ? Math.round(amount / total * 100) : 0;
-    return `<div style="display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #eee;"><div style="font-weight:600;">${index + 1}. ${name}</div><div style="color:#3b82f6;white-space:nowrap;">${nhs_dashMoney(amount)} (${pct}%)</div></div>`;
+    return `<div style="display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #eee;"><div style="font-weight:600;">${index + 1}. ${name}</div><div style="color:#B8860B;white-space:nowrap;">${nhs_dashMoney(amount)} (${pct}%)</div></div>`;
   }).join('') : `<div style="color:#888;text-align:center;padding:20px;">${term ? 'ไม่พบข้อมูลที่ค้นหา' : 'ยังไม่มีข้อมูล'}</div>`;
 }
 function renderDash() {
@@ -3234,14 +3395,14 @@ function renderChart(inc, exp) {
 
   // If no data, show simple chart
   if(Object.keys(incBySvc).length === 0 && Object.keys(expByCat).length === 0) {
-    chartObj = new Chart(ctx, { type: 'doughnut', data: { labels: ['รายรับ', 'รายจ่าย'], datasets: [{ data: [inc, exp], backgroundColor: ['#C9A84C', '#E74C3C'], borderWidth: 0 }] }, options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } } });
+    chartObj = new Chart(ctx, { type: 'doughnut', data: { labels: ['รายรับ', 'รายจ่าย'], datasets: [{ data: [inc, exp], backgroundColor: ['#C9A84C', '#9B5048'], borderWidth: 0 }] }, options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } } });
     return;
   }
 
   // Income colors (gold tones)
   const incColors = ['#C9A84C', '#D4B85E', '#E0C972', '#B8993F', '#A68A35', '#937A2D', '#806B25', '#6D5C1D', '#5A4D15', '#473E0D'];
   // Expense colors (red tones)
-  const expColors = ['#E74C3C', '#D4403A', '#C13428', '#AE2816', '#9B1C04', '#881000', '#750400', '#620000', '#4F0000'];
+  const expColors = ['#9B5048', '#D4403A', '#C13428', '#AE2816', '#9B1C04', '#881000', '#750400', '#620000', '#4F0000'];
 
   const labels = [];
   const data = [];
@@ -3630,7 +3791,7 @@ function renderTables() {
         return '<tr><td>' + (x.record_date || '') + '</td><td>' + (x.customer_name || '-') + '</td><td>' + (x.category || '-') +
           '</td><td style="color:var(--ok);font-weight:700;">฿' + Number(x.amount || 0).toLocaleString() +
           '</td><td><button class="btn btn-sm" style="font-size:11px;padding:2px 6px;margin-right:3px;background:#C9A84C;color:#fff;border:none;border-radius:4px;cursor:pointer" onclick="editIncome(\'' + id + '\')">✏️</button>' +
-          '<button class="btn btn-sm" style="font-size:11px;padding:2px 6px;background:#E74C3C;color:#fff;border:none;border-radius:4px;cursor:pointer" onclick="deleteIncome(\'' + id + '\')">🗑️</button></td></tr>';
+          '<button class="btn btn-sm" style="font-size:11px;padding:2px 6px;background:#9B5048;color:#fff;border:none;border-radius:4px;cursor:pointer" onclick="deleteIncome(\'' + id + '\')">🗑️</button></td></tr>';
       }).join('') +
       '<tr style="background:#f8f5f0;"><td colspan="3" style="font-weight:700;text-align:right;">รวมรายรับ</td><td style="color:var(--ok);font-weight:800;">฿' + sumInc.toLocaleString() + '</td><td></td></tr>';
     }
@@ -3644,7 +3805,7 @@ function renderTables() {
         return '<tr><td>' + (x.record_date || '') + '</td><td>' + (x.name || x.note || '-') + '</td><td>' + (x.category || '') +
           '</td><td style="color:var(--no);font-weight:700;">฿' + Number(x.amount || 0).toLocaleString() +
           '</td><td><button class="btn btn-sm" style="font-size:11px;padding:2px 6px;margin-right:3px;background:#C9A84C;color:#fff;border:none;border-radius:4px;cursor:pointer" onclick="editExpense(\'' + id + '\')">✏️</button>' +
-          '<button class="btn btn-sm" style="font-size:11px;padding:2px 6px;background:#E74C3C;color:#fff;border:none;border-radius:4px;cursor:pointer" onclick="deleteExpense(\'' + id + '\')">🗑️</button></td></tr>';
+          '<button class="btn btn-sm" style="font-size:11px;padding:2px 6px;background:#9B5048;color:#fff;border:none;border-radius:4px;cursor:pointer" onclick="deleteExpense(\'' + id + '\')">🗑️</button></td></tr>';
       }).join('') +
       '<tr style="background:#f8f5f0;"><td colspan="3" style="font-weight:700;text-align:right;">รวมรายจ่าย</td><td style="color:var(--no);font-weight:800;">฿' + sumExp.toLocaleString() + '</td><td></td></tr>';
     }
@@ -3712,7 +3873,7 @@ function selectDate(date) {
       <div style="margin-top:8px; display:flex; gap:5px; align-items:center;">
         <button class="btn btn-sm btn-ok" onclick="completeQ('${q.id}')">เสร็จงาน</button>
         <button class="btn btn-sm" style="font-size:10px; padding:2px 6px; background:#C9A84C; color:#fff; border:none; border-radius:4px; cursor:pointer;" onclick="editQueue('${q.id}')">✏️ แก้ไขคิว</button>
-        <button class="btn btn-sm" style="font-size:10px; padding:2px 6px; background:#E74C3C; color:#fff; border:none; border-radius:4px; cursor:pointer;" onclick="deleteQueue('${q.id}')">🗑️ ลบคิว</button>
+        <button class="btn btn-sm" style="font-size:10px; padding:2px 6px; background:#9B5048; color:#fff; border:none; border-radius:4px; cursor:pointer;" onclick="deleteQueue('${q.id}')">🗑️ ลบคิว</button>
       </div>
     </div>`;
   }).join('') || '<div class="card">ไม่มีคิว</div>';
@@ -3977,7 +4138,7 @@ function renderCRM(list) {
     const hasId = c.nhs_id && String(c.nhs_id).trim() && String(c.nhs_id).trim() !== '---';
     const idLabel = hasId
       ? `<span style="font-family:monospace;color:#A68A3D;font-weight:800;">${c.nhs_id}${c._nhs_local_only ? ' *' : ''}</span>`
-      : `<span style="color:#E74C3C;font-size:11px;">⚠ ไม่มีรหัส</span>`;
+      : `<span style="color:#9B5048;font-size:11px;">⚠ ไม่มีรหัส</span>`;
     const initial = (c.name || '?').charAt(0);
     // ใช้ id อ้างอิงแทน JSON.stringify ทั้งก้อน — กันชื่อมีอัญประกาศพัง HTML
     const cid = c.id;
@@ -4057,7 +4218,7 @@ async function showCustDetail(c) {
       '<button class="btn btn-sm btn-gold" onclick="editCustById(\'' + c.id + '\')">✏️ แก้ไข</button>' +
       '<button class="btn btn-sm btn-gold" style="background:#1A1A1A;" onclick="rc_openNewById(\'' + c.id + '\')">🧾 ออกใบเสร็จ</button>' +
       '<button class="btn btn-sm btn-info" onclick="callCust(\'' + phoneSafe + '\')">📞 โทร</button>' +
-      '<button class="btn btn-sm btn-outline" style="border-color:#25D366; color:#25D366" onclick="chatLINE(\'' + phoneSafe + '\')">💬 LINE</button>' +
+      '<button class="btn btn-sm btn-outline" style="border-color:#1A1A1A; color:#1A1A1A" onclick="chatLINE(\'' + phoneSafe + '\')">💬 LINE</button>' +
     '</div>';
 
   // เชื่อมคิว ↔ ลูกค้า ด้วยเบอร์ (normalize) และชื่อเป็นสำรอง
@@ -4939,7 +5100,7 @@ async function crm_renderRewards() {
         <div style="font-size:11px; color:#666;">${r.desc || ''}</div>
         <div class="reward-pts">${r.pts} พอยท์</div>
         ${r.qty !== undefined ? `<div style="font-size:10px;color:#999;">เหลือ ${r.qty} ชิ้น</div>` : ''}
-        ${r.endDate ? `<div style="font-size:10px;color:#E74C3C;">หมดอายุ ${r.endDate}</div>` : ''}
+        ${r.endDate ? `<div style="font-size:10px;color:#9B5048;">หมดอายุ ${r.endDate}</div>` : ''}
         ${r.conditions ? `<div style="font-size:10px;color:#888;margin-top:3px;cursor:pointer;" onclick="crm_showRewardCond(${r.id})">📋 ดูเงื่อนไข</div>` : ''}
         <button class="btn btn-sm btn-gold" style="width:100%; margin-top:5px;"
           ${canRedeem ? '' : 'disabled'}
@@ -5614,7 +5775,7 @@ async function crm_adminLookupPts() {
       ? await nhs_findCustomerByPhone(phone)
       : null;
     if (!cust) {
-      box.innerHTML = '<span style="color:#E74C3C;">ไม่พบลูกค้าเบอร์นี้ — ให้ลูกค้าสมัครสมาชิกก่อน</span>';
+      box.innerHTML = '<span style="color:#9B5048;">ไม่พบลูกค้าเบอร์นี้ — ให้ลูกค้าสมัครสมาชิกก่อน</span>';
       return;
     }
     box.innerHTML = '<b>' + (cust.name || '-') + '</b> · ' + (cust.nhs_id || '') +
@@ -5622,7 +5783,7 @@ async function crm_adminLookupPts() {
     box.dataset.phone = phone;
     box.dataset.found = '1';
   } catch (e) {
-    box.innerHTML = '<span style="color:#E74C3C;">ค้นหาไม่สำเร็จ</span>';
+    box.innerHTML = '<span style="color:#9B5048;">ค้นหาไม่สำเร็จ</span>';
   }
 }
 

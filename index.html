@@ -407,7 +407,7 @@ async function saveConsultForm() {
     });
 
     if(!existingCust) {
-      nhs_id = 'NHS-' + String(typeof nhs_nextSeq === 'function' ? nhs_nextSeq() : ((allCusts && allCusts.length) || 0) + 1).padStart(5, '0');
+      nhs_id = nhs_genMemberId(phone);
       const sourceChannel = sources.length > 0 ? sources.join(', ') : 'แบบฟอร์มประเมินผม';
       const staffPayload = {
         name: name,
@@ -429,7 +429,7 @@ async function saveConsultForm() {
       }
       toast('✅ สร้างลูกค้าใหม่: ' + nhs_id);
     } else {
-      nhs_id = existingCust.nhs_id || nhs_genMemberId();
+      nhs_id = nhs_memberDisplayId(existingCust);
       const staffUpd = {
         chemistry_history: chemHistory.join(', '),
         hair_type: concerns.join(', '),
@@ -1647,6 +1647,40 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 @media (max-width: 380px) {
   body.member-theme .crm-review-star { font-size: 36px; gap: 4px; padding: 3px; }
 }
+
+/* === NHS TASK 4 POLISH: admin pending, news CRUD, receipt handoff === */
+.nhs-admin-alert-wrap { max-width: 800px; margin: 0 auto; padding: 0 15px; }
+.nhs-admin-pending-card {
+  margin: 14px 0 2px;
+  padding: 14px 16px;
+  border: 1px solid rgba(201,168,76,.65);
+  border-left: 5px solid #C9A84C;
+  border-radius: 14px;
+  background: linear-gradient(135deg,#1A1A1A,#26221B);
+  color: #FFFDF8;
+  box-shadow: 0 10px 26px rgba(26,26,26,.16);
+  cursor: pointer;
+  transition: transform .16s ease-out, box-shadow .16s ease-out;
+}
+.nhs-admin-pending-card:hover { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(26,26,26,.22); }
+.nhs-admin-pending-card:active { transform: scale(.985); }
+.nhs-admin-pending-card .pending-count { color:#F0D78C; font-size:24px; font-weight:900; line-height:1; }
+.nhs-admin-pending-card .pending-label { color:#FFFDF8; font-size:13px; font-weight:800; }
+.nhs-admin-pending-card .pending-sub { color:#D8D0C2; font-size:11px; margin-top:4px; }
+.nhs-news-type {
+  display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px;
+  background:#F6EED8; color:#8B6B25; font-size:10px; font-weight:800;
+}
+.nhs-news-admin-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.nhs-receipt-source-note {
+  margin:10px 0 0; padding:9px 11px; border-radius:10px;
+  background:#FBF7ED; border:1px solid #E5D7AE; color:#6F5A2C; font-size:11px;
+}
+@media (max-width:520px) {
+  .nhs-admin-pending-card { margin-left:0; margin-right:0; }
+  .nhs-news-admin-actions { justify-content:flex-start; }
+}
+
 </style>
 </head>
 <body>
@@ -1755,7 +1789,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 <div class="page" id="pg-rc-form">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px" class="no-print">
     <div style="font-weight:700; font-size:18px">🧾 ใบเสร็จรับเงิน</div>
-    <button class="btn btn-sm btn-outline" onclick="showPage('pg-rc-list')">⬅️ กลับ</button>
+    <button class="btn btn-sm btn-outline" onclick="crm_receiptTxnId ? crm_cancelReceiptFlow() : showPage('pg-rc-list')">⬅️ กลับ</button>
   </div>
 
   <div class="rc-wrap" id="rc-print-area">
@@ -1793,6 +1827,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
             <div>เบอร์โทร: <b id="rc-cust-phone">-</b></div>
             <div>ระดับสมาชิก: <b id="rc-cust-level">-</b></div>
             <div>คะแนนก่อนใช้: <b id="rc-cust-pts-before">-</b> แต้ม</div>
+            <div id="rc-service-date-row" style="display:none;">วันที่เข้าใช้บริการ: <b id="rc-service-date">-</b></div>
           </div>
           <button class="btn btn-sm btn-outline no-print" style="margin-top:8px;" onclick="rc_pickCustomer()">🔍 เลือก/ค้นหาลูกค้า</button>
         </div>
@@ -1816,6 +1851,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
         <label class="fl" style="font-size:12px;">🏷️ ส่วนลด / โปรโมชั่น</label>
         <select id="rc-discount-type" class="fc" onchange="rc_onDiscountTypeChange()">
           <option value="member">ตามระดับสมาชิก (อัตโนมัติ)</option>
+          <option value="none">ไม่ใช้ส่วนลด</option>
           <option value="pct5">โปรโมชั่น -5%</option>
           <option value="pct10">โปรโมชั่น -10%</option>
           <option value="pct15">โปรโมชั่น -15%</option>
@@ -1861,11 +1897,11 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
       </div>
     </div>
 
+    <div id="rc-source-txn-note" class="nhs-receipt-source-note no-print" style="display:none;"></div>
     <div id="rc-locked-note" class="rc-locked-note" style="display:none;">🔒 ใบเสร็จนี้บันทึกแล้ว แก้ไขไม่ได้ — พิมพ์หรือบันทึก PDF ได้ตามปกติ</div>
-
     <div class="rc-actions no-print">
       <button class="btn btn-gold" onclick="rc_save()" id="rc-save-btn">💾 บันทึก</button>
-      <button class="btn btn-outline" onclick="printReceipt()">🖨️ พิมพ์ / PDF</button>
+      <button class="btn btn-outline" onclick="printReceipt()">🖨️ พิมพ์ / PDF</button><button class="btn btn-outline" onclick="rc_downloadJpeg()">🖼️ บันทึก JPEG</button>
       <button class="btn btn-outline" style="border-color:#1A1A1A;color:#1A1A1A;" onclick="rc_sendLine()">💬 ส่งไลน์</button>
       <button class="btn btn-outline" onclick="rc_exportRow()">📊 Excel</button>
     </div>
@@ -2388,9 +2424,9 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
         <div class="crm-review-badge">ขอบคุณสำหรับคะแนนความประทับใจ</div>
         <div class="crm-review-result-title">หากประทับใจ 4–5 ดาว ขอเชิญรีวิวร้านของเรา</div>
         <div class="crm-review-promo">หลังรีวิวแล้ว กรุณาแคปหน้าจอมาแสดงพนักงานหน้าร้าน เพื่อให้พนักงานตรวจสอบสิทธิ์ส่วนลด 3% สำหรับบิลถัดไป <strong>ระบบยังไม่เปิดส่วนลดอัตโนมัติ</strong></div>
-        <a class="crm-review-platform crm-review-google" href="https://maps.app.goo.gl/4eJNB26K2UZWXUn67?g_st=ic" target="_blank" rel="noopener noreferrer">📍 รีวิวบน Google Maps</a>
-        <a class="crm-review-platform crm-review-tiktok" href="https://www.tiktok.com/@nhairstylist1" target="_blank" rel="noopener noreferrer">🎵 โพสต์/รีวิวบน TikTok</a>
-        <a class="crm-review-platform crm-review-facebook" href="https://www.facebook.com/share/1JBGL4he9B/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer">👍 รีวิวบน Facebook Page</a>
+        <a class="crm-review-platform crm-review-google" href="https://g.page/r/CWdSFd16_0ecEBE/review" target="_blank" rel="noopener noreferrer">📍 เขียนรีวิวบน Google</a>
+        <a class="crm-review-platform crm-review-tiktok" href="https://vt.tiktok.com/ZS9kUkK81G94E-feJNz/" target="_blank" rel="noopener noreferrer">🎵 แสดงความคิดเห็นบน TikTok</a>
+        <a class="crm-review-platform crm-review-facebook" href="https://www.facebook.com/Nhairstylist789/reviews" target="_blank" rel="noopener noreferrer">👍 รีวิวบน Facebook Page</a>
         <div class="crm-review-note">สิทธิ์ส่วนลดต้องให้พนักงานตรวจสอบจากภาพหน้าจอด้วยตนเองก่อนใช้งาน</div>
         <button type="button" class="btn btn-outline crm-review-reset" onclick="crm_reviewReset()">ให้คะแนนใหม่</button>
       </div>
@@ -2614,6 +2650,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
         <button type="button" class="btn btn-sm btn-outline" style="width:100%;" onclick="$('txn-slip-hidden').click()">📎 เลือกรูปสลิป</button>
         <img id="txn-slip-preview" src="" style="display:none; width:100%; max-height:220px; object-fit:contain; margin-top:8px; border-radius:8px; border:1px solid #ddd;">
       </div>
+      <div class="fg"><label class="fl">📅 วันที่เข้าใช้บริการ <span style="color:#B42318;">*</span></label><input type="date" id="txn-service-date" class="fc" required></div>
       <div class="fg"><label class="fl">💰 จำนวนเงิน (บาท)</label><input type="number" inputmode="decimal" id="txn-amount" class="fc" placeholder="0.00" oninput="crm_updateTxnPointsPreview()"></div>
       <div class="fg"><label class="fl">✂️ รายการที่ทำ</label><input type="text" id="txn-service" class="fc" placeholder="เช่น ทำสี, ทรีทเมนต์"></div>
       <div class="fg"><label class="fl">📝 หมายเหตุ</label><textarea id="txn-note" class="fc" rows="2" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea></div>
@@ -2722,6 +2759,15 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 
 <!-- PAGE 15: ADMIN CRM PANEL -->
 <div class="page" id="pg-admin-crm">
+  <div class="nhs-admin-alert-wrap">
+    <div id="adm-txn-top-alert" class="nhs-admin-pending-card" style="display:none;" role="button" tabindex="0" onclick="crm_openTxnAdminTab()" onkeydown="if(event.key==='Enter'||event.key===' '){crm_openTxnAdminTab();}">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size:28px;line-height:1;">🔔</div>
+        <div style="flex:1;min-width:0;"><div class="pending-label">ลูกค้าส่งสลิปรอตรวจสอบ</div><div class="pending-sub">คลิกเพื่อเปิดหน้าตรวจสอบสลิปและใบเสร็จฉบับเต็ม</div></div>
+        <div style="text-align:right;"><div class="pending-count" id="adm-txn-top-count">0</div><div style="font-size:10px;color:#D8D0C2;">รายการ</div></div>
+      </div>
+    </div>
+  </div>
   <div class="admin-tab-nav">
     <div class="admin-tab-item active" onclick="crm_adminTab('config', this)">ตั้งค่า</div>
     <div class="admin-tab-item" onclick="crm_adminTab('points', this)">เพิ่มพอยท์</div>
@@ -2800,7 +2846,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
     <!-- Admin News -->
     <div id="adm-crm-news" class="adm-sec" style="display:none;">
       <div class="crm-card">
-        <div class="crm-title">📢 เพิ่มข่าวสาร/โปรโมชั่น</div>
+        <div class="crm-title" id="adm-news-form-title">📢 เพิ่มข่าวสาร/โปรโมชั่น</div>
         <div class="fg">
           <label class="fl">รูปภาพข่าว</label>
           <img id="adm-news-img-preview" style="display:none; width:100%; max-height:160px; object-fit:cover; border-radius:10px; margin-bottom:8px;">
@@ -2810,14 +2856,14 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
         </div>
         <div class="fg"><label class="fl">ประเภท</label>
           <select id="adm-news-type" class="fc">
+            <option value="ข่าวสารร้าน">ข่าวสารร้าน</option>
             <option value="โปรโมชั่น">โปรโมชั่น</option>
             <option value="กิจกรรม">กิจกรรม</option>
-            <option value="ทั่วไป">ทั่วไป</option>
           </select>
         </div>
         <div class="fg"><label class="fl">หัวข้อ</label><input type="text" id="adm-news-title" class="fc" placeholder="หัวข้อข่าวสาร"></div>
         <div class="fg"><label class="fl">เนื้อหา</label><textarea id="adm-news-content" class="fc" style="min-height:80px;" placeholder="รายละเอียดข่าวสาร..."></textarea></div>
-        <button class="btn btn-gold" style="width:100%;" onclick="crm_adminAddNews()">📢 เพิ่มข่าวสาร</button>
+        <button class="btn btn-gold" id="adm-news-save-btn" style="width:100%;" onclick="crm_adminAddNews()">📢 เพิ่มข่าวสาร</button><button class="btn btn-outline" id="adm-news-cancel-btn" style="display:none;width:100%;margin-top:8px;" onclick="crm_resetNewsForm()">ยกเลิกการแก้ไข</button>
       </div>
       <div class="crm-card">
         <div class="crm-title">ข่าวสารทั้งหมด</div>
@@ -5043,8 +5089,40 @@ async function nhs_findCustomerByPhone(phone) {
   return null;
 }
 
-function nhs_genMemberId() {
-  return 'NHS-' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+function nhs_genMemberId(phone) {
+  const pn = (typeof nhs_normPhone === 'function') ? nhs_normPhone(phone) : String(phone || '').replace(/\D/g, '');
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  let hash = 0;
+  for (let i = 0; i < pn.length; i++) hash = ((hash * 31) + pn.charCodeAt(i)) >>> 0;
+  const seq = String(100 + (hash % 900)).padStart(3, '0');
+  const id = 'NHS-' + yy + mm + '-' + seq;
+  if (pn) {
+    const map = nhs_idMapGet();
+    map['p:' + pn] = id;
+    nhs_idMapSet(map);
+  }
+  return id;
+}
+function nhs_memberDisplayId(member) {
+  const c = member || {};
+  const existing = String(c.nhs_id || '').trim();
+  // Preserve legacy IDs already shown on receipts/cards; only generate the new format when missing.
+  if (existing && existing !== '---' && existing !== '-') return existing;
+  const key = nhs_idMapKey(c);
+  if (key) {
+    const map = nhs_idMapGet();
+    if (map[key]) { c.nhs_id = map[key]; return map[key]; }
+  }
+  const generated = nhs_genMemberId(c.phone);
+  if (key) {
+    const map = nhs_idMapGet();
+    map[key] = generated;
+    nhs_idMapSet(map);
+  }
+  c.nhs_id = generated;
+  return generated;
 }
 
 async function crm_init() {
@@ -5061,6 +5139,10 @@ async function crm_init() {
         if (!crm_member.nhs_id && localNhs) crm_member.nhs_id = localNhs;
         if (!crm_member.nickname && localNick) crm_member.nickname = localNick;
         if (!crm_member.photo_url && localPhoto) crm_member.photo_url = localPhoto;
+        localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
+      }
+      if (crm_member) {
+        crm_member.nhs_id = nhs_memberDisplayId(crm_member);
         localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
       }
       crm_showMember();
@@ -5088,7 +5170,7 @@ async function crm_register() {
   try {
     let cust = await nhs_findCustomerByPhone(phone);
     let isNewMember = false;
-    const nhs_id = (cust && cust.nhs_id) ? cust.nhs_id : nhs_genMemberId();
+    const nhs_id = (cust && cust.nhs_id) ? cust.nhs_id : nhs_genMemberId(phone);
     const linePhoto = (crm_lineProfile && crm_lineProfile.pictureUrl) ? crm_lineProfile.pictureUrl : null;
 
     if (!cust) {
@@ -5190,6 +5272,9 @@ function crm_showRegSuccess(nhsId) {
 }
 
 function crm_showMember() {
+  if (!crm_member) return;
+  crm_member.nhs_id = nhs_memberDisplayId(crm_member);
+  localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
   $('crm-reg-section').style.display = 'none';
   $('crm-member-section').style.display = 'block';
   const idEl = $('crm-card-id');
@@ -5293,11 +5378,12 @@ function crm_showPage(id) {
   if(id === 'pg-crm-profile') crm_initProfile();
   if(id === 'pg-crm-submit') crm_initTxnForm();
   if(id === 'pg-crm-review') { crm_initReviewFunnel(); crm_reviewReset(); }
-  if(id === 'pg-admin-crm') {
+  if (id === 'pg-admin-crm') {
     crm_loadAdminConfig();
     // เปิดแท็บตั้งค่าเป็นค่าเริ่มต้น
     const firstTab = document.querySelector('.admin-tab-item');
     if (firstTab) crm_adminTab('config', firstTab);
+    if (typeof crm_refreshTxnBadge === 'function') crm_refreshTxnBadge();
   }
 }
 
@@ -5568,7 +5654,11 @@ async function crm_initProfile() {
     }
   } catch (e) { console.warn('crm_initProfile', e); }
   if (!c) return;
-
+  const profileNhsId = nhs_memberDisplayId(c);
+  if (crm_member) {
+    crm_member.nhs_id = profileNhsId;
+    localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
+  }
   // โลโก้ร้าน
   const logoEl = document.getElementById('crm-prof-shop-logo');
   if (logoEl && typeof CRM_LOGO !== 'undefined' && CRM_LOGO) {
@@ -5580,7 +5670,7 @@ async function crm_initProfile() {
   const ptsEl = document.getElementById('p-points');
   const tierEl = document.getElementById('p-tier');
   const visEl = document.getElementById('p-visits');
-  if (nhsEl) nhsEl.textContent = c.nhs_id || '---';
+  if (nhsEl) nhsEl.textContent = profileNhsId || '---';
   if (ptsEl) ptsEl.textContent = (c.points || 0).toLocaleString();
   if (visEl) visEl.textContent = String(c.visits || 0);
   if (tierEl) tierEl.textContent = 'ระดับ: ' + (c.member_level || 'ทั่วไป');
@@ -5666,7 +5756,7 @@ function crm_initTxnForm() {
   crm_txnImgData = '';
   const prev = $('txn-slip-preview');
   if (prev) { prev.src = ''; prev.style.display = 'none'; }
-  ['txn-amount','txn-service','txn-note','txn-appt-stylist','txn-appt-date','txn-appt-service','txn-appt-note'].forEach(function(id){
+  ['txn-service-date','txn-amount','txn-service','txn-note','txn-appt-stylist','txn-appt-date','txn-appt-service','txn-appt-note'].forEach(function(id){
     const el = $(id); if (el) el.value = '';
   });
   const pv = $('txn-points-preview'); if (pv) pv.textContent = '';
@@ -5701,6 +5791,7 @@ async function crm_updateTxnPointsPreview() {
 
 async function crm_submitTxn() {
   if (!crm_member || !crm_member.phone) { toast('❌ ไม่พบข้อมูลสมาชิก'); return; }
+  const serviceDate = (($('txn-service-date') && $('txn-service-date').value) || '').trim();
   const amt = parseFloat(($('txn-amount') && $('txn-amount').value) || '0') || 0;
   const service = (($('txn-service') && $('txn-service').value) || '').trim();
   const note = (($('txn-note') && $('txn-note').value) || '').trim();
@@ -5709,6 +5800,7 @@ async function crm_submitTxn() {
   const apptService = (($('txn-appt-service') && $('txn-appt-service').value) || '').trim();
   const apptNote = (($('txn-appt-note') && $('txn-appt-note').value) || '').trim();
 
+  if (!serviceDate) return toast('⚠️ กรุณาเลือกวันที่เข้าใช้บริการ');
   if (!amt || amt <= 0) return toast('⚠️ กรอกจำนวนเงินให้ถูกต้อง');
   if (!service) return toast('⚠️ กรอกรายการที่ทำ');
 
@@ -5723,6 +5815,7 @@ async function crm_submitTxn() {
       cust_name: crm_member.name || crm_member.nickname || '',
       amount: amt,
       service: service,
+      service_date: serviceDate,
       note: note,
       image: crm_txnImgData || '',
       appt_stylist: apptStylist,
@@ -5755,6 +5848,10 @@ async function crm_refreshTxnBadge() {
     if (bellBadge) { bellBadge.textContent = n; bellBadge.style.display = n > 0 ? 'flex' : 'none'; }
     const tabBadge = $('adm-txn-tab-badge');
     if (tabBadge) { tabBadge.textContent = n; tabBadge.style.display = n > 0 ? 'inline-block' : 'none'; }
+    const topAlert = $('adm-txn-top-alert');
+    const topCount = $('adm-txn-top-count');
+    if (topCount) topCount.textContent = n;
+    if (topAlert) topAlert.style.display = n > 0 ? 'block' : 'none';
     return n;
   } catch (e) { return 0; }
 }
@@ -5774,6 +5871,7 @@ async function crm_renderAdminTxnList() {
   }
   box.innerHTML = pending.map(function(t) {
     const slip = t.image ? '<img src="' + t.image + '" style="width:100%;max-height:160px;object-fit:contain;border-radius:8px;border:1px solid #eee;margin-bottom:8px;">' : '';
+    const serviceDate = t.service_date ? ('<div style="font-size:12px;color:#6F5A2C;margin-top:6px;">📅 เข้าใช้บริการ: ' + t.service_date + '</div>') : '<div style="font-size:12px;color:#B42318;margin-top:6px;">⚠️ รายการเดิมไม่มีวันที่เข้าใช้บริการ</div>';
     const appt = t.appt_date ? ('<div style="font-size:12px;color:#666;margin-top:6px;padding-top:6px;border-top:1px dashed #ddd;">📅 นัดครั้งถัดไป: ' + t.appt_date + (t.appt_stylist ? (' กับ ' + t.appt_stylist) : '') + (t.appt_service ? (' — ' + t.appt_service) : '') + '</div>') : '';
     return '<div class="crm-card" style="margin-bottom:12px;">' +
       slip +
@@ -5784,10 +5882,12 @@ async function crm_renderAdminTxnList() {
         '<div style="font-size:18px;font-weight:800;color:var(--crm-gold-dark);">฿' + Number(t.amount || 0).toLocaleString() + '</div>' +
         '<div style="font-size:12px;color:#8B7520;">≈ ' + (t.est_points || 0) + ' พอยท์</div>' +
       '</div>' +
+      serviceDate +
       appt +
+      (t.receipt_no ? '<div class="nhs-receipt-source-note">🧾 ใบเสร็จที่ผูกแล้ว: ' + t.receipt_no + '</div>' : '') +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">' +
         '<button class="btn btn-outline btn-sm" onclick="crm_txnEdit(' + t.db_id + ')">✏️ แก้ไข</button>' +
-        '<button class="btn btn-gold btn-sm" onclick="crm_txnConfirm(' + t.db_id + ')">✅ ยืนยัน</button>' +
+        '<button class="btn btn-gold btn-sm" onclick="crm_openReceiptForTxn(' + t.db_id + ')">🧾 เปิดใบเสร็จฉบับเต็ม</button>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -5809,13 +5909,16 @@ async function crm_txnEdit(dbId) {
   if (isNaN(newAmt) || newAmt <= 0) return toast('⚠️ จำนวนเงินไม่ถูกต้อง');
   const newService = prompt('แก้ไขรายการที่ทำ:', t.service || '');
   if (newService === null) return;
-
+  const newServiceDate = prompt('แก้ไขวันที่เข้าใช้บริการ (YYYY-MM-DD):', t.service_date || '');
+  if (newServiceDate === null) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(newServiceDate.trim())) return toast('⚠️ วันที่ต้องอยู่ในรูปแบบ YYYY-MM-DD');
   try {
     const rate = t.rate_used || await getPointRate();
     const newPoints = Math.floor(newAmt / rate);
     const updated = Object.assign({}, t, {
       amount: newAmt,
       service: newService,
+      service_date: newServiceDate.trim(),
       est_points: newPoints,
       edited: true,
       edited_at: new Date().toISOString()
@@ -5832,45 +5935,72 @@ async function crm_txnEdit(dbId) {
 
 /** ยืนยันรายการ: บวกพอยท์จริง + บันทึกประวัติ + โชว์ป๊อบอัพใบเสร็จ + ลดจำนวน badge ตามลำดับ */
 async function crm_txnConfirm(dbId) {
-  const t = await crm_getTxnById(dbId);
-  if (!t) return toast('❌ ไม่พบรายการนี้');
-  if (t.status === 'confirmed') return toast('รายการนี้ยืนยันไปแล้ว');
-  if (!confirm('ยืนยันรายการนี้และเพิ่ม ' + (t.est_points || 0) + ' พอยท์ให้ลูกค้า?')) return;
-
-  try {
-    toast('กำลังยืนยัน...');
-    const newTotal = await adjustPoints(t.phone, t.est_points || 0, 'ยืนยันรายการ: ' + (t.service || ''));
-    const updated = Object.assign({}, t, {
-      status: 'confirmed',
-      confirmed_at: new Date().toISOString(),
-      points_awarded: t.est_points || 0
-    });
-    delete updated.db_id; delete updated.pts; delete updated.type; delete updated._ts;
-    await crm_dbUpdate(dbId, 'txn', updated, t.est_points || 0);
-
-    // ป๊อบอัพยืนยันสำเร็จ พร้อมใบเสร็จอิเล็กทรอนิกส์แบบย่อ
-    const now = new Date();
-    $('txn-confirm-pop-text').textContent = 'เพิ่ม ' + (t.est_points || 0) + ' พอยท์ ให้ ' + (t.cust_name || t.phone) + ' เรียบร้อย';
-    $('txn-confirm-receipt').innerHTML =
-      '<div style="text-align:center;font-weight:800;color:#E9C766;margin-bottom:8px;">🧾 ใบเสร็จอิเล็กทรอนิกส์</div>' +
-      '<div>สมาชิก: ' + (t.cust_name || '-') + ' (' + (t.nhs_id || t.phone) + ')</div>' +
-      '<div>รายการ: ' + (t.service || '-') + '</div>' +
-      '<div>ยอดชำระ: ฿' + Number(t.amount || 0).toLocaleString() + '</div>' +
-      '<div>พอยท์ที่ได้รับ: +' + (t.est_points || 0) + ' พอยท์</div>' +
-      '<div>พอยท์คงเหลือ: ' + newTotal + ' พอยท์</div>' +
-      '<div style="color:#999;font-size:11px;margin-top:6px;">วันที่ ' + now.toLocaleDateString('th-TH') + ' ' + now.toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'}) + '</div>';
-
-    const remaining = await crm_refreshTxnBadge();
-    $('txn-confirm-remaining').textContent = remaining;
-    openM('mTxnConfirmed');
-
-    await crm_renderAdminTxnList();
-  } catch (e) {
-    console.error('crm_txnConfirm', e);
-    toast('❌ ยืนยันไม่สำเร็จ: ' + (e.message || e));
-  }
+  return crm_openReceiptForTxn(dbId);
 }
 
+let crm_receiptTxnId = null;
+let crm_receiptTxn = null;
+async function crm_openReceiptForTxn(dbId) {
+  const t = await crm_getTxnById(dbId);
+  if (!t) return toast('❌ ไม่พบรายการสลิปนี้');
+  if (t.status === 'confirmed' && t.receipt_no) return toast('รายการนี้ผูกใบเสร็จแล้ว: ' + t.receipt_no);
+  const customer = await nhs_findCustomerByPhone(t.phone);
+  if (!customer || !customer.id) return toast('❌ ไม่พบสมาชิกจากเบอร์โทรของสลิปนี้');
+  const preparedCustomer = Object.assign({}, customer, { nhs_id: nhs_memberDisplayId(customer) });
+  rc_openNew(preparedCustomer);
+  // rc_openNew resets receipt-flow state for ordinary receipts; restore the txn link after opening the form.
+  crm_receiptTxnId = t.db_id;
+  crm_receiptTxn = t;
+  const discType = $('rc-discount-type');
+  if (discType) { discType.value = 'none'; rc_onDiscountTypeChange(); }
+  rcItems = [{ id: 1, name: t.service || 'บริการร้านทำผม', price: Number(t.amount || 0), qty: 1 }];
+  rcItemSeq = 1;
+  rc_renderItems();
+  if ($('rc-staff-name')) $('rc-staff-name').value = 'พนักงานตรวจสอบสลิป';
+  const serviceDateRow = $('rc-service-date-row');
+  const serviceDateEl = $('rc-service-date');
+  if (serviceDateEl) serviceDateEl.textContent = t.service_date || '-';
+  if (serviceDateRow) serviceDateRow.style.display = t.service_date ? '' : 'none';
+  const sourceNote = $('rc-source-txn-note');
+  if (sourceNote) {
+    sourceNote.style.display = 'block';
+    sourceNote.textContent = 'เชื่อมจากรายการสลิป #' + t.db_id + (t.service_date ? ' · วันที่เข้าใช้บริการ ' + t.service_date : '');
+  }
+  rc_calcTotals();
+}
+function crm_cancelReceiptFlow() {
+  crm_receiptTxnId = null;
+  crm_receiptTxn = null;
+  rcLocked = false;
+  if (nhs_isAdminLoggedIn()) {
+    crm_showPage('pg-admin-crm');
+    const tabEl = document.querySelector('.admin-tab-item[onclick*="\'txn\'"]');
+    crm_adminTab('txn', tabEl);
+  } else {
+    crm_showPage('pg-crm-home');
+  }
+}
+async function crm_syncTxnAfterReceipt(receiptData) {
+  if (!crm_receiptTxnId) return true;
+  const current = crm_receiptTxn || await crm_getTxnById(crm_receiptTxnId);
+  if (!current || current.status === 'confirmed') return false;
+  const points = Number(receiptData.earned_points || 0);
+  const updated = Object.assign({}, current, {
+    status: 'confirmed',
+    points_awarded: points,
+    receipt_id: receiptData.receipt_no,
+    receipt_no: receiptData.receipt_no,
+    receipt_status: 'issued',
+    confirmed_at: new Date().toISOString()
+  });
+  delete updated.db_id; delete updated.pts; delete updated._ts; delete updated.type;
+  const ok = await crm_dbUpdate(crm_receiptTxnId, 'txn', updated, points);
+  if (ok) {
+    crm_receiptTxn = updated;
+    await crm_refreshTxnBadge();
+  }
+  return ok;
+}
 let crm_newsImgData = '';
 
 /** บีบอัดรูปก่อนเก็บ — ลดขนาดให้เก็บ local + DB ได้ */
@@ -5937,69 +6067,101 @@ function crm_setNewsImageUrl() {
   if (prev) { prev.src = url; prev.style.display = 'block'; }
 }
 
+let crm_newsEditingId = null;
+function crm_resetNewsForm() {
+  crm_newsEditingId = null;
+  if ($('adm-news-title')) $('adm-news-title').value = '';
+  if ($('adm-news-content')) $('adm-news-content').value = '';
+  if ($('adm-news-type')) $('adm-news-type').value = 'ข่าวสารร้าน';
+  if ($('adm-news-img-url')) $('adm-news-img-url').value = '';
+  if ($('adm-news-img-preview')) { $('adm-news-img-preview').style.display = 'none'; $('adm-news-img-preview').src = ''; }
+  if ($('adm-news-img-file')) $('adm-news-img-file').value = '';
+  crm_newsImgData = '';
+  if ($('adm-news-form-title')) $('adm-news-form-title').textContent = '📢 เพิ่มข่าวสาร/โปรโมชั่น';
+  if ($('adm-news-save-btn')) $('adm-news-save-btn').textContent = '📢 เพิ่มข่าวสาร';
+  if ($('adm-news-cancel-btn')) $('adm-news-cancel-btn').style.display = 'none';
+}
+async function crm_editNews(id) {
+  let local = [];
+  try { local = JSON.parse(localStorage.getItem(CRM_PRE + 'news') || '[]') || []; } catch (e) { local = []; }
+  let item = local.find(n => String(n.db_id || n.id) === String(id));
+  if (!item) {
+    try {
+      const rows = await crm_dbFetchByType('news');
+      item = rows.find(n => String(n.db_id || n.id) === String(id));
+    } catch (e) {}
+  }
+  if (!item) return toast('❌ ไม่พบข่าวสารนี้');
+  crm_newsEditingId = item.db_id || item.id;
+  if ($('adm-news-type')) $('adm-news-type').value = item.newsType || item.type || 'ข่าวสารร้าน';
+  if ($('adm-news-title')) $('adm-news-title').value = item.title || '';
+  if ($('adm-news-content')) $('adm-news-content').value = item.content || '';
+  crm_newsImgData = item.image || '';
+  if ($('adm-news-img-url')) $('adm-news-img-url').value = validateImageUrl(item.image || '') ? item.image : '';
+  if ($('adm-news-img-preview')) {
+    $('adm-news-img-preview').src = item.image || '';
+    $('adm-news-img-preview').style.display = item.image ? 'block' : 'none';
+  }
+  if ($('adm-news-form-title')) $('adm-news-form-title').textContent = '✏️ แก้ไขข่าวสาร/โปรโมชั่น';
+  if ($('adm-news-save-btn')) $('adm-news-save-btn').textContent = '💾 บันทึกการแก้ไข';
+  if ($('adm-news-cancel-btn')) $('adm-news-cancel-btn').style.display = 'block';
+  const form = document.getElementById('adm-crm-news');
+  if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 async function crm_adminAddNews() {
   try {
     const title = ($('adm-news-title') && $('adm-news-title').value || '').trim();
     const content = ($('adm-news-content') && $('adm-news-content').value || '').trim();
     if (!title || !content) return toast('กรุณากรอกหัวข้อและเนื้อหา');
-
-    let imgFull = crm_newsImgData || '';
-    // รูป data: เก็บ local ได้ — ใส่ DB เฉพาะถ้าย่อแล้วไม่ใหญ่เกิน
+    let localNews = [];
+    try { localNews = JSON.parse(localStorage.getItem(CRM_PRE + 'news') || '[]') || []; } catch (e) { localNews = []; }
+    const editing = crm_newsEditingId != null;
+    const existing = editing ? localNews.find(n => String(n.db_id || n.id) === String(crm_newsEditingId)) : null;
+    let imgFull = crm_newsImgData || (existing && existing.image) || '';
     let imgForDb = '';
     if (imgFull) {
       if (validateImageUrl(imgFull)) imgForDb = imgFull;
       else if (imgFull.indexOf('data:image') === 0 && imgFull.length < 100000) imgForDb = imgFull;
     }
-
     const item = {
-      id: Date.now(),
-      newsType: ($('adm-news-type') && $('adm-news-type').value) || 'ทั่วไป',
+      id: existing && existing.id ? existing.id : Date.now(),
+      db_id: existing && existing.db_id ? existing.db_id : undefined,
+      newsType: ($('adm-news-type') && $('adm-news-type').value) || 'ข่าวสารร้าน',
       title: title,
       content: content,
       image: imgFull,
       date: new Date().toISOString()
     };
-
-    // 1) บันทึก local ก่อนเสมอ
-    let news = [];
-    try { news = JSON.parse(localStorage.getItem(CRM_PRE + 'news') || '[]') || []; } catch (e) { news = []; }
-    news.unshift(item);
-    localStorage.setItem(CRM_PRE + 'news', JSON.stringify(news));
-
-    // 2) ซิงค์ DB
-    const dbPayload = {
-      id: item.id,
-      newsType: item.newsType,
-      title: item.title,
-      content: item.content,
-      image: imgForDb,
-      date: item.date
-    };
-    const saved = await crm_dbInsert('news', dbPayload, 0);
-    if (saved && saved.db_id) {
-      item.db_id = saved.db_id;
-      news[0] = item;
-      localStorage.setItem(CRM_PRE + 'news', JSON.stringify(news));
+    if (!item.db_id) delete item.db_id;
+    let synced = false;
+    let saved = null;
+    if (editing && item.db_id) {
+      const dbPayload = { id: item.id, newsType: item.newsType, title: item.title, content: item.content, image: imgForDb, date: item.date };
+      synced = await crm_dbUpdate(item.db_id, 'news', dbPayload, 0);
+      saved = synced ? item : null;
+    } else if (!editing) {
+      const dbPayload = { id: item.id, newsType: item.newsType, title: item.title, content: item.content, image: imgForDb, date: item.date };
+      saved = await crm_dbInsert('news', dbPayload, 0);
+      synced = !!saved;
+      if (saved && saved.db_id) item.db_id = saved.db_id;
     }
-
-    if ($('adm-news-title')) $('adm-news-title').value = '';
-    if ($('adm-news-content')) $('adm-news-content').value = '';
-    if ($('adm-news-img-url')) $('adm-news-img-url').value = '';
-    if ($('adm-news-img-preview')) {
-      $('adm-news-img-preview').style.display = 'none';
-      $('adm-news-img-preview').src = '';
+    if (editing) {
+      const idx = localNews.findIndex(n => String(n.db_id || n.id) === String(crm_newsEditingId));
+      if (idx >= 0) localNews[idx] = Object.assign({}, localNews[idx], item);
+      else localNews.unshift(item);
+    } else {
+      localNews.unshift(item);
     }
-    crm_newsImgData = '';
-    if ($('adm-news-img-file')) $('adm-news-img-file').value = '';
-
+    localStorage.setItem(CRM_PRE + 'news', JSON.stringify(localNews));
+    crm_resetNewsForm();
     await crm_renderAdminNewsList();
-    toast(saved ? '✅ เพิ่มข่าวสารสำเร็จ!' : '✅ บันทึกข่าวแล้วในเครื่อง (ซิงค์ DB ไม่สำเร็จ — ตรวจตาราง crm_rewards)');
+    if (editing) toast(synced ? '✅ แก้ไขข่าวสารสำเร็จ!' : '✅ แก้ไขในเครื่องแล้ว (ซิงค์ DB ไม่สำเร็จ)');
+    else toast(synced ? '✅ เพิ่มข่าวสารสำเร็จ!' : '✅ บันทึกข่าวแล้วในเครื่อง (ซิงค์ DB ไม่สำเร็จ)');
   } catch (err) {
     console.error('crm_adminAddNews', err);
-    toast('❌ โพสต์ไม่สำเร็จ: ' + (err && err.message ? err.message : String(err)));
+    toast('❌ บันทึกข่าวสารไม่สำเร็จ: ' + (err && err.message ? err.message : String(err)));
   }
 }
-
 async function crm_renderAdminNewsList() {
   let fromDb = [];
   try { fromDb = await crm_dbFetchByType('news'); } catch (e) { fromDb = []; }
@@ -6025,7 +6187,10 @@ async function crm_renderAdminNewsList() {
         <div style="font-weight:700;font-size:13px;">${n.title}</div>
         <div style="font-size:11px;color:#999;">${n.newsType || n.type || ''} • ${new Date(n.date).toLocaleDateString('th-TH')}</div>
       </div>
-      <button class="btn btn-sm btn-no" onclick="crm_deleteNews(${delId})">ลบ</button>
+      <div class="nhs-news-admin-actions">
+        <button class="btn btn-sm btn-outline" onclick="crm_editNews(${delId})">แก้ไข</button>
+        <button class="btn btn-sm btn-no" onclick="crm_deleteNews(${delId})">ลบ</button>
+      </div>
     </div>`;
   }).join('') || '<div style="text-align:center;color:#999;padding:20px;">ยังไม่มีข่าวสาร</div>';
 }
@@ -6354,7 +6519,7 @@ async function crm_renderNews() {
     el.innerHTML = news.map(n => `
       <div class="crm-card">
         ${n.image ? `<img src="${n.image}" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:10px;">` : ''}
-        <div style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;background:#F3E5F5;color:#7B1FA2;margin-bottom:5px;">${n.newsType || n.type || 'ทั่วไป'}</div>
+        <div style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;background:#F6EED8;color:#8B6B25;margin-bottom:5px;">${n.newsType || n.type || 'ทั่วไป'}</div>
         <div style="font-weight:700; font-size:14px; margin-bottom:5px;">${n.title}</div>
         <div style="font-size:12px; color:#666;">${new Date(n.date).toLocaleDateString('th-TH')}</div>
         <div style="margin-top:10px; font-size:13px;">${n.content}</div>
@@ -6731,6 +6896,8 @@ function rc_onDiscountTypeChange() {
 }
 
 function rc_openNew(customer) {
+  crm_receiptTxnId = null;
+  crm_receiptTxn = null;
   rcItems = []; rcItemSeq = 0; rcCurrentReceiptId = null; rcLocked = false;
   rcSelectedCustomer = customer || null;
   const now = new Date();
@@ -6742,11 +6909,17 @@ function rc_openNew(customer) {
   const depositEl = $('rc-has-deposit'); if (depositEl) depositEl.checked = false;
   const staffNameEl = $('rc-staff-name'); if (staffNameEl) staffNameEl.value = '';
   if (customer) rc_bindCustomer(customer); else rc_clearCustomerBox();
+  const serviceDateRow = $('rc-service-date-row');
+  if (serviceDateRow) serviceDateRow.style.display = 'none';
+  const sourceNote = $('rc-source-txn-note');
+  if (sourceNote) { sourceNote.style.display = 'none'; sourceNote.textContent = ''; }
   rc_addItem();
   showPage('pg-rc-form');
 }
 
 function rc_clearCustomerBox() {
+  const serviceDateRow = $('rc-service-date-row');
+  if (serviceDateRow) serviceDateRow.style.display = 'none';
   $('rc-cust-id').value = '';
   $('rc-cust-nhs').textContent = '-'; $('rc-cust-name').textContent = '-';
   $('rc-cust-phone').textContent = '-'; $('rc-cust-level').textContent = '-';
@@ -6756,6 +6929,7 @@ function rc_clearCustomerBox() {
 
 function rc_bindCustomer(c) {
   rcSelectedCustomer = c;
+  if (c) c.nhs_id = nhs_memberDisplayId(c);
   $('rc-cust-id').value = c.id;
   $('rc-cust-nhs').textContent = c.nhs_id || '-';
   $('rc-cust-name').textContent = c.name || '-';
@@ -6845,6 +7019,10 @@ function rc_calcTotals() {
     discount = Math.max(0, Math.min(subtotal, customVal));
     pct = subtotal > 0 ? Math.round((discount / subtotal) * 100) : 0;
     labelHtml = `ส่วนลด กำหนดเอง (-฿${discount.toLocaleString()})`;
+  } else if (type === 'none') {
+    pct = 0;
+    discount = 0;
+    labelHtml = 'ไม่ใช้ส่วนลด (<span id="rc-discount-pct">0</span>%)';
   } else {
     // 'member' (default): ส่วนลดตามระดับสมาชิกอัตโนมัติ
     discount = Math.round(subtotal * pct / 100);
@@ -6929,6 +7107,7 @@ async function rc_save() {
   const receiptNo = await rc_generateReceiptNo();
   const payMethod = document.querySelector('input[name="rc-pay"]:checked')?.value || 'เงินสด';
 
+  const serviceDate = (crm_receiptTxn && crm_receiptTxn.service_date) ? crm_receiptTxn.service_date : '';
   const receiptData = {
     receipt_no: receiptNo,
     customer_id: rcSelectedCustomer.id,
@@ -6945,7 +7124,9 @@ async function rc_save() {
     deposit_amount: deposit,
     need_to_pay_today: todayPay,
     earned_points: earnedPoints,
-    has_deposit: hasDeposit
+    has_deposit: hasDeposit,
+    service_date: serviceDate || null,
+    source_txn_id: crm_receiptTxnId || null
   };
 
   // บันทึกลง localStorage และ พยายามบันทึกลง crm_rewards หากทำได้
@@ -6965,7 +7146,9 @@ async function rc_save() {
       deposit_amount: deposit,
       need_to_pay_today: todayPay,
       earned_points: earnedPoints,
-      has_deposit: hasDeposit
+      has_deposit: hasDeposit,
+      service_date: serviceDate || null,
+      source_txn_id: crm_receiptTxnId || null
     }, Math.round(net));
   } catch(e) {
     console.warn('crm_rewards receipt log note:', e);
@@ -6978,12 +7161,10 @@ async function rc_save() {
   const earnedPts = earnedPoints;
   let latestPts = rcSelectedCustomer.points || 0;
   try {
-    const { data: latestCust } = await db.from('customers').select('points,total_spend,visits,member_level').eq('id', rcSelectedCustomer.id).maybeSingle();
+    const { data: latestCust } = await db.from('customers').select('points,visits,last_visit').eq('id', rcSelectedCustomer.id).maybeSingle();
     if (latestCust) {
       latestPts = latestCust.points || 0;
-      rcSelectedCustomer.total_spend = latestCust.total_spend;
       rcSelectedCustomer.visits = latestCust.visits;
-      rcSelectedCustomer.member_level = latestCust.member_level;
     }
   } catch (e) {}
   const newSpend = (rcSelectedCustomer.total_spend || 0) + net;
@@ -6996,9 +7177,17 @@ async function rc_save() {
   }
   const leveledUp = newLevel !== (rcSelectedCustomer.member_level || 'ทั่วไป');
 
-  const { error: custErr } = await db.from('customers').update({
-    total_spend: newSpend, points: newPoints, visits: newVisits, member_level: newLevel
-  }).eq('id', rcSelectedCustomer.id);
+  const customerUpdate = {
+    total_spend: newSpend,
+    points: newPoints,
+    visits: newVisits,
+    member_level: newLevel,
+    last_visit: serviceDate || new Date().toISOString().slice(0, 10)
+  };
+  const safeCustomerUpdate = (typeof nhs_safeCustomerUpdate === 'function')
+    ? await nhs_safeCustomerUpdate(rcSelectedCustomer.id, customerUpdate, false)
+    : await db.from('customers').update(customerUpdate).eq('id', rcSelectedCustomer.id).select().maybeSingle();
+  const custErr = safeCustomerUpdate && safeCustomerUpdate.error;
 
   if (custErr) {
     toast('⚠️ บันทึกใบเสร็จแล้ว แต่อัปเดตแต้มลูกค้าไม่สำเร็จ: ' + custErr.message);
@@ -7014,6 +7203,16 @@ async function rc_save() {
     rcSelectedCustomer.total_spend = newSpend;
     rcSelectedCustomer.visits = newVisits;
     rcSelectedCustomer.member_level = newLevel;
+    if (serviceDate) {
+      const serviceDateRow = $('rc-service-date-row');
+      const serviceDateEl = $('rc-service-date');
+      if (serviceDateEl) serviceDateEl.textContent = serviceDate;
+      if (serviceDateRow) serviceDateRow.style.display = '';
+    }
+    if (crm_receiptTxnId) {
+      const linked = await crm_syncTxnAfterReceipt(receiptData);
+      if (!linked) toast('⚠️ บันทึกใบเสร็จแล้ว แต่ยังผูกสถานะสลิปไม่สำเร็จ');
+    }
     toast(leveledUp ? ('✅ บันทึกสำเร็จ! อัปเกรดเป็น ' + newLevel + ' (+' + earnedPts + ' แต้ม)') : ('✅ บันทึกใบเสร็จสำเร็จ (+' + earnedPts + ' แต้ม)'));
   }
 
@@ -7049,6 +7248,10 @@ function rc_view(r) {
   $('rc-discount').textContent = '-฿' + (r.discount_amount || 0).toLocaleString();
   $('rc-net').textContent = '฿' + (r.net_total || 0).toLocaleString();
   $('rc-words').textContent = '(' + thaiBahtText(r.net_total || 0) + ')';
+  const serviceDateRow = $('rc-service-date-row');
+  const serviceDateEl = $('rc-service-date');
+  if (serviceDateEl) serviceDateEl.textContent = r.service_date || '-';
+  if (serviceDateRow) serviceDateRow.style.display = r.service_date ? '' : 'none';
   const payRadio = document.querySelector(`input[name="rc-pay"][value="${r.payment_method}"]`);
   if (payRadio) payRadio.checked = true;
   rc_applyLockState();
@@ -7094,6 +7297,66 @@ function rc_viewByNo(no) {
   rc_view(r);
 }
 
+function rc_downloadJpeg() {
+  if (!rcSelectedCustomer) return toast('❌ ไม่พบข้อมูลลูกค้าในใบเสร็จ');
+  const { subtotal, discount, net, hasDeposit, deposit, todayPay, earnedPoints } = rc_calcTotals();
+  const width = 1200;
+  const itemCount = rcItems.filter(it => it.name || it.price).length;
+  const height = 760 + Math.max(1, itemCount) * 72 + (hasDeposit ? 70 : 0);
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return toast('❌ เบราว์เซอร์ไม่รองรับการสร้าง JPEG');
+  const gold = '#C9A84C', dark = '#1A1A1A', ink = '#2B2925', muted = '#756F66';
+  ctx.fillStyle = '#FAF8F4'; ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = dark; ctx.fillRect(0, 0, width, 170);
+  ctx.fillStyle = gold; ctx.font = '700 42px Georgia, serif'; ctx.fillText('N HAIR STYLIST', 68, 78);
+  ctx.fillStyle = '#FFFDF8'; ctx.font = '24px Arial, sans-serif'; ctx.fillText('PREMIUM HAIR SERVICE', 70, 122);
+  ctx.textAlign = 'right'; ctx.fillStyle = '#F0D78C'; ctx.font = '700 25px Arial, sans-serif'; ctx.fillText('ใบเสร็จรับเงิน', width - 70, 62);
+  ctx.fillStyle = '#FFFDF8'; ctx.font = '700 30px Arial, sans-serif'; ctx.fillText(($('rc-no') && $('rc-no').textContent) || '-', width - 70, 108);
+  ctx.textAlign = 'left';
+  let y = 220;
+  const line = (label, value, x, yy, color=ink) => { ctx.fillStyle = muted; ctx.font = '20px Arial, sans-serif'; ctx.fillText(label, x, yy); ctx.fillStyle = color; ctx.font = '700 21px Arial, sans-serif'; ctx.fillText(String(value || '-'), x + 230, yy); };
+  line('ลูกค้า', rcSelectedCustomer.name || '-', 70, y);
+  line('รหัสสมาชิก', rcSelectedCustomer.nhs_id || '-', 650, y);
+  line('เบอร์โทร', rcSelectedCustomer.phone || '-', 70, y + 42);
+  line('วันที่ออกใบเสร็จ', ($('rc-date') && $('rc-date').textContent) || '-', 650, y + 42);
+  const serviceDate = (crm_receiptTxn && crm_receiptTxn.service_date) || (($('rc-service-date') && $('rc-service-date').textContent) || '');
+  if (serviceDate && serviceDate !== '-') line('วันที่เข้าใช้บริการ', serviceDate, 70, y + 84);
+  y += serviceDate && serviceDate !== '-' ? 150 : 108;
+  ctx.strokeStyle = '#D8C89E'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(70, y); ctx.lineTo(width - 70, y); ctx.stroke();
+  y += 55;
+  ctx.fillStyle = dark; ctx.font = '700 23px Arial, sans-serif'; ctx.fillText('รายการบริการ', 70, y);
+  y += 36;
+  ctx.fillStyle = '#EFE7D3'; ctx.fillRect(70, y - 28, width - 140, 45);
+  ctx.fillStyle = muted; ctx.font = '700 18px Arial, sans-serif'; ctx.fillText('#', 88, y);
+  ctx.fillText('บริการ', 145, y); ctx.textAlign = 'right'; ctx.fillText('ราคา', width - 270, y); ctx.fillText('รวม', width - 90, y); ctx.textAlign = 'left';
+  y += 54;
+  const items = rcItems.filter(it => it.name || it.price);
+  items.forEach((it, idx) => {
+    ctx.fillStyle = ink; ctx.font = '20px Arial, sans-serif'; ctx.fillText(String(idx + 1), 88, y);
+    ctx.fillText(String(it.name || 'บริการ'), 145, y);
+    ctx.textAlign = 'right'; ctx.fillText('฿' + Number(it.price || 0).toLocaleString(), width - 270, y);
+    ctx.font = '700 20px Arial, sans-serif'; ctx.fillText('฿' + (Number(it.price || 0) * Number(it.qty || 1)).toLocaleString(), width - 90, y);
+    ctx.textAlign = 'left'; y += 56;
+  });
+  y += 8; ctx.strokeStyle = '#D8C89E'; ctx.beginPath(); ctx.moveTo(650, y); ctx.lineTo(width - 70, y); ctx.stroke(); y += 45;
+  const totalLine = (label, value, bold=false) => { ctx.fillStyle = bold ? dark : muted; ctx.font = (bold ? '700 24px' : '20px') + 'px Arial, sans-serif'; ctx.fillText(label, 650, y); ctx.textAlign = 'right'; ctx.fillText('฿' + Number(value || 0).toLocaleString(), width - 90, y); ctx.textAlign = 'left'; y += bold ? 50 : 38; };
+  totalLine('ยอดรวมก่อนส่วนลด', subtotal); totalLine('ส่วนลด', discount);
+  if (hasDeposit) { totalLine('มัดจำค่าจองคิว', deposit); totalLine('วันนี้จ่ายเพิ่ม', todayPay); }
+  totalLine('ยอดสุทธิ', net, true); totalLine('พอยท์ที่ได้รับ', earnedPoints, false);
+  y += 28; ctx.fillStyle = gold; ctx.font = '700 21px Arial, sans-serif'; ctx.fillText('ขอบคุณที่ไว้วางใจใช้บริการ N Hair Stylist', 70, y);
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/jpeg', 0.92);
+  const rawReceiptNo = (($('rc-no') && $('rc-no').textContent) || '').trim();
+  const receiptNo = (rawReceiptNo && !rawReceiptNo.includes('จะออกเลขที่'))
+    ? rawReceiptNo.replace(/[^A-Za-z0-9-]/g, '_')
+    : 'NHS-receipt-' + new Date().toISOString().slice(0, 10);
+  a.download = receiptNo + '.jpg';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('✅ บันทึกใบเสร็จเป็น JPEG แล้ว');
+}
+
 function printReceipt() {
   // สร้างเนื้อหาใบเสร็จจากข้อมูลจริงปัจจุบัน (ไม่ clone DOM ตรงๆ)
   // เพื่อป้องกันบั๊ก: ช่องทางชำระ/ราคา/จำนวนที่พิมพ์แก้ไขบนหน้าจอ อาจไม่ถูกสะท้อนตอนพิมพ์
@@ -7103,6 +7366,7 @@ function printReceipt() {
   const payMethod = document.querySelector('input[name="rc-pay"]:checked')?.value || 'เงินสด';
   const staffName = ($('rc-staff-name') && $('rc-staff-name').value.trim()) || '-';
   const custName = $('rc-sign-cust') ? $('rc-sign-cust').textContent : '-';
+  const serviceDateText = $('rc-service-date') ? $('rc-service-date').textContent : '';
   const logoSrc = $('rc-logo') ? $('rc-logo').src : '';
 
   const itemsRows = rcItems.filter(it => it.name || it.price).map((it, idx) => `
@@ -7147,6 +7411,7 @@ function printReceipt() {
               <div>เบอร์โทร: <b>${$('rc-cust-phone').textContent}</b></div>
               <div>ระดับสมาชิก: <b>${$('rc-cust-level').textContent}</b></div>
               <div>คะแนนก่อนใช้: <b>${$('rc-cust-pts-before').textContent}</b> แต้ม</div>
+              ${serviceDateText && serviceDateText !== '-' ? `<div>วันที่เข้าใช้บริการ: <b>${serviceDateText}</b></div>` : ''}
             </div>
           </div>
         </div>

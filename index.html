@@ -1427,6 +1427,226 @@ td { border-color: var(--nhs-theme-line) !important; }
 .bug-header { background: var(--nhs-theme-danger) !important; }
 .btn-bug-fix { background: var(--nhs-theme-ink-soft) !important; }
 #toast { background: rgba(26,26,26,.94) !important; color: #F0D78C !important; }
+
+
+/* === NHS MEMBER DARK MODE ALL CUSTOMER PAGES === */
+/* Keep every customer/member screen on the same charcoal canvas as the member card. */
+body.member-theme {
+  background:
+    radial-gradient(circle at 18% 4%, rgba(201,168,76,.10), transparent 34%),
+    radial-gradient(circle at 88% 90%, rgba(201,168,76,.07), transparent 38%),
+    #171717 !important;
+  color: #F7F3EA !important;
+}
+body.member-theme .page,
+body.member-theme .crm-container,
+body.member-theme #pg-crm-home,
+body.member-theme #pg-crm-submit,
+body.member-theme #pg-crm-rewards,
+body.member-theme #pg-crm-my-rewards,
+body.member-theme #pg-crm-history,
+body.member-theme #pg-crm-news,
+body.member-theme #pg-crm-profile {
+  background: transparent !important;
+  color: #F7F3EA !important;
+}
+body.member-theme .crm-container {
+  max-width: 520px;
+  min-height: calc(100vh - 60px);
+}
+body.member-theme .crm-header-name,
+body.member-theme .nhs-profile-logo-row .ttl {
+  color: #F0D78C !important;
+}
+body.member-theme .crm-header-tagline,
+body.member-theme .nhs-profile-logo-row .sub {
+  color: #C9A84C !important;
+}
+body.member-theme .crm-card,
+body.member-theme .reward-item,
+body.member-theme .history-item,
+body.member-theme .member-card,
+body.member-theme .nhs-id-badge {
+  background: linear-gradient(145deg, #141414 0%, #1D1B18 100%) !important;
+  color: #F7F3EA !important;
+  border: 1px solid rgba(201,168,76,.42) !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.34), 0 0 0 1px rgba(255,255,255,.03) inset !important;
+}
+body.member-theme .crm-title {
+  color: #F0D78C !important;
+  border-left-color: #C9A84C !important;
+}
+body.member-theme .reward-body,
+body.member-theme .hist-item,
+body.member-theme #crm-news-list,
+body.member-theme #crm-my-reward-list,
+body.member-theme #crm-reward-list,
+body.member-theme #crm-hist-list {
+  color: #F7F3EA !important;
+}
+body.member-theme .reward-icon {
+  background: #24211C !important;
+  color: #F0D78C !important;
+  border-right: 1px solid rgba(201,168,76,.18);
+}
+body.member-theme .reward-name,
+body.member-theme .reward-points,
+body.member-theme .reward-pts,
+body.member-theme .hist-in,
+body.member-theme .amt-in {
+  color: #F0D78C !important;
+}
+body.member-theme .hist-out,
+body.member-theme .amt-out {
+  color: #C98270 !important;
+}
+body.member-theme .hist-item { border-bottom-color: rgba(201,168,76,.18) !important; }
+body.member-theme .fl,
+body.member-theme .crm-field-hint,
+body.member-theme .consult-sub-title,
+body.member-theme .crm-divider-or,
+body.member-theme .crm-news-empty,
+body.member-theme .empty-state {
+  color: #B8B0A4 !important;
+}
+body.member-theme .fc,
+body.member-theme .fc:focus,
+body.member-theme #crm-hist-month,
+body.member-theme select.btn-sm,
+body.member-theme textarea,
+body.member-theme input {
+  background: #111111 !important;
+  color: #F7F3EA !important;
+  border-color: rgba(201,168,76,.48) !important;
+}
+body.member-theme .fc::placeholder,
+body.member-theme input::placeholder,
+body.member-theme textarea::placeholder { color: #928A7E !important; }
+body.member-theme .fc:focus { box-shadow: 0 0 0 3px rgba(201,168,76,.18) !important; }
+body.member-theme .btn-outline {
+  background: #171717 !important;
+  color: #F0D78C !important;
+  border-color: #C9A84C !important;
+}
+body.member-theme .btn-gold,
+body.member-theme .btn-consult {
+  background: linear-gradient(135deg, #A77A2F, #C9A84C 55%, #F0D78C) !important;
+  color: #1A1A1A !important;
+}
+body.member-theme .crm-bnav {
+  background: #0F0F0F !important;
+  border-top: 1px solid #C9A84C !important;
+  box-shadow: 0 -8px 24px rgba(0,0,0,.28) !important;
+}
+body.member-theme .crm-nav-item { color: #9B948B !important; }
+body.member-theme .crm-nav-item.active { color: #F0D78C !important; }
+body.member-theme .nhs-profile-avatar {
+  background: #24211C !important;
+  border-color: #C9A84C !important;
+}
+body.member-theme .nhs-id-badge .lbl,
+body.member-theme .nhs-id-badge .cap { color: #C9A84C !important; }
+body.member-theme .nhs-id-badge .num { color: #FFFFFF !important; }
+body.member-theme .nhs-id-badge .tier {
+  background: rgba(201,168,76,.16) !important;
+  color: #F0D78C !important;
+  border-color: rgba(201,168,76,.48) !important;
+}
+/* Inline legacy colors inside customer pages must follow the same dark palette. */
+body.member-theme [style*="background:#fff"],
+body.member-theme [style*="background:#FFF"],
+body.member-theme [style*="background: #fff"],
+body.member-theme [style*="background:#FFFFFF"],
+body.member-theme [style*="background:#f7f7f7"],
+body.member-theme [style*="background:#f0f0f0"] {
+  background: #171717 !important;
+  color: #F7F3EA !important;
+}
+body.member-theme [style*="color:#666"],
+body.member-theme [style*="color: #666"],
+body.member-theme [style*="color:#333"],
+body.member-theme [style*="color: #333"],
+body.member-theme [style*="color:#444"],
+body.member-theme [style*="color: #444"] {
+  color: #B8B0A4 !important;
+}
+body.member-theme [style*="border-top:1px dashed #ccc"] {
+  border-top-color: rgba(201,168,76,.28) !important;
+}
+
+
+/* === MEMBER HOME ACTION BUTTONS === */
+body.member-theme .member-home-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+body.member-theme .member-home-action-grid .btn {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 8px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+body.member-theme .member-action-outline {
+  background: #171717 !important;
+  color: #F0D78C !important;
+  border: 1px solid #C9A84C !important;
+}
+body.member-theme .member-action-outline:hover {
+  background: #2A251A !important;
+  color: #FFFFFF !important;
+}
+body.member-theme .member-action-gold {
+  background: linear-gradient(135deg, #A77A2F, #C9A84C 55%, #F0D78C) !important;
+  color: #1A1A1A !important;
+  border: 1px solid #F0D78C !important;
+}
+body.member-theme .member-action-gold:hover { filter: brightness(1.06); }
+@media (max-width: 380px) {
+  body.member-theme .member-home-action-grid .btn { font-size: 12px; padding-left: 5px; padding-right: 5px; }
+}
+
+
+/* === REVIEW FUNNEL MEMBER THEME === */
+body.member-theme .member-action-review {
+  width: 100%;
+  min-height: 48px;
+  margin: 0 0 10px;
+  border-radius: 14px;
+  background: #171717 !important;
+  color: #F0D78C !important;
+  border: 1px solid #C9A84C !important;
+  font-weight: 800;
+}
+body.member-theme .member-action-review:hover { background: #2A251A !important; color: #FFFFFF !important; }
+body.member-theme .crm-review-card { text-align: center; padding: 22px 18px; }
+body.member-theme .crm-review-brand { color: #F0D78C; letter-spacing: 2px; font-size: 11px; font-weight: 800; margin-bottom: 8px; }
+body.member-theme .crm-review-title { margin-bottom: 4px; }
+body.member-theme .crm-review-subtitle, body.member-theme .crm-review-helper { color: #B9B0A0; font-size: 13px; line-height: 1.6; }
+body.member-theme .crm-review-question { color: #F7F1E3; font-size: 17px; font-weight: 800; line-height: 1.5; margin: 16px 0 4px; }
+body.member-theme .crm-review-stars { display: flex; justify-content: center; gap: 8px; margin: 18px 0 12px; }
+body.member-theme .crm-review-star { background: transparent; border: 0; color: #5A554B; cursor: pointer; font-size: 42px; line-height: 1; padding: 4px; transition: color .2s ease, transform .2s ease; }
+body.member-theme .crm-review-star:hover, body.member-theme .crm-review-star.hover, body.member-theme .crm-review-star.active { color: #F0D78C; transform: scale(1.1); }
+body.member-theme .crm-review-result { margin-top: 14px; }
+body.member-theme .crm-review-badge { display: inline-block; padding: 8px 14px; border-radius: 999px; background: linear-gradient(135deg, #A77A2F, #F0D78C); color: #1A1A1A; font-weight: 800; font-size: 13px; }
+body.member-theme .crm-review-result-title { color: #F7F1E3; font-size: 16px; font-weight: 800; line-height: 1.5; margin: 14px 0 8px; }
+body.member-theme .crm-review-promo { color: #D6CEC0; background: #24211B; border-left: 3px solid #C9A84C; border-radius: 8px; padding: 12px; font-size: 13px; line-height: 1.7; text-align: left; margin-bottom: 14px; }
+body.member-theme .crm-review-platform { display: block; text-decoration: none; border-radius: 12px; padding: 13px 12px; margin: 9px 0; font-weight: 800; color: #FFFFFF; transition: transform .2s ease, filter .2s ease; }
+body.member-theme .crm-review-platform:hover { transform: translateY(-2px); filter: brightness(1.08); }
+body.member-theme .crm-review-google { background: #3D6FD8; }
+body.member-theme .crm-review-tiktok { background: #090909; border: 1px solid #C9A84C; }
+body.member-theme .crm-review-facebook { background: #245CC5; }
+body.member-theme .crm-review-note { color: #AFA79A; font-size: 12px; line-height: 1.6; margin-top: 12px; }
+body.member-theme .crm-review-reset { width: 100%; margin-top: 14px; }
+body.member-theme .crm-review-card .fc { background: #111111 !important; color: #F7F1E3 !important; border-color: #6B4F20 !important; }
+body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-weight: 800; margin-top: 18px; }
+@media (max-width: 380px) {
+  body.member-theme .crm-review-star { font-size: 36px; gap: 4px; padding: 3px; }
+}
 </style>
 </head>
 <body>
@@ -2144,6 +2364,50 @@ td { border-color: var(--nhs-theme-line) !important; }
     </div>
 </div>
 
+<!-- PAGE 9C: REVIEW FUNNEL -->
+<div class="page" id="pg-crm-review">
+  <div class="crm-container">
+    <div class="crm-card crm-review-card">
+      <div class="crm-review-brand">N HAIR STYLIST</div>
+      <div class="crm-title crm-review-title">รีวิวบริการของเรา</div>
+      <div class="crm-review-subtitle">ความคิดเห็นของคุณช่วยให้เราพัฒนาบริการให้ดียิ่งขึ้น</div>
+
+      <div id="crm-review-rating-step">
+        <div class="crm-review-question">คุณพึงพอใจกับบริการของเรามากน้อยแค่ไหน?</div>
+        <div class="crm-review-helper">กดเลือกจำนวนดาวเพื่อให้คะแนน</div>
+        <div class="crm-review-stars" role="radiogroup" aria-label="ให้คะแนนบริการ">
+          <button type="button" class="crm-review-star" data-rating="1" aria-label="1 ดาว">★</button>
+          <button type="button" class="crm-review-star" data-rating="2" aria-label="2 ดาว">★</button>
+          <button type="button" class="crm-review-star" data-rating="3" aria-label="3 ดาว">★</button>
+          <button type="button" class="crm-review-star" data-rating="4" aria-label="4 ดาว">★</button>
+          <button type="button" class="crm-review-star" data-rating="5" aria-label="5 ดาว">★</button>
+        </div>
+      </div>
+
+      <div id="crm-review-happy-step" class="crm-review-result" style="display:none;">
+        <div class="crm-review-badge">ขอบคุณสำหรับคะแนนความประทับใจ</div>
+        <div class="crm-review-result-title">หากประทับใจ 4–5 ดาว ขอเชิญรีวิวร้านของเรา</div>
+        <div class="crm-review-promo">หลังรีวิวแล้ว กรุณาแคปหน้าจอมาแสดงพนักงานหน้าร้าน เพื่อให้พนักงานตรวจสอบสิทธิ์ส่วนลด 3% สำหรับบิลถัดไป <strong>ระบบยังไม่เปิดส่วนลดอัตโนมัติ</strong></div>
+        <a class="crm-review-platform crm-review-google" href="https://maps.app.goo.gl/4eJNB26K2UZWXUn67?g_st=ic" target="_blank" rel="noopener noreferrer">📍 รีวิวบน Google Maps</a>
+        <a class="crm-review-platform crm-review-tiktok" href="https://www.tiktok.com/@nhairstylist1" target="_blank" rel="noopener noreferrer">🎵 โพสต์/รีวิวบน TikTok</a>
+        <a class="crm-review-platform crm-review-facebook" href="https://www.facebook.com/share/1JBGL4he9B/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer">👍 รีวิวบน Facebook Page</a>
+        <div class="crm-review-note">สิทธิ์ส่วนลดต้องให้พนักงานตรวจสอบจากภาพหน้าจอด้วยตนเองก่อนใช้งาน</div>
+        <button type="button" class="btn btn-outline crm-review-reset" onclick="crm_reviewReset()">ให้คะแนนใหม่</button>
+      </div>
+
+      <div id="crm-review-unhappy-step" class="crm-review-result" style="display:none;">
+        <div class="crm-review-result-title">ขออภัยที่บริการยังไม่ตรงความคาดหวัง</div>
+        <div class="crm-review-subtitle">กรุณาฝากข้อเสนอแนะเพื่อให้พนักงานรับทราบและดูแลคุณต่อที่หน้าร้าน</div>
+        <textarea id="crm-review-feedback" class="fc" rows="4" placeholder="ข้อติชมหรือสิ่งที่ต้องการให้ปรับปรุง"></textarea>
+        <input id="crm-review-contact" class="fc" type="text" placeholder="เบอร์โทร / LINE ID (ถ้าต้องการให้ติดต่อกลับ)">
+        <button type="button" class="btn btn-gold" style="width:100%;" onclick="crm_reviewNotifyStaff()">ส่งข้อความให้พนักงานรับทราบ</button>
+        <div class="crm-review-note">รอบนี้ยังไม่บันทึกข้อความลงฐานข้อมูล กรุณาแสดงหน้าจอนี้หรือแจ้งพนักงานหน้าร้านโดยตรง</div>
+        <button type="button" class="btn btn-outline crm-review-reset" onclick="crm_reviewReset()">ให้คะแนนใหม่</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- PAGE 10: REWARDS LIST -->
 <div class="page" id="pg-mem-rewards">
     <div class="loyalty-container">
@@ -2318,8 +2582,12 @@ td { border-color: var(--nhs-theme-line) !important; }
         <button type="button" onclick="crm_showPage('pg-crm-history')" style="background:none;border:none;color:#5B6CFF;font-size:13px;font-weight:600;cursor:pointer;">ดูประวัติพอยท์ ›</button>
       </div>
 
+      <div class="member-home-action-grid" aria-label="บริการสำหรับสมาชิก">
+        <button type="button" class="btn member-action-outline" id="btnHairCheck" onclick="crm_openHairAssessment()">🔍 ประเมินเส้นผม</button>
+        <button type="button" class="btn member-action-gold" id="btnUploadReceipt" onclick="crm_showPage('pg-crm-submit')">📄 ส่งสลิปแลก Point</button>
+      </div>
+      <button type="button" class="btn member-action-review" id="btnReviewFunnel" onclick="crm_openReview()">⭐ รีวิวร้าน / รับสิทธิ์ตรวจสอบส่วนลด 3%</button>
       <button class="btn btn-gold" style="width:100%; margin-bottom:10px; padding:14px; font-size:15px;" onclick="crm_showPage('pg-crm-rewards')">🎁 แลกของรางวัล</button>
-      <button class="btn btn-gold" style="width:100%; margin-bottom:10px; padding:14px; font-size:15px; background:#1A1A1A; color:#E9C766; border:2px solid #C9A84C;" onclick="crm_showPage('pg-crm-submit')">💎 ใช้บัตรแลกพอยท์</button>
 
       <div class="crm-card" style="text-align:center; padding:16px;">
         <div style="font-size:12px; color:#666; margin-bottom:10px;">แสดงรหัสนี้ให้ช่างเพื่อรับพอยท์</div>
@@ -2805,7 +3073,8 @@ function showPage(id) {
       'pg-crm-my-rewards': 'pg-crm-rewards',
       'pg-crm-history': 'pg-crm-history',
       'pg-crm-news': 'pg-crm-news',
-      'pg-crm-profile': 'pg-crm-profile'
+      'pg-crm-profile': 'pg-crm-profile',
+      'pg-crm-review': 'pg-crm-home'
     };
     const activeTab = MEMBER_PAGE_TO_TAB[id];
     crmBnav.style.display = activeTab ? 'flex' : 'none';
@@ -4939,9 +5208,83 @@ function crm_showMember() {
   if ($('crm-reward-pts')) $('crm-reward-pts').textContent = (crm_member.points || 0).toLocaleString();
 }
 
+function crm_openHairAssessment() {
+  // เปิด customer consultation route เดิม ไม่สร้างไฟล์หน้าใหม่และไม่เปิดเครื่องมือพนักงาน
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('mode', 'customer');
+  url.hash = '';
+  window.location.href = url.toString();
+}
+
+function crm_openReview() {
+  crm_showPage('pg-crm-review');
+}
+
+function crm_reviewReset() {
+  const rating = document.getElementById('crm-review-rating-step');
+  const happy = document.getElementById('crm-review-happy-step');
+  const unhappy = document.getElementById('crm-review-unhappy-step');
+  if (rating) rating.style.display = 'block';
+  if (happy) happy.style.display = 'none';
+  if (unhappy) unhappy.style.display = 'none';
+  document.querySelectorAll('.crm-review-star').forEach(function(btn) { btn.classList.remove('active'); });
+  const feedback = document.getElementById('crm-review-feedback');
+  const contact = document.getElementById('crm-review-contact');
+  if (feedback) feedback.value = '';
+  if (contact) contact.value = '';
+}
+
+function crm_reviewChooseRating(value) {
+  value = parseInt(value, 10) || 0;
+  document.querySelectorAll('.crm-review-star').forEach(function(btn) {
+    btn.classList.toggle('active', parseInt(btn.getAttribute('data-rating'), 10) <= value);
+  });
+  const rating = document.getElementById('crm-review-rating-step');
+  const happy = document.getElementById('crm-review-happy-step');
+  const unhappy = document.getElementById('crm-review-unhappy-step');
+  if (rating) rating.style.display = 'none';
+  if (value >= 4) {
+    if (happy) happy.style.display = 'block';
+    if (unhappy) unhappy.style.display = 'none';
+  } else {
+    if (happy) happy.style.display = 'none';
+    if (unhappy) unhappy.style.display = 'block';
+  }
+}
+
+function crm_reviewNotifyStaff() {
+  const feedback = (document.getElementById('crm-review-feedback')?.value || '').trim();
+  if (!feedback) return toast('กรุณาระบุข้อเสนอแนะก่อนส่ง');
+  const box = document.getElementById('crm-review-unhappy-step');
+  if (box) {
+    box.innerHTML = '<div class="crm-review-success">รับทราบข้อเสนอแนะแล้วครับ</div>' +
+      '<div class="crm-review-note">ข้อความนี้ยังไม่ได้บันทึกลงฐานข้อมูล กรุณาแสดงหน้าจอนี้หรือแจ้งพนักงานหน้าร้านเพื่อให้รับทราบ</div>' +
+      '<button type="button" class="btn btn-outline crm-review-reset" onclick="crm_reviewReset()">กลับไปให้คะแนนใหม่</button>';
+  }
+}
+
+function crm_initReviewFunnel() {
+  if (window._crmReviewBound) return;
+  window._crmReviewBound = true;
+  document.querySelectorAll('.crm-review-star').forEach(function(btn) {
+    btn.addEventListener('click', function() { crm_reviewChooseRating(this.getAttribute('data-rating')); });
+    btn.addEventListener('mouseenter', function() {
+      const value = parseInt(this.getAttribute('data-rating'), 10) || 0;
+      document.querySelectorAll('.crm-review-star').forEach(function(s) {
+        s.classList.toggle('hover', parseInt(s.getAttribute('data-rating'), 10) <= value);
+      });
+    });
+    btn.addEventListener('mouseleave', function() {
+      document.querySelectorAll('.crm-review-star').forEach(function(s) { s.classList.remove('hover'); });
+    });
+  });
+}
+
 function crm_showPage(id) {
   showPage(id);
-  document.body.classList.toggle('member-theme', id === 'pg-crm-home');
+  const memberPages = ['pg-crm-home', 'pg-crm-submit', 'pg-crm-review', 'pg-crm-rewards', 'pg-crm-my-rewards', 'pg-crm-history', 'pg-crm-news', 'pg-crm-profile'];
+  document.body.classList.toggle('member-theme', memberPages.includes(id));
   if(id === 'pg-crm-home') crm_init();
   if(id === 'pg-crm-rewards') crm_renderRewards();
   if(id === 'pg-crm-my-rewards') crm_renderMyRewards();
@@ -4949,6 +5292,7 @@ function crm_showPage(id) {
   if(id === 'pg-crm-news') crm_renderNews();
   if(id === 'pg-crm-profile') crm_initProfile();
   if(id === 'pg-crm-submit') crm_initTxnForm();
+  if(id === 'pg-crm-review') { crm_initReviewFunnel(); crm_reviewReset(); }
   if(id === 'pg-admin-crm') {
     crm_loadAdminConfig();
     // เปิดแท็บตั้งค่าเป็นค่าเริ่มต้น

@@ -5919,7 +5919,7 @@ async function crm_handleTxnSlip(input) {
   if (!file) return;
   try {
     toast('กำลังย่อรูป...');
-    const dataUrl = await nhs_compressImageFile(file, 900, 0.72);
+    const dataUrl = await nhs_compressImageFile(file, 640, 0.62, 76000);
     crm_txnImgData = dataUrl;
     const prev = $('txn-slip-preview');
     if (prev) { prev.src = dataUrl; prev.style.display = 'block'; }
@@ -6049,7 +6049,8 @@ async function crm_renderAdminTxnList() {
       (t.receipt_no ? '<div class="nhs-receipt-source-note">🧾 ใบเสร็จที่ผูกแล้ว: ' + t.receipt_no + '</div>' : '') +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">' +
         '<button class="btn btn-outline btn-sm" onclick="crm_txnEdit(' + t.db_id + ')">✏️ แก้ไข</button>' +
-        '<button class="btn btn-gold btn-sm" onclick="crm_openReceiptForTxn(' + t.db_id + ')">🧾 เปิดใบเสร็จฉบับเต็ม</button>' +
+        '<button class="btn btn-no btn-sm" onclick="crm_txnDelete(' + t.db_id + ')">🗑️ ลบรายการ</button>' +
+        '<button class="btn btn-gold btn-sm" style="grid-column:1 / -1;" onclick="crm_openReceiptForTxn(' + t.db_id + ')">🧾 เปิดใบเสร็จฉบับเต็ม</button>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -6113,6 +6114,26 @@ async function crm_txnEdit(dbId) {
   } catch (e) {
     console.error('crm_txnEdit', e);
     toast('❌ แก้ไขไม่สำเร็จ: ' + (e.message || e));
+  }
+}
+
+/** ลบรายการสลิปที่ยังรอตรวจสอบ เพื่อให้ลูกค้าส่งรายการใหม่ได้ */
+async function crm_txnDelete(dbId) {
+  const t = await crm_getTxnById(dbId);
+  if (!t) return toast('❌ ไม่พบรายการนี้');
+  if (t.status !== 'pending') return toast('⚠️ ลบได้เฉพาะรายการที่ยังรอตรวจสอบ');
+  const customer = t.cust_name || t.phone || 'ลูกค้า';
+  const amount = Number(t.amount || 0).toLocaleString();
+  if (!confirm('ยืนยันลบรายการของ ' + customer + ' จำนวน ฿' + amount + '?\n\nหลังลบ ลูกค้าสามารถส่งสลิปใหม่ได้')) return;
+  try {
+    const ok = await crm_dbDelete(dbId);
+    if (!ok) return toast('❌ ลบรายการไม่สำเร็จ กรุณาลองใหม่');
+    toast('✅ ลบรายการแล้ว ลูกค้าส่งสลิปใหม่ได้');
+    await crm_renderAdminTxnList();
+    await crm_refreshTxnBadge();
+  } catch (e) {
+    console.error('crm_txnDelete', e);
+    toast('❌ ลบรายการไม่สำเร็จ: ' + (e.message || e));
   }
 }
 
@@ -6187,9 +6208,10 @@ async function crm_syncTxnAfterReceipt(receiptData) {
 let crm_newsImgData = '';
 
 /** บีบอัดรูปก่อนเก็บ — ลดขนาดให้เก็บ local + DB ได้ */
-function nhs_compressImageFile(file, maxSide, quality) {
+function nhs_compressImageFile(file, maxSide, quality, maxChars) {
   maxSide = maxSide || 800;
   quality = quality || 0.72;
+  maxChars = Number(maxChars) || 0;
   return new Promise(function(resolve, reject) {
     if (!file) return resolve('');
     const reader = new FileReader();
@@ -6199,19 +6221,28 @@ function nhs_compressImageFile(file, maxSide, quality) {
       img.onerror = function() { reject(new Error('ไฟล์ไม่ใช่รูปภาพ')); };
       img.onload = function() {
         try {
-          let w = img.width, h = img.height;
-          if (w > maxSide || h > maxSide) {
-            if (w >= h) { h = Math.round(h * maxSide / w); w = maxSide; }
-            else { w = Math.round(w * maxSide / h); h = maxSide; }
+          let baseW = img.width, baseH = img.height;
+          if (baseW > maxSide || baseH > maxSide) {
+            if (baseW >= baseH) { baseH = Math.round(baseH * maxSide / baseW); baseW = maxSide; }
+            else { baseW = Math.round(baseW * maxSide / baseH); baseH = maxSide; }
           }
           const canvas = document.createElement('canvas');
-          canvas.width = w; canvas.height = h;
           const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          let dataUrl = canvas.toDataURL('image/jpeg', quality);
-          // ถ้ายังใหญ่เกิน ลดคุณภาพอีก
-          if (dataUrl.length > 120000) dataUrl = canvas.toDataURL('image/jpeg', 0.5);
-          if (dataUrl.length > 180000) dataUrl = canvas.toDataURL('image/jpeg', 0.35);
+          let dataUrl = '';
+          // สำหรับสลิป ให้ลดขนาด/คุณภาพเป็นรอบ ๆ จนต่ำกว่าเพดานที่ DB รับได้
+          // ห้ามคืนค่าเป็นค่าว่าง เพราะจะทำให้รายการดูเหมือนไม่มีสลิปแนบ
+          for (let pass = 0; pass < 7; pass++) {
+            const shrink = pass === 0 ? 1 : Math.pow(0.82, pass);
+            const w = Math.max(260, Math.round(baseW * shrink));
+            const h = Math.max(260, Math.round(baseH * shrink));
+            canvas.width = w;
+            canvas.height = h;
+            ctx.clearRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            const q = Math.max(0.22, quality - (pass * 0.08));
+            dataUrl = canvas.toDataURL('image/jpeg', q);
+            if (!maxChars || dataUrl.length <= maxChars || pass === 6) break;
+          }
           resolve(dataUrl);
         } catch (err) { reject(err); }
       };

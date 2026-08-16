@@ -1688,6 +1688,34 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
   .nhs-news-admin-actions { justify-content:flex-start; }
 }
 
+/* === NHS RECORDS HUB === */
+.nhs-records-page { max-width: 980px; margin: 0 auto; }
+.nhs-records-toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:end; }
+.nhs-records-toolbar .fg { flex:1; min-width:140px; margin:0; }
+.nhs-records-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:12px 0; }
+.nhs-records-kpi { border:1px solid #E8E1D6; border-radius:12px; padding:12px; background:#FFFEFC; }
+.nhs-records-kpi-label { font-size:11px; color:#777; }
+.nhs-records-kpi-value { font-size:20px; font-weight:900; margin-top:3px; }
+.nhs-records-chart-grid { display:grid; grid-template-columns:minmax(180px,240px) 1fr; gap:16px; align-items:center; }
+.nhs-records-donut { width:190px; height:190px; border-radius:50%; margin:auto; display:flex; align-items:center; justify-content:center; background:#EEE; }
+.nhs-records-donut-hole { width:108px; height:108px; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.nhs-records-legend { display:flex; gap:12px; flex-wrap:wrap; font-size:12px; color:#555; margin-top:10px; justify-content:center; }
+.nhs-records-dot { width:11px; height:11px; display:inline-block; border-radius:3px; margin-right:4px; vertical-align:-1px; }
+.nhs-records-breakdown-row { display:grid; grid-template-columns:minmax(120px,1fr) minmax(80px,2fr) auto; gap:8px; align-items:center; margin:10px 0; font-size:12px; }
+.nhs-records-breakdown-track { height:10px; background:#EFEAE2; border-radius:999px; overflow:hidden; }
+.nhs-records-breakdown-fill { height:100%; border-radius:999px; min-width:2px; }
+.nhs-record-card { border:1px solid #E8E1D6; border-radius:14px; padding:13px; margin:9px 0; background:#FFFEFC; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+.nhs-record-card:hover { box-shadow:0 6px 18px rgba(0,0,0,.08); }
+.nhs-record-badge { display:inline-flex; padding:3px 8px; border-radius:999px; font-size:10px; font-weight:800; margin-bottom:5px; }
+.nhs-record-badge.receipt { background:#F6EED8; color:#795B1C; }
+.nhs-record-badge.manual { background:#F0F0F0; color:#666; }
+.nhs-record-actions { display:flex; gap:7px; flex-wrap:wrap; margin-top:10px; }
+@media (max-width:620px) {
+  .nhs-records-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .nhs-records-chart-grid { grid-template-columns:1fr; }
+  .nhs-records-donut { width:170px; height:170px; }
+  .nhs-records-toolbar .fg { min-width:125px; }
+}
 </style>
 </head>
 <body>
@@ -1729,19 +1757,6 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
       <div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:16px;color:#E9C766;">มีสลิปลูกค้ารอตรวจสอบ</div><div id="nhs-dash-slip-alert-detail" style="font-size:12px;color:#F4EEE3;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">คลิกเพื่อเปิดหน้าตรวจสอบสลิป</div></div>
       <div style="text-align:right;min-width:52px;"><div id="nhs-dash-slip-alert-count" style="font-size:28px;line-height:1;font-weight:900;color:#E9C766;">0</div><div style="font-size:10px;color:#D8D0C2;">รายการ</div></div>
     </div>
-  </div>
-
-  <div id="nhs-dash-history-card" style="background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
-      <div><h3 style="color:#333;margin:0;font-size:16px;">🗂️ รายการย้อนหลัง</h3><div id="nhs-dash-history-summary" style="font-size:12px;color:#777;margin-top:4px;">เลือกเดือนเพื่อดูรายการจริง</div></div>
-      <button class="btn btn-sm btn-outline" type="button" onclick="nhs_dashRefreshHistory()">🔄 รีเฟรชข้อมูล</button>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px;">
-      <button id="nhs-dash-history-selected" class="btn btn-sm btn-gold" type="button" onclick="nhs_dashSetHistoryView('selected')">เดือนที่เลือก</button>
-      <button id="nhs-dash-history-current" class="btn btn-sm btn-outline" type="button" onclick="nhs_dashSetHistoryView('current')">เดือนปัจจุบัน</button>
-      <button id="nhs-dash-history-all" class="btn btn-sm btn-outline" type="button" onclick="nhs_dashSetHistoryView('all')">ทั้งหมด</button>
-    </div>
-    <div id="nhs-dash-history-list"></div>
   </div>
 
   <div style="background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
@@ -1786,8 +1801,6 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
-    <button class="btn btn-gold" onclick="showPage('pg-inc')">💰 ลงรายรับ</button>
-    <button class="btn btn-no" onclick="showPage('pg-exp')">💸 ลงรายจ่าย</button>
     <button class="btn btn-info" onclick="openCalendarModal()">📅 คิวนัดหมาย</button>
     <button class="btn btn-outline" onclick="showPage('pg-crm')">👥 จัดการลูกค้า</button>
     <button class="btn btn-gold" style="grid-column:span 2;margin-top:5px;background:#C9A84C;border:2px solid #8B7520;" onclick="showPage('pg-consult')">📋 แบบฟอร์มประเมินสภาพเส้นผม (7 ส่วน)</button>
@@ -1934,6 +1947,48 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
       <button class="btn btn-outline" onclick="rc_exportRow()">📊 Excel</button>
     </div>
     <div class="rc-thanks">ขอบคุณที่ไว้วางใจใช้บริการ N Hair Stylist 🙏</div>
+  </div>
+</div>
+
+<!-- PAGE: RECORDS HUB -->
+<div class="page" id="pg-records">
+  <div class="nhs-records-page">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+      <div><div style="font-weight:900;font-size:20px;">📋 รายการ</div><div style="font-size:12px;color:#777;">รายการย้อนหลัง รายรับ รายจ่าย และใบเสร็จในหน้าเดียว</div></div>
+      <button class="btn btn-sm btn-info" type="button" onclick="nhs_recordsRefresh()">🔄 รีเฟรช</button>
+    </div>
+    <div class="card" style="padding:14px;margin-bottom:12px;">
+      <div class="nhs-records-toolbar">
+        <div class="fg"><label class="fl">ปี</label><select id="nhs-records-year" class="fc" onchange="nhs_recordsRender()"><option value="">ทุกปี</option></select></div>
+        <div class="fg"><label class="fl">เดือน</label><select id="nhs-records-month" class="fc" onchange="nhs_recordsRender()"><option value="">ทุกเดือน</option><option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option><option value="03">มีนาคม</option><option value="04">เมษายน</option><option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option><option value="07">กรกฎาคม</option><option value="08">สิงหาคม</option><option value="09">กันยายน</option><option value="10">ตุลาคม</option><option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option></select></div>
+        <div class="fg"><label class="fl">เลือกวันที่เอง</label><input id="nhs-records-date" class="fc" type="date" onchange="nhs_recordsRender()"></div>
+        <div class="fg"><label class="fl">ประเภท</label><select id="nhs-records-kind" class="fc" onchange="nhs_recordsRender()"><option value="all">ทั้งหมด</option><option value="income">รายรับ</option><option value="expense">รายจ่าย</option></select></div>
+        <button class="btn btn-sm btn-outline" type="button" onclick="nhs_recordsClearFilters()">ล้างตัวกรอง</button>
+      </div>
+      <div id="nhs-records-filter-label" style="font-size:12px;color:#777;margin-top:10px;">กำลังโหลดข้อมูล...</div>
+    </div>
+    <div class="nhs-records-kpis">
+      <div class="nhs-records-kpi"><div class="nhs-records-kpi-label">รายการทั้งหมด</div><div class="nhs-records-kpi-value" id="nhs-records-count">0</div></div>
+      <div class="nhs-records-kpi"><div class="nhs-records-kpi-label">รายรับ</div><div class="nhs-records-kpi-value" id="nhs-records-income-total" style="color:#A77A2F;">฿0</div></div>
+      <div class="nhs-records-kpi"><div class="nhs-records-kpi-label">รายจ่าย</div><div class="nhs-records-kpi-value" id="nhs-records-expense-total" style="color:#9B5048;">฿0</div></div>
+      <div class="nhs-records-kpi"><div class="nhs-records-kpi-label">สุทธิ</div><div class="nhs-records-kpi-value" id="nhs-records-net-total">฿0</div></div>
+    </div>
+    <div class="card" style="padding:16px;margin-bottom:12px;">
+      <div style="font-weight:800;font-size:16px;margin-bottom:12px;">📊 กราฟสัดส่วนรายการ</div>
+      <div class="nhs-records-chart-grid">
+        <div><div id="nhs-records-donut" class="nhs-records-donut"><div class="nhs-records-donut-hole"><b id="nhs-records-donut-total">฿0</b><span style="font-size:10px;color:#777;">รายรับ + รายจ่าย</span></div></div><div id="nhs-records-legend" class="nhs-records-legend"></div></div>
+        <div id="nhs-records-breakdown"><div style="color:#888;text-align:center;padding:20px;">รอข้อมูล...</div></div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><div style="font-weight:800;font-size:16px;">รายการทั้งหมด</div><div id="nhs-records-receipt-note" style="font-size:11px;color:#777;"></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button class="btn btn-gold" type="button" onclick="showPage('pg-inc')">➕ เพิ่มรายรับ</button>
+        <button class="btn btn-no" type="button" onclick="showPage('pg-exp')">➖ เพิ่มรายจ่าย</button>
+        <button class="btn btn-outline" type="button" onclick="showPage('pg-rc-list')">🧾 ดูใบเสร็จ</button>
+      </div>
+      <div id="nhs-records-list" style="margin-top:10px;"></div>
+    </div>
   </div>
 </div>
 
@@ -2945,6 +3000,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 
 <div id="bnav">
   <div class="nav-item active" onclick="showPage('pg-dash')"><span class="nav-icon">🏠</span>หน้าหลัก</div>
+  <div class="nav-item" onclick="showPage('pg-records')"><span class="nav-icon">📋</span>รายการ</div>
   <div class="nav-item" onclick="openCalendarModal()"><span class="nav-icon">📅</span>คิว</div>
   <div class="nav-item" onclick="showPage('pg-crm')"><span class="nav-icon">👥</span>ลูกค้า</div>
   <div class="nav-item" onclick="showPage('pg-report')"><span class="nav-icon">📈</span>รายงาน</div>
@@ -3139,7 +3195,7 @@ function showPage(id) {
   if (!pageEl) { console.warn('showPage: not found', id); toast('ไม่พบหน้า: ' + id); return; }
   pageEl.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const navs = {'pg-dash':0, 'pg-cal':1, 'pg-crm':2, 'pg-report':3};
+  const navs = {'pg-dash':0, 'pg-records':1, 'pg-cal':2, 'pg-crm':3, 'pg-report':4};
   if (navs[id] !== undefined) {
     const navItems = document.querySelectorAll('.nav-item');
     if (navItems[navs[id]]) navItems[navs[id]].classList.add('active');
@@ -3176,6 +3232,7 @@ function showPage(id) {
     if (typeof loadData === 'function') loadData();
   }
   if(id === 'pg-report') renderReports();
+  if(id === 'pg-records') { nhs_recordsRender(); loadData(true); nhs_recordsLoadReceiptLogs(); }
   if(id === 'pg-consult') { initConsultForm(); crm_init(); crm_checkUrlParams(); }
   if(id.startsWith('pg-crm-')) { crm_init(); }
   if(id === 'pg-admin-crm') { /* admin init */ }
@@ -3490,6 +3547,7 @@ async function loadData(silent) {
     if (typeof renderReports === 'function') try { renderReports(); } catch (e) { console.warn(e); }
     if (typeof renderCalendar === 'function') try { renderCalendar(); } catch (e) { console.warn(e); }
     if (typeof renderCRM === 'function') try { renderCRM(allCusts); } catch (e) { console.warn(e); }
+    if (typeof nhs_recordsRender === 'function') try { nhs_recordsRender(); } catch (e) { console.warn(e); }
 
     const linkedQs = (allQs || []).filter(q => {
       const qp = nhs_normPhone(q.customer_phone);
@@ -3838,6 +3896,223 @@ function renderDash() {
   nhs_dashRenderHistory(type, selectedMonth, search);
   window.nhs_dashboardSnapshot = { type, range, revenue, expenses, profit, orders, aov, previousRevenue, previousExpenses, previousProfit, previousOrders, previousAov, channelCount: Object.keys(incomeRows.reduce((map, row) => { const key = String(row.channel || row.source_channel || 'ไม่ระบุ').trim() || 'ไม่ระบุ'; map[key] = true; return map; }, {})).length, topServices: Object.entries(incomeRows.reduce((map, row) => { const key = String(row.category || row.note || 'บริการอื่นๆ').trim() || 'บริการอื่นๆ'; map[key] = (map[key] || 0) + nhs_dashNum(row.amount); return map; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 3) };
 }
+let nhsRecordsReceiptDbRows = [];
+async function nhs_recordsLoadReceiptLogs() {
+  if (typeof crm_dbFetchByType !== 'function' || typeof db === 'undefined' || !db) return [];
+  try {
+    const rows = await crm_dbFetchByType('receipt-log');
+    nhsRecordsReceiptDbRows = Array.isArray(rows) ? rows : [];
+    if (document.getElementById('pg-records')?.classList.contains('active')) nhs_recordsRender();
+    return nhsRecordsReceiptDbRows;
+  } catch (e) {
+    console.warn('nhs_recordsLoadReceiptLogs', e);
+    return nhsRecordsReceiptDbRows;
+  }
+}
+function nhs_recordsGetReceiptAdjustments() {
+  try { return JSON.parse(localStorage.getItem('nhs-v2-receipt-income-adjustments') || '{}') || {}; } catch (e) { return {}; }
+}
+function nhs_recordsSetReceiptAdjustments(value) {
+  try { localStorage.setItem('nhs-v2-receipt-income-adjustments', JSON.stringify(value || {})); } catch (e) {}
+}
+function nhs_recordsReceiptDate(receipt) {
+  return nhs_dashDate(receipt && (receipt.service_date || receipt.receipt_date));
+}
+function nhs_recordsReadReceipts() {
+  try {
+    const keys = [CRM_PRE + 'receipts', 'crm-receipts'];
+    const combined = [];
+    keys.forEach(function(key) {
+      try {
+        const rows = JSON.parse(localStorage.getItem(key) || '[]') || [];
+        if (Array.isArray(rows)) combined.push.apply(combined, rows);
+      } catch (e) {}
+    });
+    if (Array.isArray(nhsRecordsReceiptDbRows)) combined.push.apply(combined, nhsRecordsReceiptDbRows);
+    const seen = {};
+    return combined.filter(function(r) {
+      const no = String(r && r.receipt_no || '');
+      if (!no || seen[no]) return false;
+      seen[no] = true;
+      return true;
+    });
+  } catch (e) { return []; }
+}
+function nhs_recordsReceiptRows() {
+  const adjustments = nhs_recordsGetReceiptAdjustments();
+  return nhs_recordsReadReceipts().map(function(r, index) {
+    const no = String(r.receipt_no || ('local-' + index));
+    const adj = adjustments[no] || {};
+    const items = Array.isArray(r.items) ? r.items.map(function(item) { return item && item.name; }).filter(Boolean).join(', ') : '';
+    const baseAmount = nhs_dashNum(r.net_total || r.total || r.service_only_amount);
+    const amount = adj.amount != null ? nhs_dashNum(adj.amount) : baseAmount;
+    return {
+      id: 'receipt-' + no,
+      __kind: 'income',
+      __source: 'receipt',
+      __receipt_no: no,
+      __receipt: r,
+      __receipt_base_amount: baseAmount,
+      __adjusted: adj.amount != null || !!adj.record_date,
+      amount: amount,
+      record_date: adj.record_date || nhs_recordsReceiptDate(r),
+      customer_name: r.customer_name || '-',
+      category: adj.category || items || 'ใบเสร็จบริการ',
+      channel: r.payment_method || '-',
+      note: adj.note || ('ใบเสร็จ ' + no),
+      receipt_no: no
+    };
+  });
+}
+function nhs_recordsIncomeRows() {
+  const manual = (allIncs || []).filter(function(row) { return !row.receipt_no && !row.source_receipt_no; }).map(function(row) {
+    return Object.assign({ __kind: 'income', __source: 'manual' }, row);
+  });
+  return manual.concat(nhs_recordsReceiptRows());
+}
+function nhs_recordsAllRows() {
+  const incomes = nhs_recordsIncomeRows();
+  const expenses = (allExps || []).map(function(row) { return Object.assign({ __kind: 'expense', __source: 'manual' }, row); });
+  return incomes.concat(expenses).sort(function(a, b) {
+    return nhs_dashDate(b.record_date || b.payment_date || b.created_at).localeCompare(nhs_dashDate(a.record_date || a.payment_date || a.created_at));
+  });
+}
+function nhs_recordsEnsureYears(rows) {
+  const select = document.getElementById('nhs-records-year');
+  if (!select) return;
+  const current = new Date().getFullYear().toString();
+  const selected = select.value;
+  const years = {};
+  (rows || []).forEach(function(row) { const d = nhs_dashDate(row.record_date); if (d) years[d.slice(0, 4)] = true; });
+  years[current] = true;
+  const values = Object.keys(years).sort().reverse();
+  select.innerHTML = '<option value="">ทุกปี</option>' + values.map(function(y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
+  select.value = selected && values.includes(selected) ? selected : (select.dataset.ready ? '' : current);
+  select.dataset.ready = '1';
+}
+function nhs_recordsFilterRows(rows) {
+  const year = (document.getElementById('nhs-records-year') || {}).value || '';
+  const month = (document.getElementById('nhs-records-month') || {}).value || '';
+  const exact = (document.getElementById('nhs-records-date') || {}).value || '';
+  const kind = (document.getElementById('nhs-records-kind') || {}).value || 'all';
+  return (rows || []).filter(function(row) {
+    const d = nhs_dashDate(row.record_date || row.payment_date || row.created_at);
+    if (exact && d !== exact) return false;
+    if (year && d.slice(0, 4) !== year) return false;
+    if (month && d.slice(5, 7) !== month) return false;
+    if (kind !== 'all' && row.__kind !== kind) return false;
+    return !!d;
+  });
+}
+function nhs_recordsClearFilters() {
+  ['nhs-records-year','nhs-records-month','nhs-records-date'].forEach(function(id) { const el = document.getElementById(id); if (el) el.value = ''; });
+  const kind = document.getElementById('nhs-records-kind'); if (kind) kind.value = 'all';
+  nhs_recordsRender();
+}
+function nhs_recordsMoney(value) { return nhs_dashMoney(value); }
+function nhs_recordsOpenDetail(kind, id) {
+  if (kind === 'receipt') {
+    const row = nhs_recordsReceiptRows().find(function(r) { return String(r.__receipt_no) === String(id); });
+    if (!row || !row.__receipt) return toast('ไม่พบใบเสร็จ');
+    rc_view(row.__receipt);
+    return;
+  }
+  nhs_dashOpenRecordDetail(kind, id);
+}
+async function nhs_recordsEditManual(kind, id) {
+  if (kind === 'income') await editIncome(id); else await editExpense(id);
+  nhs_recordsRender();
+}
+async function nhs_recordsEditReceipt(no) {
+  const row = nhs_recordsReceiptRows().find(function(r) { return String(r.__receipt_no) === String(no); });
+  if (!row) return toast('ไม่พบใบเสร็จ');
+  const amountText = prompt('แก้ไขยอดรายรับจากใบเสร็จ (บาท):', String(row.amount));
+  if (amountText === null) return;
+  const amount = nhs_parseMoney(amountText);
+  if (!amount || amount <= 0) return toast('จำนวนเงินไม่ถูกต้อง');
+  const date = prompt('แก้ไขวันที่ของรายการ (YYYY-MM-DD):', row.record_date || '');
+  if (date === null || !/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return toast('วันที่ไม่ถูกต้อง');
+  const note = prompt('แก้ไขหมายเหตุรายรับ:', row.note || '');
+  if (note === null) return;
+  const adjustments = nhs_recordsGetReceiptAdjustments();
+  adjustments[String(no)] = { amount: amount, record_date: date, note: note, updated_at: new Date().toISOString() };
+  nhs_recordsSetReceiptAdjustments(adjustments);
+  toast('✅ ปรับปรุงรายรับจากใบเสร็จแล้ว');
+  nhs_recordsRender();
+  if (typeof renderDash === 'function') renderDash();
+}
+async function nhs_recordsDeleteManual(kind, id) {
+  if (kind === 'income') await deleteIncome(id); else await deleteExpense(id);
+  nhs_recordsRender();
+}
+async function nhs_recordsRefresh() {
+  await loadData(true);
+  try { await rc_renderList(); } catch (e) {}
+  try { await nhs_recordsLoadReceiptLogs(); } catch (e) {}
+  nhs_recordsRender();
+  toast('✅ รีเฟรชรายการและใบเสร็จแล้ว');
+}
+function nhs_recordsRender() {
+  const rows = nhs_recordsAllRows();
+  nhs_recordsEnsureYears(rows);
+  const filtered = nhs_recordsFilterRows(rows);
+  const incomeTotal = filtered.filter(function(r) { return r.__kind === 'income'; }).reduce(function(s, r) { return s + nhs_dashNum(r.amount); }, 0);
+  const expenseTotal = filtered.filter(function(r) { return r.__kind === 'expense'; }).reduce(function(s, r) { return s + nhs_dashNum(r.amount); }, 0);
+  const setText = function(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; };
+  setText('nhs-records-count', filtered.length.toLocaleString('th-TH'));
+  setText('nhs-records-income-total', nhs_recordsMoney(incomeTotal));
+  setText('nhs-records-expense-total', nhs_recordsMoney(expenseTotal));
+  setText('nhs-records-net-total', nhs_recordsMoney(incomeTotal - expenseTotal));
+  const year = (document.getElementById('nhs-records-year') || {}).value || '';
+  const month = (document.getElementById('nhs-records-month') || {}).value || '';
+  const exact = (document.getElementById('nhs-records-date') || {}).value || '';
+  const kind = (document.getElementById('nhs-records-kind') || {}).value || 'all';
+  const filterLabel = [exact ? ('วันที่ ' + exact) : '', year ? ('ปี ' + year) : '', month ? ('เดือน ' + month) : '', kind === 'all' ? '' : (kind === 'income' ? 'เฉพาะรายรับ' : 'เฉพาะรายจ่าย')].filter(Boolean).join(' · ') || 'ทุกช่วงวันที่';
+  setText('nhs-records-filter-label', filterLabel + ' · ' + filtered.length.toLocaleString('th-TH') + ' รายการ');
+  const receiptCount = filtered.filter(function(r) { return r.__source === 'receipt'; }).length;
+  setText('nhs-records-receipt-note', receiptCount ? 'รายรับจากใบเสร็จอัตโนมัติ ' + receiptCount + ' รายการ' : 'ยังไม่มีรายรับจากใบเสร็จในช่วงนี้');
+
+  const total = incomeTotal + expenseTotal;
+  const incPct = total ? Math.round(incomeTotal / total * 100) : 0;
+  const donut = document.getElementById('nhs-records-donut');
+  if (donut) donut.style.background = total ? 'conic-gradient(#A77A2F 0 ' + incPct + '%, #9B5048 ' + incPct + '% 100%)' : '#EEE';
+  setText('nhs-records-donut-total', nhs_recordsMoney(total));
+  const legend = document.getElementById('nhs-records-legend');
+  if (legend) legend.innerHTML = '<span><i class="nhs-records-dot" style="background:#A77A2F;"></i>รายรับ ' + incPct + '%</span><span><i class="nhs-records-dot" style="background:#9B5048;"></i>รายจ่าย ' + (100 - incPct) + '%</span>';
+
+  const breakdownMap = {};
+  filtered.forEach(function(row) {
+    const label = String(row.category || (row.__kind === 'income' ? 'รายรับอื่นๆ' : 'รายจ่ายอื่นๆ')).trim() || 'ไม่ระบุ';
+    breakdownMap[label] = (breakdownMap[label] || 0) + nhs_dashNum(row.amount);
+  });
+  const breakdown = Object.entries(breakdownMap).sort(function(a, b) { return b[1] - a[1]; });
+  const breakdownTotal = breakdown.reduce(function(s, x) { return s + x[1]; }, 0);
+  const breakdownEl = document.getElementById('nhs-records-breakdown');
+  if (breakdownEl) breakdownEl.innerHTML = breakdown.length ? breakdown.slice(0, 12).map(function(item, index) {
+    const pct = breakdownTotal ? Math.round(item[1] / breakdownTotal * 100) : 0;
+    const color = index % 2 ? '#C9A84C' : '#A77A2F';
+    return '<div class="nhs-records-breakdown-row"><b>' + nhs_dashEscape(item[0]) + '</b><div class="nhs-records-breakdown-track"><div class="nhs-records-breakdown-fill" style="width:' + pct + '%;background:' + color + ';" title="' + pct + '%"></div></div><span>' + nhs_recordsMoney(item[1]) + ' (' + pct + '%)</span></div>';
+  }).join('') : '<div style="color:#888;text-align:center;padding:20px;">ยังไม่มีรายการในช่วงนี้</div>';
+
+  const listEl = document.getElementById('nhs-records-list');
+  if (!listEl) return;
+  if (!filtered.length) { listEl.innerHTML = '<div style="color:#888;text-align:center;padding:24px;border:1px dashed #ddd;border-radius:12px;">ไม่พบรายการ ลองเปลี่ยนปี เดือน หรือวันที่</div>'; return; }
+  listEl.innerHTML = filtered.slice(0, 300).map(function(row) {
+    const isIncome = row.__kind === 'income';
+    const isReceipt = row.__source === 'receipt';
+    const id = isReceipt ? row.__receipt_no : String(row.id || row._local_id || '');
+    const title = isReceipt ? (row.customer_name || 'รายรับจากใบเสร็จ') : (isIncome ? (row.customer_name || row.category || 'รายรับ') : (row.name || row.note || 'รายจ่าย'));
+    const detail = isReceipt ? (row.category || 'ใบเสร็จ') : (row.category || (isIncome ? 'รายรับ' : 'รายจ่าย'));
+    const badge = isReceipt ? '<span class="nhs-record-badge receipt">🧾 จากใบเสร็จ</span>' : '<span class="nhs-record-badge manual">✍️ บันทึกเอง</span>';
+    const detailButton = '<button class="btn btn-sm btn-outline" type="button" onclick="nhs_recordsOpenDetail(' + JSON.stringify(isReceipt ? 'receipt' : (isIncome ? 'income' : 'expense')) + ',' + JSON.stringify(String(id)) + ')">🔎 ดูรายละเอียด</button>';
+    const editButton = isReceipt
+      ? '<button class="btn btn-sm btn-gold" type="button" onclick="nhs_recordsEditReceipt(' + JSON.stringify(String(id)) + ')">✏️ แก้ไขรายรับ</button>'
+      : '<button class="btn btn-sm btn-gold" type="button" onclick="nhs_recordsEditManual(' + JSON.stringify(isIncome ? 'income' : 'expense') + ',' + JSON.stringify(String(id)) + ')">✏️ แก้ไข</button>';
+    const deleteButton = isReceipt ? '' : '<button class="btn btn-sm btn-no" type="button" onclick="nhs_recordsDeleteManual(' + JSON.stringify(isIncome ? 'income' : 'expense') + ',' + JSON.stringify(String(id)) + ')">🗑️ ลบ</button>';
+    return '<div class="nhs-record-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;"><div style="min-width:0;flex:1;">' + badge + '<div style="font-weight:900;font-size:15px;">' + nhs_dashEscape(title) + '</div><div style="font-size:12px;color:#777;margin-top:4px;">' + nhs_dashFormatDate(row.record_date) + ' · ' + nhs_dashEscape(detail) + (row.channel ? ' · ' + nhs_dashEscape(row.channel) : '') + '</div></div><div style="font-weight:900;white-space:nowrap;color:' + (isIncome ? '#A77A2F' : '#9B5048') + ';">' + (isIncome ? '+' : '-') + nhs_recordsMoney(row.amount) + '</div></div><div class="nhs-record-actions">' + detailButton + editButton + deleteButton + '</div></div>';
+  }).join('') + (filtered.length > 300 ? '<div style="text-align:center;color:#777;padding:10px;">แสดง 300 รายการล่าสุดจาก ' + filtered.length + ' รายการ</div>' : '');
+}
+
 function showChartDetails() {
   const el = $('chart-details');
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
@@ -4066,6 +4341,7 @@ async function saveIncome() {
     // แสดงรายการทันที แล้วค่อยโหลดจาก DB เบื้องหลัง
     try { renderTables(); } catch (e) {}
     try { if (typeof renderDash === 'function') renderDash(); } catch (e) {}
+    try { if (typeof nhs_recordsRender === 'function') nhs_recordsRender(); } catch (e) {}
     loadData(true);
   } catch (err) {
     console.error('saveIncome', err);
@@ -4132,6 +4408,7 @@ async function saveExpense() {
 
     try { renderTables(); } catch (e) {}
     try { if (typeof renderDash === 'function') renderDash(); } catch (e) {}
+    try { if (typeof nhs_recordsRender === 'function') nhs_recordsRender(); } catch (e) {}
     loadData(true);
   } catch (err) {
     console.error('saveExpense', err);
@@ -4140,7 +4417,7 @@ async function saveExpense() {
 }
 
 async function editIncome(id) {
-  const item = (allIncs || []).find(x => String(x.id) === String(id));
+  const item = (allIncs || []).find(x => String(x.id || x._local_id) === String(id));
   if (!item) return toast('ไม่พบรายการ');
   const svc = prompt('แก้ไขประเภทบริการ:', item.category || '');
   if (svc === null) return;
@@ -4165,11 +4442,12 @@ async function editIncome(id) {
       if (error) throw error;
     }
     Object.assign(item, patch);
-    allIncs = (allIncs || []).map(function(x) { return String(x.id) === String(id) ? item : x; });
+    allIncs = (allIncs || []).map(function(x) { return String(x.id || x._local_id) === String(id) ? item : x; });
     nhs_incLocalSet(nhs_mergeIncExpLists([], allIncs));
     toast('✅ แก้ไขรายรับแล้ว');
     renderTables();
     if (typeof renderDash === 'function') renderDash();
+    if (typeof nhs_recordsRender === 'function') nhs_recordsRender();
     loadData(true);
   } catch (e) {
     toast('❌ แก้ไขไม่สำเร็จ: ' + (e.message || e));
@@ -4188,6 +4466,7 @@ async function deleteIncome(id) {
     toast('🗑️ ลบรายรับแล้ว');
     renderTables();
     if (typeof renderDash === 'function') renderDash();
+    if (typeof nhs_recordsRender === 'function') nhs_recordsRender();
     loadData(true);
   } catch (e) {
     toast('❌ ลบไม่สำเร็จ: ' + (e.message || e));
@@ -4195,7 +4474,7 @@ async function deleteIncome(id) {
 }
 
 async function editExpense(id) {
-  const item = (allExps || []).find(x => String(x.id) === String(id));
+  const item = (allExps || []).find(x => String(x.id || x._local_id) === String(id));
   if (!item) return toast('ไม่พบรายการ');
   const cat = prompt('แก้ไขหมวดหมู่:', item.category || '');
   if (cat === null) return;
@@ -4218,11 +4497,12 @@ async function editExpense(id) {
       if (error) throw error;
     }
     Object.assign(item, patch);
-    allExps = (allExps || []).map(function(x) { return String(x.id) === String(id) ? item : x; });
+    allExps = (allExps || []).map(function(x) { return String(x.id || x._local_id) === String(id) ? item : x; });
     nhs_expLocalSet(nhs_mergeIncExpLists([], allExps));
     toast('✅ แก้ไขรายจ่ายแล้ว');
     renderTables();
     if (typeof renderDash === 'function') renderDash();
+    if (typeof nhs_recordsRender === 'function') nhs_recordsRender();
     loadData(true);
   } catch (e) {
     toast('❌ แก้ไขไม่สำเร็จ: ' + (e.message || e));
@@ -4241,6 +4521,7 @@ async function deleteExpense(id) {
     toast('🗑️ ลบรายจ่ายแล้ว');
     renderTables();
     if (typeof renderDash === 'function') renderDash();
+    if (typeof nhs_recordsRender === 'function') nhs_recordsRender();
     loadData(true);
   } catch (e) {
     toast('❌ ลบไม่สำเร็จ: ' + (e.message || e));
@@ -7545,6 +7826,7 @@ async function rc_save() {
   rc_applyLockState();
   if (typeof loadData === 'function') loadData();
   if (typeof rc_renderList === 'function') rc_renderList();
+  if (typeof nhs_recordsRender === 'function') nhs_recordsRender();
   } catch (err) {
     console.error('rc_save', err);
     toast('❌ บันทึกใบเสร็จไม่สำเร็จ: ' + (err.message || err));

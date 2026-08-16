@@ -1094,6 +1094,13 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 .reward-icon { width: 80px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 30px; }
 .reward-body { padding: 12px; flex: 1; }
 .reward-pts { color: var(--crm-gold-dark); font-weight: 700; }
+.reward-item.nhs-special-reward {
+  position: relative; border: 2px solid #C9A84C; background: linear-gradient(135deg,#FFFDF7 0%,#F7E8B4 48%,#FFFDF7 100%);
+  box-shadow: 0 12px 32px rgba(201,168,76,.28), inset 0 0 0 1px rgba(255,255,255,.75);
+}
+.reward-item.nhs-special-reward .reward-icon { background: linear-gradient(145deg,#171717,#3A321F); }
+.nhs-special-ribbon { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px; background:#171717; color:#F0D78C; border:1px solid #C9A84C; font-size:10px; font-weight:900; letter-spacing:.8px; margin-bottom:5px; }
+.nhs-special-note { color:#6F5520; font-weight:800; font-size:11px; margin-top:3px; }
 .hist-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
 .hist-in { color: #A77A2F; font-weight: 700; }
 .hist-out { color: #F44336; font-weight: 700; }
@@ -2849,6 +2856,13 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
             <option value="service">บริการ</option>
             <option value="product">สินค้า</option>
           </select>
+        </div>
+        <div class="fg" style="padding:10px 12px;border:1px solid #C9A84C;border-radius:10px;background:#FFF9E8;">
+          <label class="fl" style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#6F5520;font-weight:800;">
+            <input type="checkbox" id="adm-rew-special" style="width:18px;height:18px;accent-color:#C9A84C;">
+            ✦ ยืนยันให้เป็นรางวัลพิเศษ (SPECIAL)
+          </label>
+          <div style="font-size:11px;color:#8A7040;margin-top:5px;">เมื่อเลือกแล้ว หน้าลูกค้าจะแสดงการ์ดเด่นและป้าย SPECIAL</div>
         </div>
         <div class="fg"><label class="fl">จำนวนที่มี</label><input type="number" id="adm-rew-qty" class="fc" value="10"></div>
         <div class="fg"><label class="fl">วันเริ่ม</label><input type="date" id="adm-rew-start" class="fc"></div>
@@ -5654,7 +5668,8 @@ async function crm_getRewards() {
       map[k] = Object.assign({}, prev, r, {
         image: r.image || prev.image || '',
         desc: r.desc || prev.desc || '',
-        conditions: r.conditions || prev.conditions || ''
+        conditions: r.conditions || prev.conditions || '',
+        is_special: r.is_special != null ? !!r.is_special : !!(prev.is_special || prev.special || prev.isSpecial)
       });
     }
   });
@@ -5674,21 +5689,26 @@ async function crm_renderRewards() {
   const rewards = await crm_getRewards();
   $('crm-reward-list').innerHTML = rewards.map(r => {
     const canRedeem = crm_member && crm_member.points >= r.pts && (r.qty === undefined || r.qty > 0);
-    const imgHtml = r.image ? `<img src="${r.image}" style="width:100%;height:100%;object-fit:cover;">` : (r.icon || '🎁');
+    const isSpecial = !!(r.is_special || r.special || r.isSpecial);
+    const imgHtml = r.image
+      ? `<img src="${r.image}" alt="รูป ${r.name}" style="width:100%;height:100%;object-fit:cover;">`
+      : `<div style="font-size:34px;">${r.icon || '🎁'}</div>`;
     return `
-    <div class="reward-item">
-      <div class="reward-icon" style="overflow:hidden;">${imgHtml}</div>
+    <div class="reward-item${isSpecial ? ' nhs-special-reward' : ''}">
+      <div class="reward-icon" style="width:112px;min-height:150px;overflow:hidden;">${imgHtml}</div>
       <div class="reward-body">
-        <div style="font-weight:700;">${r.name}</div>
-        <div style="font-size:11px; color:#666;">${r.desc || ''}</div>
-        <div class="reward-pts">${r.pts} พอยท์</div>
+        ${isSpecial ? '<div class="nhs-special-ribbon">✦ SPECIAL REWARD</div>' : ''}
+        <div style="font-weight:800;font-size:15px;">${r.name}</div>
+        ${isSpecial ? '<div class="nhs-special-note">รางวัลพิเศษคัดสรรสำหรับสมาชิก</div>' : ''}
+        <div style="font-size:11px; color:#666;margin-top:4px;">${r.desc || ''}</div>
+        <div class="reward-pts" style="font-size:18px;margin-top:6px;">${r.pts} พอยท์</div>
         ${r.qty !== undefined ? `<div style="font-size:10px;color:#999;">เหลือ ${r.qty} ชิ้น</div>` : ''}
         ${r.endDate ? `<div style="font-size:10px;color:#9B5048;">หมดอายุ ${r.endDate}</div>` : ''}
         ${r.conditions ? `<div style="font-size:10px;color:#888;margin-top:3px;cursor:pointer;" onclick="crm_showRewardCond(${r.id})">📋 ดูเงื่อนไข</div>` : ''}
-        <button class="btn btn-sm btn-gold" style="width:100%; margin-top:5px;"
+        <button class="btn btn-sm btn-gold" style="width:100%; margin-top:8px;"
           ${canRedeem ? '' : 'disabled'}
           onclick="crm_redeem(${r.id})">
-          ${canRedeem ? 'แลกรางวัล' : (r.qty === 0 ? 'หมดแล้ว' : 'พอยท์ไม่พอ')}
+          ${canRedeem ? 'แลก Point' : (r.qty === 0 ? 'หมดแล้ว' : 'พอยท์ไม่พอ')}
         </button>
       </div>
     </div>
@@ -5725,6 +5745,7 @@ async function crm_redeem(id) {
 
     const myItem = {
       name: r.name, pts: r.pts, image: r.image || '', icon: r.icon || '🎁',
+      is_special: !!(r.is_special || r.special || r.isSpecial),
       conditions: r.conditions || '',
       date: new Date().toISOString(),
       code: 'NHS' + Math.random().toString(36).substr(2, 6).toUpperCase(),
@@ -6452,12 +6473,13 @@ function crm_setRewardImageUrl() {
 async function crm_renderAdminRewardList() {
   const rewards = await crm_getRewards();
   $('adm-rew-list').innerHTML = rewards.map(r => {
-    const imgHtml = r.image ? `<img src="${r.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#f5f5f5;border-radius:8px;">${r.icon||'🎁'}</div>`;
+    const imgHtml = r.image ? `<img src="${r.image}" alt="รูป ${r.name}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#f5f5f5;border-radius:8px;">${r.icon||'🎁'}</div>`;
     const delId = r.db_id || r.id;
+    const isSpecial = !!(r.is_special || r.special || r.isSpecial);
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;">
       ${imgHtml}
       <div style="flex:1;">
-        <div style="font-weight:700;font-size:13px;">${r.name}</div>
+        <div style="font-weight:700;font-size:13px;">${isSpecial ? '<span class="nhs-special-ribbon" style="margin:0 4px 3px 0;">SPECIAL</span>' : ''}${r.name}</div>
         <div style="font-size:11px;color:#999;">${r.pts} พอยท์ • เหลือ ${r.qty ?? '-'} ชิ้น</div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
@@ -6697,11 +6719,13 @@ async function crm_renderMyRewards() {
   const el = document.getElementById('crm-my-reward-list');
   if(el) {
     el.innerHTML = my.map(r => {
-      const imgHtml = r.image ? `<img src="${r.image}" style="width:100%;height:100%;object-fit:cover;">` : (r.icon || '🎁');
+      const isSpecial = !!(r.is_special || r.special || r.isSpecial);
+      const imgHtml = r.image ? `<img src="${r.image}" alt="รูป ${r.name}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="font-size:34px;">${r.icon || '🎁'}</div>`;
       return `
-      <div class="reward-item">
-        <div class="reward-icon" style="overflow:hidden;">${imgHtml}</div>
+      <div class="reward-item${isSpecial ? ' nhs-special-reward' : ''}">
+        <div class="reward-icon" style="width:112px;min-height:130px;overflow:hidden;">${imgHtml}</div>
         <div class="reward-body">
+          ${isSpecial ? '<div class="nhs-special-ribbon">✦ SPECIAL REWARD</div>' : ''}
           <div style="font-weight:700;">${r.name}</div>
           <div style="font-size:11px; color:#999;">${new Date(r.date).toLocaleString('th-TH')} • ${r.used ? 'ใช้แล้ว' : 'ใช้งานได้'}</div>
           <div class="reward-pts">โค้ด: ${r.code}</div>
@@ -6933,6 +6957,7 @@ function crm_resetRewardForm() {
     if ($(id)) $(id).value = '';
   });
   if ($('adm-rew-cat')) $('adm-rew-cat').value = 'discount';
+  if ($('adm-rew-special')) $('adm-rew-special').checked = false;
   if ($('adm-rew-qty')) $('adm-rew-qty').value = 10;
   if ($('adm-rew-start')) $('adm-rew-start').value = '';
   if ($('adm-rew-end')) $('adm-rew-end').value = '';
@@ -6958,6 +6983,7 @@ async function crm_editReward(id) {
   if ($('adm-rew-name')) $('adm-rew-name').value = item.name || '';
   if ($('adm-rew-pts')) $('adm-rew-pts').value = item.pts || '';
   if ($('adm-rew-cat')) $('adm-rew-cat').value = item.category || 'discount';
+  if ($('adm-rew-special')) $('adm-rew-special').checked = !!(item.is_special || item.special || item.isSpecial);
   if ($('adm-rew-qty')) $('adm-rew-qty').value = item.qty == null ? 0 : item.qty;
   if ($('adm-rew-start')) $('adm-rew-start').value = item.startDate || '';
   if ($('adm-rew-end')) $('adm-rew-end').value = item.endDate || '';
@@ -7030,6 +7056,7 @@ async function crm_adminAddReward() {
     icon: (existingItem && existingItem.icon) || '🎁',
     image: imgForDb || imgFull,
     category: ($('adm-rew-cat') && $('adm-rew-cat').value) || 'discount',
+    is_special: !!($('adm-rew-special') && $('adm-rew-special').checked),
     qty: parseInt(($('adm-rew-qty') && $('adm-rew-qty').value) || '10', 10) || 0,
     startDate: ($('adm-rew-start') && $('adm-rew-start').value) || '',
     endDate: ($('adm-rew-end') && $('adm-rew-end').value) || '',
@@ -7040,6 +7067,11 @@ async function crm_adminAddReward() {
     _ts: Date.now()
   };
   if (!item.db_id) delete item.db_id;
+  if (item.is_special && !(existingItem && (existingItem.is_special || existingItem.special || existingItem.isSpecial))) {
+    if (!confirm('ยืนยันให้ "' + item.name + '" เป็นรางวัลพิเศษ SPECIAL หรือไม่?')) {
+      return toast('ยกเลิกการตั้งรางวัลพิเศษ');
+    }
+  }
 
   let saved = null;
   let synced = false;

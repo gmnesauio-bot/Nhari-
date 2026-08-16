@@ -2833,7 +2833,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
     <!-- Admin Rewards -->
     <div id="adm-crm-rewards" class="adm-sec" style="display:none;">
       <div class="crm-card">
-        <div class="crm-title">เพิ่มของรางวัลใหม่</div>
+        <div class="crm-title" id="adm-rew-form-title">เพิ่มของรางวัลใหม่</div>
         <div class="fg">
           <label class="fl">รูปภาพรางวัล</label>
           <img id="adm-rew-img-preview" style="display:none; width:100%; max-height:160px; object-fit:cover; border-radius:10px; margin-bottom:8px;">
@@ -2857,7 +2857,8 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
         <div class="fg"><label class="fl">เงื่อนไข/ข้อจำกัดการใช้</label><textarea id="adm-rew-cond" class="fc" style="min-height:60px;" placeholder="เช่น ใช้ได้ 1 ครั้งต่อเดือน, ไม่ร่วมโปรโมชั่นอื่น"></textarea></div>
         <div class="fg"><label class="fl">ข้อจำกัดการใช้ (สั้นๆ)</label><input type="text" id="adm-rew-limit" class="fc" placeholder="เช่น 1 ครั้ง/เดือน"></div>
         <div class="fg"><label class="fl">หมายเหตุเพิ่มเติม</label><input type="text" id="adm-rew-note" class="fc"></div>
-        <button class="btn btn-gold" style="width:100%;" onclick="crm_adminAddReward()">เพิ่มรายการรางวัล ✅</button>
+        <button class="btn btn-gold" id="adm-rew-save-btn" style="width:100%;" onclick="crm_adminAddReward()">เพิ่มรายการรางวัล ✅</button>
+        <button class="btn btn-outline" id="adm-rew-cancel-btn" style="display:none;width:100%;margin-top:10px;" onclick="crm_cancelRewardEdit()">ยกเลิกการแก้ไข</button>
       </div>
       <div class="crm-card">
         <div class="crm-title">รายการรางวัลทั้งหมด</div>
@@ -6420,12 +6421,13 @@ async function crm_deleteNews(id) {
 }
 
 let crm_rewImgData = '';
+let crm_rewEditingId = null;
 async function crm_handleRewardImage(input) {
   const file = input && input.files && input.files[0];
   if (!file) return;
   try {
     toast('กำลังย่อรูป...');
-    const dataUrl = await nhs_compressImageFile(file, 700, 0.7);
+    const dataUrl = await nhs_compressImageFile(file, 520, 0.62, 76000);
     crm_rewImgData = dataUrl;
     const prev = $('adm-rew-img-preview');
     if (prev) { prev.src = dataUrl; prev.style.display = 'block'; }
@@ -6458,7 +6460,10 @@ async function crm_renderAdminRewardList() {
         <div style="font-weight:700;font-size:13px;">${r.name}</div>
         <div style="font-size:11px;color:#999;">${r.pts} พอยท์ • เหลือ ${r.qty ?? '-'} ชิ้น</div>
       </div>
-      <button class="btn btn-sm btn-no" onclick="crm_deleteReward(${delId})">ลบ</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+        <button class="btn btn-sm btn-outline" onclick="crm_editReward(${delId})">แก้ไข</button>
+        <button class="btn btn-sm btn-no" onclick="crm_deleteReward(${delId})">ลบ</button>
+      </div>
     </div>`;
   }).join('') || '<div style="text-align:center;color:#999;padding:20px;">ยังไม่มีรางวัล</div>';
 }
@@ -6921,6 +6926,73 @@ async function canRedeem(phone, costPoints) {
   return true;
 }
 
+function crm_resetRewardForm() {
+  crm_rewEditingId = null;
+  crm_rewImgData = '';
+  ['adm-rew-name','adm-rew-pts','adm-rew-desc','adm-rew-cond','adm-rew-limit','adm-rew-note','adm-rew-img-url'].forEach(function(id) {
+    if ($(id)) $(id).value = '';
+  });
+  if ($('adm-rew-cat')) $('adm-rew-cat').value = 'discount';
+  if ($('adm-rew-qty')) $('adm-rew-qty').value = 10;
+  if ($('adm-rew-start')) $('adm-rew-start').value = '';
+  if ($('adm-rew-end')) $('adm-rew-end').value = '';
+  if ($('adm-rew-img-preview')) { $('adm-rew-img-preview').style.display = 'none'; $('adm-rew-img-preview').src = ''; }
+  if ($('adm-rew-img-file')) $('adm-rew-img-file').value = '';
+  if ($('adm-rew-form-title')) $('adm-rew-form-title').textContent = 'เพิ่มของรางวัลใหม่';
+  if ($('adm-rew-save-btn')) $('adm-rew-save-btn').textContent = 'เพิ่มรายการรางวัล ✅';
+  if ($('adm-rew-cancel-btn')) $('adm-rew-cancel-btn').style.display = 'none';
+}
+
+function crm_cancelRewardEdit() {
+  crm_resetRewardForm();
+  toast('ยกเลิกการแก้ไขแล้ว');
+}
+
+async function crm_editReward(id) {
+  let rewards = [];
+  try { rewards = await crm_getRewards(); } catch (e) { rewards = []; }
+  const item = rewards.find(function(r) { return String(r.db_id || r.id) === String(id); });
+  if (!item) return toast('❌ ไม่พบรางวัลนี้');
+  crm_rewEditingId = item.db_id || item.id;
+  crm_rewImgData = item.image || '';
+  if ($('adm-rew-name')) $('adm-rew-name').value = item.name || '';
+  if ($('adm-rew-pts')) $('adm-rew-pts').value = item.pts || '';
+  if ($('adm-rew-cat')) $('adm-rew-cat').value = item.category || 'discount';
+  if ($('adm-rew-qty')) $('adm-rew-qty').value = item.qty == null ? 0 : item.qty;
+  if ($('adm-rew-start')) $('adm-rew-start').value = item.startDate || '';
+  if ($('adm-rew-end')) $('adm-rew-end').value = item.endDate || '';
+  if ($('adm-rew-desc')) $('adm-rew-desc').value = item.desc || '';
+  if ($('adm-rew-cond')) $('adm-rew-cond').value = item.conditions || '';
+  if ($('adm-rew-limit')) $('adm-rew-limit').value = item.usageLimit || '';
+  if ($('adm-rew-note')) $('adm-rew-note').value = item.note || '';
+  if ($('adm-rew-img-url')) $('adm-rew-img-url').value = validateImageUrl(item.image || '') ? item.image : '';
+  if ($('adm-rew-img-preview')) {
+    $('adm-rew-img-preview').src = item.image || '';
+    $('adm-rew-img-preview').style.display = item.image ? 'block' : 'none';
+  }
+  if ($('adm-rew-form-title')) $('adm-rew-form-title').textContent = '✏️ แก้ไขของรางวัล';
+  if ($('adm-rew-save-btn')) $('adm-rew-save-btn').textContent = '💾 บันทึกการแก้ไข';
+  if ($('adm-rew-cancel-btn')) $('adm-rew-cancel-btn').style.display = 'block';
+  const form = document.getElementById('adm-crm-rewards');
+  if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function crm_prepareRewardImageForDb(imgFull) {
+  if (!imgFull) return '';
+  if (validateImageUrl(imgFull)) return imgFull;
+  if (imgFull.indexOf('data:image') !== 0) return '';
+  if (imgFull.length <= 80000) return imgFull;
+  try {
+    const response = await fetch(imgFull);
+    const blob = await response.blob();
+    const file = new File([blob], 'reward.jpg', { type: blob.type || 'image/jpeg' });
+    return await nhs_compressImageFile(file, 520, 0.62, 76000);
+  } catch (e) {
+    console.warn('crm_prepareRewardImageForDb', e);
+    return '';
+  }
+}
+
 async function crm_adminAddReward() {
   const name = ($('adm-rew-name') && $('adm-rew-name').value || '').trim();
   const pts = parseInt($('adm-rew-pts') && $('adm-rew-pts').value, 10);
@@ -6928,37 +7000,35 @@ async function crm_adminAddReward() {
 
   let existing = [];
   try { existing = await crm_getRewards(); } catch (e) { existing = []; }
-  // อย่าใช้ default เป็นฐานถ้ายังไม่มีรายการจริง
   if (existing === crm_defaultRewards() || (existing.length === 3 && existing[0] && existing[0].name === 'ส่วนลด 100 บาท' && !localStorage.getItem(CRM_PRE + 'rewards'))) {
     try {
       const loc = JSON.parse(localStorage.getItem(CRM_PRE + 'rewards') || '[]');
-      if (loc && loc.length) existing = loc;
-      else existing = [];
+      existing = loc && loc.length ? loc : [];
     } catch (e2) { existing = []; }
   }
 
-  // ป้องกันลงรางวัลซ้ำ: เช็คชื่อ (ตัดช่องว่าง/ตัวพิมพ์เล็ก-ใหญ่) ในรายการที่มีอยู่แล้ว
+  const editingId = crm_rewEditingId;
+  const existingItem = editingId != null
+    ? existing.find(function(r) { return String(r.db_id || r.id) === String(editingId); })
+    : null;
   const dupExists = existing.some(function(r) {
-    return r && r.name && String(r.name).trim().toLowerCase() === name.toLowerCase();
+    const sameItem = existingItem && String(r.db_id || r.id) === String(existingItem.db_id || existingItem.id);
+    return !sameItem && r && r.name && String(r.name).trim().toLowerCase() === name.toLowerCase();
   });
-  if (dupExists) {
-    if (!confirm('มีรางวัลชื่อ "' + name + '" อยู่แล้วในระบบ ต้องการเพิ่มรายการซ้ำหรือไม่?')) {
-      return toast('ยกเลิกการเพิ่มรางวัลซ้ำ');
-    }
+  if (!editingId && dupExists && !confirm('มีรางวัลชื่อ "' + name + '" อยู่แล้วในระบบ ต้องการเพิ่มรายการซ้ำหรือไม่?')) {
+    return toast('ยกเลิกการเพิ่มรางวัลซ้ำ');
   }
 
   const newId = existing.length > 0 ? Math.max.apply(null, existing.map(function(r) { return r.id || 0; })) + 1 : Date.now();
-  const imgFull = crm_rewImgData || '';
-  let imgForDb = '';
-  if (imgFull) {
-    if (validateImageUrl(imgFull)) imgForDb = imgFull;
-    else if (imgFull.indexOf('data:image') === 0 && imgFull.length < 100000) imgForDb = imgFull;
-  }
-
+  const imgFull = crm_rewImgData || (existingItem && existingItem.image) || '';
+  const imgForDb = await crm_prepareRewardImageForDb(imgFull);
   const item = {
-    id: newId, name: name, pts: pts,
-    icon: '🎁',
-    image: imgFull,
+    id: existingItem && existingItem.id ? existingItem.id : newId,
+    db_id: existingItem && existingItem.db_id ? existingItem.db_id : undefined,
+    name: name,
+    pts: pts,
+    icon: (existingItem && existingItem.icon) || '🎁',
+    image: imgForDb || imgFull,
     category: ($('adm-rew-cat') && $('adm-rew-cat').value) || 'discount',
     qty: parseInt(($('adm-rew-qty') && $('adm-rew-qty').value) || '10', 10) || 0,
     startDate: ($('adm-rew-start') && $('adm-rew-start').value) || '',
@@ -6969,32 +7039,39 @@ async function crm_adminAddReward() {
     note: ($('adm-rew-note') && $('adm-rew-note').value || '').trim(),
     _ts: Date.now()
   };
+  if (!item.db_id) delete item.db_id;
 
-  // 1) local ก่อน — ให้หน้าลูกค้าเห็นทันทีบนเครื่องเดียวกัน
-  existing.unshift(item);
-  try { localStorage.setItem(CRM_PRE + 'rewards', JSON.stringify(existing)); } catch (e) {}
-
-  // 2) ซิงค์ DB
-  const dbItem = Object.assign({}, item, { image: imgForDb });
-  const saved = await crm_dbInsert('reward', dbItem, pts);
-  if (saved && saved.db_id) {
-    item.db_id = saved.db_id;
-    existing[0] = item;
-    try { localStorage.setItem(CRM_PRE + 'rewards', JSON.stringify(existing)); } catch (e) {}
+  let saved = null;
+  let synced = false;
+  if (editingId != null) {
+    const dbPayload = Object.assign({}, item, { image: imgForDb || '' });
+    delete dbPayload.db_id; delete dbPayload.pts; delete dbPayload.type; delete dbPayload._ts;
+    if (item.db_id) {
+      synced = await crm_dbUpdate(item.db_id, 'reward', dbPayload, pts);
+      saved = synced ? item : null;
+    }
+    const idx = existing.findIndex(function(r) { return String(r.db_id || r.id) === String(editingId); });
+    if (idx >= 0) existing[idx] = Object.assign({}, existing[idx], item);
+    else existing.unshift(item);
+  } else {
+    existing.unshift(item);
+    const dbItem = Object.assign({}, item, { image: imgForDb });
+    saved = await crm_dbInsert('reward', dbItem, pts);
+    synced = !!saved;
+    if (saved && saved.db_id) {
+      item.db_id = saved.db_id;
+      existing[0] = item;
+    }
   }
 
-  ['adm-rew-name','adm-rew-pts','adm-rew-desc','adm-rew-cond','adm-rew-limit','adm-rew-note','adm-rew-img-url'].forEach(function(id) {
-    if ($(id)) $(id).value = '';
-  });
-  if ($('adm-rew-qty')) $('adm-rew-qty').value = 10;
-  if ($('adm-rew-start')) $('adm-rew-start').value = '';
-  if ($('adm-rew-end')) $('adm-rew-end').value = '';
-  if ($('adm-rew-img-preview')) { $('adm-rew-img-preview').style.display = 'none'; $('adm-rew-img-preview').src = ''; }
-  if ($('adm-rew-img-file')) $('adm-rew-img-file').value = '';
-  crm_rewImgData = '';
-
+  try { localStorage.setItem(CRM_PRE + 'rewards', JSON.stringify(existing)); } catch (e) {}
+  crm_resetRewardForm();
   await crm_renderAdminRewardList();
-  toast(saved ? '✅ เพิ่มรางวัลสำเร็จ! หน้าลูกค้าจะเห็นรายการนี้แล้ว' : '✅ บันทึกรางวัลในเครื่องแล้ว (ซิงค์ DB ไม่สำเร็จ — ตรวจตาราง crm_rewards)');
+  if (editingId != null) {
+    toast(synced ? '✅ แก้ไขรางวัลสำเร็จ — อัปเดตแบบ real-time แล้ว' : '✅ แก้ไขในเครื่องแล้ว (ซิงค์ DB ไม่สำเร็จ)');
+  } else {
+    toast(synced ? '✅ เพิ่มรางวัลสำเร็จ! หน้าลูกค้าจะเห็นรูปจริงแล้ว' : '✅ บันทึกในเครื่องแล้ว (ซิงค์ DB ไม่สำเร็จ)');
+  }
 }
 
 // --- Basic Admin PIN gate ---

@@ -1716,6 +1716,27 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
     </div>
   </div>
 
+  <div id="nhs-dash-slip-alert" role="button" tabindex="0" onclick="crm_openTxnAdminTab()" onkeydown="if(event.key==='Enter'||event.key===' '){crm_openTxnAdminTab();}" style="display:none;background:#1A1A1A;color:#fff;border:1.5px solid #C9A84C;border-left:7px solid #C9A84C;border-radius:16px;padding:15px 16px;margin-bottom:16px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.16);">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:30px;line-height:1;">🔔</div>
+      <div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:16px;color:#E9C766;">มีสลิปลูกค้ารอตรวจสอบ</div><div id="nhs-dash-slip-alert-detail" style="font-size:12px;color:#F4EEE3;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">คลิกเพื่อเปิดหน้าตรวจสอบสลิป</div></div>
+      <div style="text-align:right;min-width:52px;"><div id="nhs-dash-slip-alert-count" style="font-size:28px;line-height:1;font-weight:900;color:#E9C766;">0</div><div style="font-size:10px;color:#D8D0C2;">รายการ</div></div>
+    </div>
+  </div>
+
+  <div id="nhs-dash-history-card" style="background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+      <div><h3 style="color:#333;margin:0;font-size:16px;">🗂️ รายการย้อนหลัง</h3><div id="nhs-dash-history-summary" style="font-size:12px;color:#777;margin-top:4px;">เลือกเดือนเพื่อดูรายการจริง</div></div>
+      <button class="btn btn-sm btn-outline" type="button" onclick="nhs_dashRefreshHistory()">🔄 รีเฟรชข้อมูล</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px;">
+      <button id="nhs-dash-history-selected" class="btn btn-sm btn-gold" type="button" onclick="nhs_dashSetHistoryView('selected')">เดือนที่เลือก</button>
+      <button id="nhs-dash-history-current" class="btn btn-sm btn-outline" type="button" onclick="nhs_dashSetHistoryView('current')">เดือนปัจจุบัน</button>
+      <button id="nhs-dash-history-all" class="btn btn-sm btn-outline" type="button" onclick="nhs_dashSetHistoryView('all')">ทั้งหมด</button>
+    </div>
+    <div id="nhs-dash-history-list"></div>
+  </div>
+
   <div style="background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
     <h3 style="color:#333;margin:0 0 14px 0;font-size:16px;">ประสิทธิภาพหลัก (KPIs)</h3>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -1901,7 +1922,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
     <div id="rc-locked-note" class="rc-locked-note" style="display:none;">🔒 ใบเสร็จนี้บันทึกแล้ว แก้ไขไม่ได้ — พิมพ์หรือบันทึก PDF ได้ตามปกติ</div>
     <div class="rc-actions no-print">
       <button class="btn btn-gold" onclick="rc_save()" id="rc-save-btn">💾 บันทึก</button>
-      <button class="btn btn-outline" onclick="printReceipt()">🖨️ พิมพ์ / PDF</button><button class="btn btn-outline" onclick="rc_downloadJpeg()">🖼️ บันทึก JPEG</button>
+      <button class="btn btn-outline" onclick="printReceipt()">🖨️ พิมพ์ / PDF</button><button class="btn btn-outline" onclick="rc_downloadJpeg()" title="บน iPhone จะเปิดหน้าต่างแชร์ ให้เลือก บันทึกรูปภาพ">🖼️ บันทึก JPEG</button>
       <button class="btn btn-outline" style="border-color:#1A1A1A;color:#1A1A1A;" onclick="rc_sendLine()">💬 ส่งไลน์</button>
       <button class="btn btn-outline" onclick="rc_exportRow()">📊 Excel</button>
     </div>
@@ -3040,6 +3061,8 @@ try {
 }
 
 let allIncs=[], allExps=[], allQs=[], allCusts=[];
+let nhsDashHistoryView = 'selected';
+let nhsDashActiveRecord = null;
 let nhsSelectedCalDate = new Date().toISOString().split('T')[0];
 let curMonth = new Date().getMonth();
 let curYear = new Date().getFullYear();
@@ -3630,6 +3653,134 @@ function nhs_dashRenderTopServices(rows, search) {
     return `<div style="display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #eee;"><div style="font-weight:600;">${index + 1}. ${name}</div><div style="color:#B8860B;white-space:nowrap;">${nhs_dashMoney(amount)} (${pct}%)</div></div>`;
   }).join('') : `<div style="color:#888;text-align:center;padding:20px;">${term ? 'ไม่พบข้อมูลที่ค้นหา' : 'ยังไม่มีข้อมูล'}</div>`;
 }
+function nhs_dashHistoryRows(type, selectedMonth) {
+  const selectedRange = nhs_dashRange(type, selectedMonth);
+  let range = selectedRange;
+  let label = selectedRange.label;
+  if (nhsDashHistoryView === 'current') {
+    const current = new Date().toISOString().slice(0, 7);
+    range = nhs_dashRange('monthly', current);
+    label = 'เดือนปัจจุบัน ' + current;
+  }
+  const income = (allIncs || []).map(function(row) { return Object.assign({ __kind: 'income' }, row); });
+  const expense = (allExps || []).map(function(row) { return Object.assign({ __kind: 'expense' }, row); });
+  let rows = income.concat(expense);
+  if (nhsDashHistoryView !== 'all') rows = rows.filter(function(row) { return nhs_dashInRange(row, range.start, range.end); });
+  rows.sort(function(a, b) {
+    const da = nhs_dashDate(a.record_date || a.payment_date || a.created_at);
+    const db = nhs_dashDate(b.record_date || b.payment_date || b.created_at);
+    if (da !== db) return db.localeCompare(da);
+    return String(b.id || b._local_id || '').localeCompare(String(a.id || a._local_id || ''));
+  });
+  return { rows: rows, label: nhsDashHistoryView === 'all' ? 'ข้อมูลทั้งหมดที่โหลดได้' : label, selectedRange: selectedRange };
+}
+function nhs_dashEscape(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);
+  });
+}
+function nhs_dashFormatDate(value) {
+  const d = nhs_dashDate(value);
+  if (!d) return '-';
+  const parts = d.split('-');
+  return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+function nhs_dashRenderHistory(type, selectedMonth, search) {
+  const host = document.getElementById('nhs-dash-history-list');
+  const summary = document.getElementById('nhs-dash-history-summary');
+  if (!host) return;
+  const data = nhs_dashHistoryRows(type, selectedMonth);
+  const term = String(search || '').trim().toLowerCase();
+  const rows = data.rows.filter(function(row) {
+    if (!term) return true;
+    const hay = [row.customer_name, row.name, row.note, row.category, row.channel, row.source_channel, row.record_date].join(' ').toLowerCase();
+    return hay.includes(term);
+  });
+  const incomeTotal = rows.filter(function(row){ return row.__kind === 'income'; }).reduce(function(s,row){ return s + nhs_dashNum(row.amount); }, 0);
+  const expenseTotal = rows.filter(function(row){ return row.__kind === 'expense'; }).reduce(function(s,row){ return s + nhs_dashNum(row.amount); }, 0);
+  if (summary) summary.textContent = data.label + ' · ' + rows.length.toLocaleString('th-TH') + ' รายการ · รับ ' + nhs_dashMoney(incomeTotal) + ' · จ่าย ' + nhs_dashMoney(expenseTotal);
+  ['selected','current','all'].forEach(function(view) {
+    const button = document.getElementById('nhs-dash-history-' + view);
+    if (!button) return;
+    button.classList.toggle('btn-gold', nhsDashHistoryView === view);
+    button.classList.toggle('btn-outline', nhsDashHistoryView !== view);
+  });
+  if (!rows.length) {
+    host.innerHTML = '<div style="color:#888;text-align:center;padding:24px 10px;border:1px dashed #ddd;border-radius:12px;">ไม่พบรายการในมุมมองนี้ ลองเลือกเดือนกรกฎาคมหรือกด “ทั้งหมด”</div>';
+    return;
+  }
+  host.innerHTML = rows.slice(0, 200).map(function(row) {
+    const isIncome = row.__kind === 'income';
+    const title = isIncome ? (row.customer_name || 'รายรับ') : (row.name || row.note || 'รายจ่าย');
+    const detail = isIncome ? (row.category || row.note || 'บริการ') : (row.category || 'ค่าใช้จ่าย');
+    const amount = nhs_dashMoney(row.amount);
+    const id = row.id || row._local_id || '';
+    const kind = isIncome ? 'income' : 'expense';
+    return '<div style="border:1px solid #E8E1D6;border-radius:12px;padding:12px;margin-bottom:8px;background:#FFFEFC;">' +
+      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">' +
+        '<div style="min-width:0;flex:1;"><div style="font-weight:800;color:#24211D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + nhs_dashEscape(title) + '</div>' +
+        '<div style="font-size:12px;color:#777;margin-top:3px;">' + nhs_dashFormatDate(row.record_date || row.payment_date || row.created_at) + ' · ' + nhs_dashEscape(detail) + (row.channel ? ' · ' + nhs_dashEscape(row.channel) : '') + '</div></div>' +
+        '<div style="font-weight:900;white-space:nowrap;color:' + (isIncome ? '#A77A2F' : '#9B5048') + ';">' + (isIncome ? '+' : '-') + amount + '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;">' +
+        '<button class="btn btn-sm btn-outline" type="button" onclick="nhs_dashOpenRecordDetail(' + JSON.stringify(kind) + ',' + JSON.stringify(String(id)) + ')">🔎 ดูรายละเอียด</button>' +
+        '<button class="btn btn-sm btn-gold" type="button" onclick="nhs_dashEditRecord(' + JSON.stringify(kind) + ',' + JSON.stringify(String(id)) + ')">✏️ แก้ไข</button>' +
+      '</div>' +
+    '</div>';
+  }).join('') + (rows.length > 200 ? '<div style="font-size:12px;color:#777;text-align:center;padding:8px;">แสดง 200 รายการล่าสุดจากทั้งหมด ' + rows.length + ' รายการ</div>' : '');
+}
+function nhs_dashSetHistoryView(view) {
+  nhsDashHistoryView = ['selected','current','all'].includes(view) ? view : 'selected';
+  renderDash();
+}
+async function nhs_dashRefreshHistory() {
+  await loadData(true);
+  renderDash();
+  toast('✅ รีเฟรชรายการย้อนหลังแล้ว');
+}
+function nhs_dashFindRecord(kind, id) {
+  const list = kind === 'income' ? (allIncs || []) : (allExps || []);
+  return list.find(function(row) { return String(row.id || row._local_id) === String(id); }) || null;
+}
+function nhs_dashOpenRecordDetail(kind, id) {
+  const row = nhs_dashFindRecord(kind, id);
+  if (!row) return toast('ไม่พบรายการย้อนหลัง');
+  nhsDashActiveRecord = { kind: kind, id: id };
+  const isIncome = kind === 'income';
+  const title = isIncome ? (row.customer_name || 'รายรับ') : (row.name || row.note || 'รายจ่าย');
+  const details = [
+    ['ประเภท', isIncome ? 'รายรับ' : 'รายจ่าย'],
+    ['วันที่', nhs_dashFormatDate(row.record_date || row.payment_date || row.created_at)],
+    [isIncome ? 'ลูกค้า' : 'รายละเอียด', title],
+    [isIncome ? 'บริการ' : 'หมวดหมู่', row.category || '-'],
+    ['จำนวนเงิน', nhs_dashMoney(row.amount)],
+    ['ช่องทาง', row.channel || row.source_channel || '-'],
+    ['หมายเหตุ', row.note || '-']
+  ];
+  const old = document.getElementById('nhs-dash-record-modal');
+  if (old) old.remove();
+  const modal = document.createElement('div');
+  modal.id = 'nhs-dash-record-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10050;display:flex;align-items:center;justify-content:center;padding:16px;';
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:520px;width:100%;padding:18px;box-shadow:0 18px 60px rgba(0,0,0,.3);">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;"><h3 style="margin:0;color:#24211D;">🔎 รายละเอียดรายการ</h3><button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById(\'nhs-dash-record-modal\').remove()">✕</button></div>' +
+    '<div style="margin-top:14px;">' + details.map(function(pair){ return '<div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #eee;padding:9px 0;"><span style="color:#777;">' + nhs_dashEscape(pair[0]) + '</span><b style="text-align:right;color:#24211D;max-width:65%;word-break:break-word;">' + nhs_dashEscape(pair[1]) + '</b></div>'; }).join('') + '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:16px;"><button class="btn btn-gold" style="flex:1;" type="button" onclick="nhs_dashEditActiveRecord()">✏️ แก้ไขรายการ</button><button class="btn btn-outline" style="flex:1;" type="button" onclick="document.getElementById(\'nhs-dash-record-modal\').remove()">ปิด</button></div>' +
+    '</div>';
+  modal.addEventListener('click', function(event){ if(event.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+async function nhs_dashEditRecord(kind, id) {
+  const modal = document.getElementById('nhs-dash-record-modal');
+  if (modal) modal.remove();
+  if (kind === 'income') await editIncome(id); else await editExpense(id);
+  try { await loadData(true); } catch (e) { renderDash(); }
+}
+async function nhs_dashEditActiveRecord() {
+  if (!nhsDashActiveRecord) return;
+  await nhs_dashEditRecord(nhsDashActiveRecord.kind, nhsDashActiveRecord.id);
+}
+
 function renderDash() {
   const type = document.getElementById('nhs-dash-summary-type')?.value || 'monthly';
   const selectedMonth = document.getElementById('dash-month')?.value || new Date().toISOString().slice(0, 7);
@@ -3669,6 +3820,7 @@ function renderDash() {
   nhs_dashRenderBars(buckets.values, buckets.labels);
   nhs_dashRenderChannels(incomeRows);
   nhs_dashRenderTopServices(incomeRows, search);
+  nhs_dashRenderHistory(type, selectedMonth, search);
   window.nhs_dashboardSnapshot = { type, range, revenue, expenses, profit, orders, aov, previousRevenue, previousExpenses, previousProfit, previousOrders, previousAov, channelCount: Object.keys(incomeRows.reduce((map, row) => { const key = String(row.channel || row.source_channel || 'ไม่ระบุ').trim() || 'ไม่ระบุ'; map[key] = true; return map; }, {})).length, topServices: Object.entries(incomeRows.reduce((map, row) => { const key = String(row.category || row.note || 'บริการอื่นๆ').trim() || 'บริการอื่นๆ'; map[key] = (map[key] || 0) + nhs_dashNum(row.amount); return map; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 3) };
 }
 function showChartDetails() {
@@ -5852,6 +6004,15 @@ async function crm_refreshTxnBadge() {
     const topCount = $('adm-txn-top-count');
     if (topCount) topCount.textContent = n;
     if (topAlert) topAlert.style.display = n > 0 ? 'block' : 'none';
+    const dashAlert = $('nhs-dash-slip-alert');
+    const dashCount = $('nhs-dash-slip-alert-count');
+    const dashDetail = $('nhs-dash-slip-alert-detail');
+    if (dashCount) dashCount.textContent = n;
+    if (dashDetail) {
+      const first = pending[0];
+      dashDetail.textContent = first ? ('ล่าสุด: ' + (first.cust_name || first.phone || 'ลูกค้า') + ' · คลิกเพื่อเปิดดูสลิปและตรวจใบเสร็จ') : 'คลิกเพื่อเปิดหน้าตรวจสอบสลิป';
+    }
+    if (dashAlert) dashAlert.style.display = n > 0 ? 'block' : 'none';
     return n;
   } catch (e) { return 0; }
 }
@@ -5870,7 +6031,8 @@ async function crm_renderAdminTxnList() {
     return;
   }
   box.innerHTML = pending.map(function(t) {
-    const slip = t.image ? '<img src="' + t.image + '" style="width:100%;max-height:160px;object-fit:contain;border-radius:8px;border:1px solid #eee;margin-bottom:8px;">' : '';
+    const safeSlip = t.image ? String(t.image).replace(/"/g, '&quot;') : '';
+    const slip = t.image ? '<div style="margin-bottom:10px;padding:10px;border:1px solid #E8E1D6;border-radius:12px;background:#FFFEFC;"><div style="font-size:12px;font-weight:800;color:#6F5A2C;margin-bottom:6px;">🧾 รูปสลิปต้นฉบับ</div><img src="' + safeSlip + '" alt="รูปสลิปของลูกค้า" style="width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid #ddd;background:#f7f7f7;cursor:zoom-in;" onclick="crm_openTxnSlipImage(' + t.db_id + ')" onerror="this.alt=\'โหลดรูปไม่สำเร็จ\';this.style.borderColor=\'#B42318\';"><button class="btn btn-outline btn-sm" type="button" style="width:100%;margin-top:8px;" onclick="crm_openTxnSlipImage(' + t.db_id + ')">🔍 เปิดรูปสลิปเต็มจอ</button></div>' : '<div style="margin-bottom:10px;padding:12px;border:1px dashed #B42318;border-radius:10px;color:#B42318;background:#FFF7F5;">⚠️ รายการนี้ไม่มีรูปสลิปแนบ</div>';
     const serviceDate = t.service_date ? ('<div style="font-size:12px;color:#6F5A2C;margin-top:6px;">📅 เข้าใช้บริการ: ' + t.service_date + '</div>') : '<div style="font-size:12px;color:#B42318;margin-top:6px;">⚠️ รายการเดิมไม่มีวันที่เข้าใช้บริการ</div>';
     const appt = t.appt_date ? ('<div style="font-size:12px;color:#666;margin-top:6px;padding-top:6px;border-top:1px dashed #ddd;">📅 นัดครั้งถัดไป: ' + t.appt_date + (t.appt_stylist ? (' กับ ' + t.appt_stylist) : '') + (t.appt_service ? (' — ' + t.appt_service) : '') + '</div>') : '';
     return '<div class="crm-card" style="margin-bottom:12px;">' +
@@ -5897,6 +6059,27 @@ async function crm_renderAdminTxnList() {
 async function crm_getTxnById(dbId) {
   const list = await crm_dbFetchByType('txn');
   return list.find(function(t) { return String(t.db_id) === String(dbId); }) || null;
+}
+
+/** เปิดรูปสลิปต้นฉบับเต็มจอจากรายการ pending โดยไม่เขียนฐานข้อมูล */
+async function crm_openTxnSlipImage(dbId) {
+  const t = await crm_getTxnById(dbId);
+  if (!t || !t.image) return toast('❌ รายการนี้ไม่มีรูปสลิป');
+  const old = document.getElementById('nhs-txn-slip-modal');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'nhs-txn-slip-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.86);z-index:10060;display:flex;align-items:center;justify-content:center;padding:14px;';
+  overlay.innerHTML = '<div style="width:100%;max-width:760px;max-height:94vh;background:#171717;border:1px solid #C9A84C;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;color:#E9C766;font-weight:800;">รูปสลิปต้นฉบับ <button type="button" class="btn btn-sm btn-outline" style="background:#fff;" id="nhs-txn-slip-close">ปิด</button></div>' +
+    '<div style="overflow:auto;text-align:center;background:#000;border-radius:10px;padding:8px;"><img id="nhs-txn-slip-full-image" alt="รูปสลิปต้นฉบับเต็มจอ" style="max-width:100%;max-height:76vh;object-fit:contain;border-radius:6px;"></div>' +
+    '<div style="font-size:12px;color:#F4EEE3;text-align:center;">ตรวจยอดเงิน วันที่ และชื่อบัญชีจากรูปจริงก่อนกด “เปิดใบเสร็จฉบับเต็ม”</div></div>';
+  document.body.appendChild(overlay);
+  const img = document.getElementById('nhs-txn-slip-full-image');
+  if (img) img.src = t.image;
+  const close = document.getElementById('nhs-txn-slip-close');
+  if (close) close.onclick = function(){ overlay.remove(); };
+  overlay.onclick = function(event){ if (event.target === overlay) overlay.remove(); };
 }
 
 /** แก้ไขยอด/รายการก่อนยืนยัน — ใช้ prompt() ตามรูปแบบเดิมของระบบ */
@@ -7297,7 +7480,39 @@ function rc_viewByNo(no) {
   rc_view(r);
 }
 
-function rc_downloadJpeg() {
+function rc_dataUrlToBlob(dataUrl) {
+  const parts = String(dataUrl || '').split(',');
+  const header = parts[0] || '';
+  const base64 = parts[1] || '';
+  const mime = (header.match(/data:(.*?);/) || [])[1] || 'image/jpeg';
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+function rc_showJpegPreview(dataUrl, fileName) {
+  const old = document.getElementById('rc-jpeg-preview-modal');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'rc-jpeg-preview-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:18px;';
+  overlay.innerHTML = `<div style="width:min(94vw,620px);max-height:94vh;overflow:auto;background:#fff;border-radius:18px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center;">
+    <div style="font-weight:800;color:#1A1A1A;font-size:18px;margin-bottom:10px;">บันทึกใบเสร็จ JPEG</div>
+    <img src="${dataUrl}" alt="ใบเสร็จ JPEG" style="display:block;width:100%;height:auto;border:1px solid #D8C89E;border-radius:10px;background:#FAF8F4;">
+    <p style="margin:12px 4px 14px;color:#4b463f;font-size:14px;line-height:1.55;">บน iPhone ให้กดค้างที่รูปภาพ แล้วเลือก <b>“บันทึกไปยังรูปภาพ”</b> หรือกดปุ่มแชร์ของ Safari</p>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <a href="${dataUrl}" target="_blank" rel="noopener" download="${fileName}" style="display:inline-flex;align-items:center;justify-content:center;padding:11px 16px;border-radius:10px;background:#C9A84C;color:#1A1A1A;text-decoration:none;font-weight:700;">เปิดรูปเต็มจอ</a>
+      <button type="button" id="rc-jpeg-preview-close" style="padding:11px 16px;border-radius:10px;border:1px solid #C9A84C;background:#fff;color:#1A1A1A;font-weight:700;">ปิด</button>
+    </div>
+  </div>`;
+  const close = () => overlay.remove();
+  overlay.addEventListener('click', (event) => { if (event.target === overlay) close(); });
+  overlay.querySelector('#rc-jpeg-preview-close').addEventListener('click', close);
+  document.body.appendChild(overlay);
+}
+
+async function rc_downloadJpeg() {
   if (!rcSelectedCustomer) return toast('❌ ไม่พบข้อมูลลูกค้าในใบเสร็จ');
   const { subtotal, discount, net, hasDeposit, deposit, todayPay, earnedPoints } = rc_calcTotals();
   const width = 1200;
@@ -7346,17 +7561,40 @@ function rc_downloadJpeg() {
   if (hasDeposit) { totalLine('มัดจำค่าจองคิว', deposit); totalLine('วันนี้จ่ายเพิ่ม', todayPay); }
   totalLine('ยอดสุทธิ', net, true); totalLine('พอยท์ที่ได้รับ', earnedPoints, false);
   y += 28; ctx.fillStyle = gold; ctx.font = '700 21px Arial, sans-serif'; ctx.fillText('ขอบคุณที่ไว้วางใจใช้บริการ N Hair Stylist', 70, y);
-  const a = document.createElement('a');
-  a.href = canvas.toDataURL('image/jpeg', 0.92);
+
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
   const rawReceiptNo = (($('rc-no') && $('rc-no').textContent) || '').trim();
   const receiptNo = (rawReceiptNo && !rawReceiptNo.includes('จะออกเลขที่'))
     ? rawReceiptNo.replace(/[^A-Za-z0-9-]/g, '_')
     : 'NHS-receipt-' + new Date().toISOString().slice(0, 10);
-  a.download = receiptNo + '.jpg';
-  document.body.appendChild(a); a.click(); a.remove();
+  const fileName = receiptNo + '.jpg';
+  const blob = rc_dataUrlToBlob(dataUrl);
+  const file = typeof File === 'function' ? new File([blob], fileName, { type: 'image/jpeg' }) : null;
+  const canShareFile = !!file && typeof navigator.share === 'function' && (!navigator.canShare || navigator.canShare({ files: [file] }));
+  if (canShareFile) {
+    try {
+      await navigator.share({ files: [file], title: 'ใบเสร็จ N Hair Stylist', text: 'เลือก “บันทึกรูปภาพ” เพื่อเก็บใบเสร็จลงใน iPhone' });
+      toast('✅ เปิดหน้าต่างแชร์แล้ว — เลือก “บันทึกรูปภาพ” เพื่อบันทึกลง iPhone');
+      return;
+    } catch (err) {
+      if (err && err.name === 'AbortError') return toast('ยกเลิกการแชร์แล้ว');
+      console.warn('NHS JPEG share fallback:', err);
+    }
+  }
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    rc_showJpegPreview(dataUrl, fileName);
+    toast('เปิดภาพตัวอย่างแล้ว — กดค้างที่รูป แล้วเลือก “บันทึกไปยังรูปภาพ”');
+    return;
+  }
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = fileName;
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
   toast('✅ บันทึกใบเสร็จเป็น JPEG แล้ว');
 }
-
 function printReceipt() {
   // สร้างเนื้อหาใบเสร็จจากข้อมูลจริงปัจจุบัน (ไม่ clone DOM ตรงๆ)
   // เพื่อป้องกันบั๊ก: ช่องทางชำระ/ราคา/จำนวนที่พิมพ์แก้ไขบนหน้าจอ อาจไม่ถูกสะท้อนตอนพิมพ์

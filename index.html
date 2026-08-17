@@ -45,8 +45,8 @@
 </style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>N Hair Stylist - Ultimate CRM & Accounting</title>
-<link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23F0D78C'/%3E%3Cstop offset='100%25' stop-color='%23A68A3D'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='64' cy='64' r='60' fill='%231A1A1A' stroke='url(%23g)' stroke-width='4'/%3E%3Ctext x='64' y='78' text-anchor='middle' font-family='Georgia,serif' font-size='52' font-weight='700' fill='url(%23g)'%3EN%3C/text%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23F0D78C'/%3E%3Cstop offset='100%25' stop-color='%23A68A3D'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='64' cy='64' r='60' fill='%231A1A1A' stroke='url(%23g)' stroke-width='4'/%3E%3Ctext x='64' y='78' text-anchor='middle' font-family='Georgia,serif' font-size='52' font-weight='700' fill='url(%23g)'%3EN%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="assets/nhair-logo.png">
+<link rel="apple-touch-icon" href="assets/nhair-logo.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="N Hair Stylist">
 <meta name="theme-color" content="#1A1A1A">
@@ -534,6 +534,7 @@ function printConsultForm() {
         .consult-container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border: 1px solid #D1C4A8; }
         .consult-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #C9A84C; padding-bottom: 15px; margin-bottom: 20px; }
         .consult-logo-text { font-size: 28px; font-weight: 800; }
+.consult-logo-image { width: 58px; height: 58px; object-fit: cover; border-radius: 12px; border: 1px solid var(--gold); box-shadow: 0 4px 14px rgba(0,0,0,.2); flex-shrink: 0; }
         .consult-main-title { font-size: 22px; font-weight: 700; color: #A68A3D; }
         .consult-sub-title { font-size: 14px; color: #666; }
         .consult-section { margin-bottom: 20px; border: 1px solid #D1C4A8; position: relative; padding-top: 12px; }
@@ -838,6 +839,7 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
     margin-bottom: 25px; border: 1px solid var(--l-gold);
 }
 .card-logo { font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+.card-logo-image { width: 136px; height: 68px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(201,168,76,.75); box-shadow: 0 5px 18px rgba(0,0,0,.24); margin-bottom: 16px; }
 .card-chip { width: 40px; height: 30px; background: #555; border-radius: 5px; margin-bottom: 10px; }
 .card-number { font-size: 20px; letter-spacing: 2px; margin: 15px 0; font-family: monospace; }
 .card-holder { font-size: 14px; text-transform: uppercase; opacity: 0.8; }
@@ -1867,7 +1869,8 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
             <div>ชื่อ-นามสกุล: <b id="rc-cust-name">-</b></div>
             <div>เบอร์โทร: <b id="rc-cust-phone">-</b></div>
             <div>ระดับสมาชิก: <b id="rc-cust-level">-</b></div>
-            <div>คะแนนก่อนใช้: <b id="rc-cust-pts-before">-</b> แต้ม</div>
+            <div>คะแนนก่อนรายการ: <b id="rc-cust-pts-before">-</b> แต้ม</div>
+            <div>คะแนนคงเหลือหลังรายการ: <b id="rc-cust-pts-after">-</b> แต้ม</div>
             <div id="rc-service-date-row" style="display:none;">วันที่เข้าใช้บริการ: <b id="rc-service-date">-</b></div>
           </div>
           <button class="btn btn-sm btn-outline no-print" style="margin-top:8px;" onclick="rc_pickCustomer()">🔍 เลือก/ค้นหาลูกค้า</button>
@@ -2131,9 +2134,9 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
   <div class="consult-container" id="consult-form-container">
     <div class="consult-header">
       <div class="consult-logo-area">
-        <div class="consult-logo-text">N</div>
+        <img class="consult-logo-image" src="assets/nhair-logo.png" alt="N HAIR STYLIST logo">
         <div>
-          <div class="consult-logo-text" style="font-size: 18px;">HAIR STYLIST</div>
+          <div class="consult-logo-text" style="font-size: 18px;">N HAIR STYLIST</div>
           <div style="font-size: 9px; text-transform: uppercase; color: var(--sub);">PREMIUM HAIR SALON</div>
         </div>
       </div>
@@ -2464,7 +2467,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
         </div>
         <div id="mem-info-section" style="display:none;">
             <div class="member-card">
-                <div class="card-logo">N HAIR STYLIST</div>
+                <img class="card-logo-image" src="assets/nhair-logo.png" alt="N HAIR STYLIST logo">
                 <div class="card-chip"></div>
                 <div class="card-number" id="l-card-id">NHS-000000</div>
                 <div class="card-holder" id="l-card-name">CUSTOMER NAME</div>
@@ -2898,7 +2901,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
         <div class="crm-title" id="adm-rew-form-title">เพิ่มของรางวัลใหม่</div>
         <div class="fg">
           <label class="fl">รูปภาพรางวัล</label>
-          <img id="adm-rew-img-preview" style="display:none; width:100%; max-height:160px; object-fit:cover; border-radius:10px; margin-bottom:8px;">
+          <img id="adm-rew-img-preview" style="display:none; width:100%; height:auto; max-height:none; object-fit:contain; border-radius:10px; margin-bottom:8px; background:#171717;">
           <input type="file" id="adm-rew-img-file" accept="image/*" class="fc" style="padding:8px;" onchange="crm_handleRewardImage(this)">
           <div style="font-size:11px;color:#888;margin:6px 0;">หรือใส่ลิงก์ URL</div>
           <input type="url" id="adm-rew-img-url" class="fc" placeholder="https://... ลิงก์รูปภาพ" onchange="crm_setRewardImageUrl()" onblur="crm_setRewardImageUrl()">
@@ -3178,8 +3181,9 @@ function adminLogout() {
 }
 
 // Shop logo (base64 embedded so the page works standalone / offline)
-const LOGO_SMALL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23F0D78C'/%3E%3Cstop offset='100%25' stop-color='%23A68A3D'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='64' cy='64' r='60' fill='%231A1A1A' stroke='url(%23g)' stroke-width='4'/%3E%3Ctext x='64' y='78' text-anchor='middle' font-family='Georgia,serif' font-size='52' font-weight='700' fill='url(%23g)'%3EN%3C/text%3E%3C/svg%3E";
-const LOGO_LARGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23F0D78C'/%3E%3Cstop offset='100%25' stop-color='%23A68A3D'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='64' cy='64' r='60' fill='%231A1A1A' stroke='url(%23g)' stroke-width='4'/%3E%3Ctext x='64' y='78' text-anchor='middle' font-family='Georgia,serif' font-size='52' font-weight='700' fill='url(%23g)'%3EN%3C/text%3E%3C/svg%3E";
+const NHS_LOGO_ASSET = 'assets/nhair-logo.png';
+const LOGO_SMALL = NHS_LOGO_ASSET;
+const LOGO_LARGE = NHS_LOGO_ASSET;
 document.addEventListener('DOMContentLoaded', () => {
   const l = $('th-logo'); if(l) l.src = LOGO_SMALL;
   const rl = $('rc-logo'); if(rl) rl.src = LOGO_LARGE;
@@ -3915,6 +3919,12 @@ function nhs_recordsGetReceiptAdjustments() {
 function nhs_recordsSetReceiptAdjustments(value) {
   try { localStorage.setItem('nhs-v2-receipt-income-adjustments', JSON.stringify(value || {})); } catch (e) {}
 }
+function nhs_recordsGetReceiptDeletions() {
+  try { return JSON.parse(localStorage.getItem('nhs-v2-receipt-income-deletions') || '{}') || {}; } catch (e) { return {}; }
+}
+function nhs_recordsSetReceiptDeletions(value) {
+  try { localStorage.setItem('nhs-v2-receipt-income-deletions', JSON.stringify(value || {})); } catch (e) {}
+}
 function nhs_recordsReceiptDate(receipt) {
   return nhs_dashDate(receipt && (receipt.service_date || receipt.receipt_date));
 }
@@ -3940,7 +3950,11 @@ function nhs_recordsReadReceipts() {
 }
 function nhs_recordsReceiptRows() {
   const adjustments = nhs_recordsGetReceiptAdjustments();
-  return nhs_recordsReadReceipts().map(function(r, index) {
+  const deletions = nhs_recordsGetReceiptDeletions();
+  return nhs_recordsReadReceipts().filter(function(r, index) {
+    const no = String(r.receipt_no || ('local-' + index));
+    return !deletions[no];
+  }).map(function(r, index) {
     const no = String(r.receipt_no || ('local-' + index));
     const adj = adjustments[no] || {};
     const items = Array.isArray(r.items) ? r.items.map(function(item) { return item && item.name; }).filter(Boolean).join(', ') : '';
@@ -4032,6 +4046,20 @@ async function nhs_recordsEditManual(kind, id) {
   if (kind === 'income') await editIncome(id); else await editExpense(id);
   nhs_recordsRender();
 }
+async function nhs_recordsDeleteReceipt(no) {
+  const row = nhs_recordsReceiptRows().find(function(r) { return String(r.__receipt_no) === String(no); });
+  if (!row) return toast('ไม่พบรายรับจากใบเสร็จนี้');
+  if (!confirm('ยืนยันลบรายการรายรับจากใบเสร็จ ' + no + '?\n\nการลบนี้ซ่อนเฉพาะรายการจากหน้า Records — ใบเสร็จต้นฉบับและพอยท์ลูกค้าจะไม่ถูกลบ')) return;
+  const deletions = nhs_recordsGetReceiptDeletions();
+  deletions[String(no)] = { deleted_at: new Date().toISOString() };
+  nhs_recordsSetReceiptDeletions(deletions);
+  const adjustments = nhs_recordsGetReceiptAdjustments();
+  delete adjustments[String(no)];
+  nhs_recordsSetReceiptAdjustments(adjustments);
+  toast('🗑️ ลบรายการรายรับจากหน้า Records แล้ว');
+  nhs_recordsRender();
+  if (typeof renderDash === 'function') renderDash();
+}
 async function nhs_recordsEditReceipt(no) {
   const row = nhs_recordsReceiptRows().find(function(r) { return String(r.__receipt_no) === String(no); });
   if (!row) return toast('ไม่พบใบเสร็จ');
@@ -4117,7 +4145,9 @@ function nhs_recordsRender() {
     const editButton = isReceipt
       ? '<button class="btn btn-sm btn-gold" type="button" onclick="nhs_recordsEditReceipt(' + nhs_recordsJsAttr(String(id)) + ')">✏️ แก้ไขรายรับ</button>'
       : '<button class="btn btn-sm btn-gold" type="button" onclick="nhs_recordsEditManual(' + nhs_recordsJsAttr(isIncome ? 'income' : 'expense') + ',' + nhs_recordsJsAttr(String(id)) + ')">✏️ แก้ไข</button>';
-    const deleteButton = isReceipt ? '' : '<button class="btn btn-sm btn-no" type="button" onclick="nhs_recordsDeleteManual(' + nhs_recordsJsAttr(isIncome ? 'income' : 'expense') + ',' + nhs_recordsJsAttr(String(id)) + ')">🗑️ ลบ</button>';
+    const deleteButton = isReceipt
+      ? '<button class="btn btn-sm btn-no" type="button" onclick="nhs_recordsDeleteReceipt(' + nhs_recordsJsAttr(String(id)) + ')">🗑️ ลบรายการ</button>'
+      : '<button class="btn btn-sm btn-no" type="button" onclick="nhs_recordsDeleteManual(' + nhs_recordsJsAttr(isIncome ? 'income' : 'expense') + ',' + nhs_recordsJsAttr(String(id)) + ')">🗑️ ลบ</button>';
     return '<div class="nhs-record-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;"><div style="min-width:0;flex:1;">' + badge + '<div style="font-weight:900;font-size:15px;">' + nhs_dashEscape(title) + '</div><div style="font-size:12px;color:#777;margin-top:4px;">' + nhs_dashFormatDate(row.record_date) + ' · ' + nhs_dashEscape(detail) + (row.channel ? ' · ' + nhs_dashEscape(row.channel) : '') + '</div></div><div style="font-weight:900;white-space:nowrap;color:' + (isIncome ? '#A77A2F' : '#9B5048') + ';">' + (isIncome ? '+' : '-') + nhs_recordsMoney(row.amount) + '</div></div><div class="nhs-record-actions">' + detailButton + editButton + deleteButton + '</div></div>';
   }).join('') + (filtered.length > 300 ? '<div style="text-align:center;color:#777;padding:10px;">แสดง 300 รายการล่าสุดจาก ' + filtered.length + ' รายการ</div>' : '');
 }
@@ -5372,7 +5402,7 @@ function l_handleProfileImage(input) {
 // LINE LOGIN & LOGO — สมัครสมาชิกผ่านไลน์ + ดึงชื่อ/รูปโปรไฟล์อัตโนมัติ
 // ============================================================
 // โลโก้ร้าน (แสดงบนหัวข้อทุกหน้าที่ลูกค้าเห็นในระบบสมาชิก)
-const CRM_LOGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23F0D78C'/%3E%3Cstop offset='100%25' stop-color='%23A68A3D'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='64' cy='64' r='60' fill='%231A1A1A' stroke='url(%23g)' stroke-width='4'/%3E%3Ctext x='64' y='78' text-anchor='middle' font-family='Georgia,serif' font-size='52' font-weight='700' fill='url(%23g)'%3EN%3C/text%3E%3C/svg%3E";
+const CRM_LOGO = NHS_LOGO_ASSET;
 
 // ⚠️ ตั้งค่าที่นี่: ใส่ LIFF ID ของร้าน (สร้างได้ฟรีที่ LINE Developers Console > สร้าง LIFF app)
 // หมายเหตุสำคัญ: LINE อนุญาตให้ดึงได้แค่ "ชื่อโปรไฟล์" และ "รูปโปรไฟล์" เท่านั้น
@@ -5887,13 +5917,27 @@ async function crm_dbFetchByType(type, phoneFilter) {
   }
 }
 
+async function crm_prepareGenericImageForDb(value) {
+  const image = String(value || '');
+  if (!image) return '';
+  if (!image.startsWith('data:image')) return image;
+  if (image.length <= 76000) return image;
+  try {
+    const response = await fetch(image);
+    const blob = await response.blob();
+    const file = new File([blob], 'upload.jpg', { type: blob.type || 'image/jpeg' });
+    return await nhs_compressImageFile(file, 640, 0.62, 76000);
+  } catch (e) {
+    console.warn('crm_prepareGenericImageForDb', e);
+    return image;
+  }
+}
+
 async function crm_dbInsert(type, payload, pointsVal) {
   try {
-    // ตัด image ยาวเกินออกจาก payload ก่อน encode กัน name คอลัมน์ล้น
+    // เก็บรูปสลิป/รางวัล/ข่าวสารไว้เสมอ และบีบอัดแทนการตัดเป็นค่าว่าง
     const safe = Object.assign({}, payload);
-    if (safe.image && typeof safe.image === 'string' && safe.image.length > 80000) {
-      safe.image = '';
-    }
+    if (safe.image && typeof safe.image === 'string') safe.image = await crm_prepareGenericImageForDb(safe.image);
     const encoded = crm_encodePayload(type, safe);
     if (encoded.length > 500000) {
       console.warn('crm_dbInsert payload too large', encoded.length);
@@ -5913,8 +5957,10 @@ async function crm_dbInsert(type, payload, pointsVal) {
 
 async function crm_dbUpdate(dbId, type, payload, pointsVal) {
   try {
+    const safe = Object.assign({}, payload);
+    if (safe.image && typeof safe.image === 'string') safe.image = await crm_prepareGenericImageForDb(safe.image);
     const { error } = await db.from('crm_rewards').update({
-      name: crm_encodePayload(type, payload),
+      name: crm_encodePayload(type, safe),
       points_required: pointsVal || 0
     }).eq('id', dbId);
     return !error;
@@ -5932,6 +5978,11 @@ async function crm_dbDelete(dbId) {
     console.warn('crm_dbDelete', e);
     return false;
   }
+}
+
+function crm_rewardImage(r) {
+  if (!r) return '';
+  return String(r.image || r.image_url || r.reward_image || r.photo || r.thumbnail || '').trim();
 }
 
 async function crm_getRewards() {
@@ -5956,7 +6007,7 @@ async function crm_getRewards() {
     } else {
       // รวมฟิลด์ — คงรูป local ถ้า DB ไม่มีรูป
       map[k] = Object.assign({}, prev, r, {
-        image: r.image || prev.image || '',
+        image: crm_rewardImage(r) || crm_rewardImage(prev) || '',
         desc: r.desc || prev.desc || '',
         conditions: r.conditions || prev.conditions || '',
         is_special: r.is_special != null ? !!r.is_special : !!(prev.is_special || prev.special || prev.isSpecial)
@@ -5980,12 +6031,13 @@ async function crm_renderRewards() {
   $('crm-reward-list').innerHTML = rewards.map(r => {
     const canRedeem = crm_member && crm_member.points >= r.pts && (r.qty === undefined || r.qty > 0);
     const isSpecial = !!(r.is_special || r.special || r.isSpecial);
-    const imgHtml = r.image
-      ? `<img src="${r.image}" alt="รูป ${r.name}" style="width:100%;height:100%;object-fit:cover;">`
+    const rewardImage = crm_rewardImage(r);
+    const imgHtml = rewardImage
+      ? `<img src="${rewardImage}" alt="รูป ${r.name}" style="display:block;width:100%;height:auto;min-height:150px;object-fit:contain;background:#171717;">`
       : `<div style="font-size:34px;">${r.icon || '🎁'}</div>`;
     return `
     <div class="reward-item${isSpecial ? ' nhs-special-reward' : ''}">
-      <div class="reward-icon" style="width:112px;min-height:150px;overflow:hidden;">${imgHtml}</div>
+      <div class="reward-icon" style="width:112px;min-height:150px;height:auto;overflow:hidden;align-items:flex-start;">${imgHtml}</div>
       <div class="reward-body">
         ${isSpecial ? '<div class="nhs-special-ribbon">✦ SPECIAL REWARD</div>' : ''}
         <div style="font-weight:800;font-size:15px;">${r.name}</div>
@@ -6034,7 +6086,7 @@ async function crm_redeem(id) {
     await adjustPoints(crm_member.phone, -Math.abs(r.pts), 'แลกรางวัล: ' + r.name);
 
     const myItem = {
-      name: r.name, pts: r.pts, image: r.image || '', icon: r.icon || '🎁',
+      name: r.name, pts: r.pts, image: crm_rewardImage(r), icon: r.icon || '🎁',
       is_special: !!(r.is_special || r.special || r.isSpecial),
       conditions: r.conditions || '',
       date: new Date().toISOString(),
@@ -6329,6 +6381,12 @@ async function crm_refreshTxnBadge() {
   } catch (e) { return 0; }
 }
 
+/** คืนค่า URL รูปสลิปจากทั้งชื่อฟิลด์ปัจจุบันและชื่อฟิลด์ legacy */
+function crm_txnImage(t) {
+  if (!t) return '';
+  return String(t.image || t.slip_image || t.slip_url || t.receipt_image || t.image_url || '').trim();
+}
+
 /** เรนเดอร์รายการรอยืนยันในแท็บแอดมิน */
 async function crm_renderAdminTxnList() {
   const box = $('adm-txn-list');
@@ -6343,8 +6401,9 @@ async function crm_renderAdminTxnList() {
     return;
   }
   box.innerHTML = pending.map(function(t) {
-    const safeSlip = t.image ? String(t.image).replace(/"/g, '&quot;') : '';
-    const slip = t.image ? '<div style="margin-bottom:10px;padding:10px;border:1px solid #E8E1D6;border-radius:12px;background:#FFFEFC;"><div style="font-size:12px;font-weight:800;color:#6F5A2C;margin-bottom:6px;">🧾 รูปสลิปต้นฉบับ</div><img src="' + safeSlip + '" alt="รูปสลิปของลูกค้า" style="width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid #ddd;background:#f7f7f7;cursor:zoom-in;" onclick="crm_openTxnSlipImage(' + t.db_id + ')" onerror="this.alt=\'โหลดรูปไม่สำเร็จ\';this.style.borderColor=\'#B42318\';"><button class="btn btn-outline btn-sm" type="button" style="width:100%;margin-top:8px;" onclick="crm_openTxnSlipImage(' + t.db_id + ')">🔍 เปิดรูปสลิปเต็มจอ</button></div>' : '<div style="margin-bottom:10px;padding:12px;border:1px dashed #B42318;border-radius:10px;color:#B42318;background:#FFF7F5;">⚠️ รายการนี้ไม่มีรูปสลิปแนบ</div>';
+    const txnImage = crm_txnImage(t);
+    const safeSlip = txnImage ? String(txnImage).replace(/"/g, '&quot;') : '';
+    const slip = txnImage ? '<div style="margin-bottom:10px;padding:10px;border:1px solid #E8E1D6;border-radius:12px;background:#FFFEFC;"><div style="font-size:12px;font-weight:800;color:#6F5A2C;margin-bottom:6px;">🧾 รูปสลิปต้นฉบับ</div><img src="' + safeSlip + '" alt="รูปสลิปของลูกค้า" style="width:100%;max-height:360px;object-fit:contain;border-radius:8px;border:1px solid #ddd;background:#f7f7f7;cursor:zoom-in;" onclick="crm_openTxnSlipImage(' + t.db_id + ')" onerror="this.alt=\'โหลดรูปไม่สำเร็จ\';this.style.borderColor=\'#B42318\';"><button class="btn btn-outline btn-sm" type="button" style="width:100%;margin-top:8px;" onclick="crm_openTxnSlipImage(' + t.db_id + ')">🔍 เปิดรูปสลิปเต็มจอ</button></div>' : '<div style="margin-bottom:10px;padding:12px;border:1px dashed #B42318;border-radius:10px;color:#B42318;background:#FFF7F5;">⚠️ รายการนี้ไม่มีรูปสลิปแนบ — รายการเก่าที่รูปถูกตัดทิ้งต้องให้ลูกค้าส่งใหม่</div>';
     const serviceDate = t.service_date ? ('<div style="font-size:12px;color:#6F5A2C;margin-top:6px;">📅 เข้าใช้บริการ: ' + t.service_date + '</div>') : '<div style="font-size:12px;color:#B42318;margin-top:6px;">⚠️ รายการเดิมไม่มีวันที่เข้าใช้บริการ</div>';
     const appt = t.appt_date ? ('<div style="font-size:12px;color:#666;margin-top:6px;padding-top:6px;border-top:1px dashed #ddd;">📅 นัดครั้งถัดไป: ' + t.appt_date + (t.appt_stylist ? (' กับ ' + t.appt_stylist) : '') + (t.appt_service ? (' — ' + t.appt_service) : '') + '</div>') : '';
     return '<div class="crm-card" style="margin-bottom:12px;">' +
@@ -6377,7 +6436,8 @@ async function crm_getTxnById(dbId) {
 /** เปิดรูปสลิปต้นฉบับเต็มจอจากรายการ pending โดยไม่เขียนฐานข้อมูล */
 async function crm_openTxnSlipImage(dbId) {
   const t = await crm_getTxnById(dbId);
-  if (!t || !t.image) return toast('❌ รายการนี้ไม่มีรูปสลิป');
+  const txnImage = crm_txnImage(t);
+  if (!t || !txnImage) return toast('❌ รายการนี้ไม่มีรูปสลิป');
   const old = document.getElementById('nhs-txn-slip-modal');
   if (old) old.remove();
   const overlay = document.createElement('div');
@@ -6389,7 +6449,7 @@ async function crm_openTxnSlipImage(dbId) {
     '<div style="font-size:12px;color:#F4EEE3;text-align:center;">ตรวจยอดเงิน วันที่ และชื่อบัญชีจากรูปจริงก่อนกด “เปิดใบเสร็จฉบับเต็ม”</div></div>';
   document.body.appendChild(overlay);
   const img = document.getElementById('nhs-txn-slip-full-image');
-  if (img) img.src = t.image;
+  if (img) img.src = txnImage;
   const close = document.getElementById('nhs-txn-slip-close');
   if (close) close.onclick = function(){ overlay.remove(); };
   overlay.onclick = function(event){ if (event.target === overlay) overlay.remove(); };
@@ -6623,10 +6683,10 @@ async function crm_editNews(id) {
   if ($('adm-news-title')) $('adm-news-title').value = item.title || '';
   if ($('adm-news-content')) $('adm-news-content').value = item.content || '';
   crm_newsImgData = item.image || '';
-  if ($('adm-news-img-url')) $('adm-news-img-url').value = validateImageUrl(item.image || '') ? item.image : '';
+  if ($('adm-news-img-url')) $('adm-news-img-url').value = validateImageUrl(crm_newsImage(item)) ? crm_newsImage(item) : '';
   if ($('adm-news-img-preview')) {
-    $('adm-news-img-preview').src = item.image || '';
-    $('adm-news-img-preview').style.display = item.image ? 'block' : 'none';
+    $('adm-news-img-preview').src = crm_newsImage(item);
+    $('adm-news-img-preview').style.display = crm_newsImage(item) ? 'block' : 'none';
   }
   if ($('adm-news-form-title')) $('adm-news-form-title').textContent = '✏️ แก้ไขข่าวสาร/โปรโมชั่น';
   if ($('adm-news-save-btn')) $('adm-news-save-btn').textContent = '💾 บันทึกการแก้ไข';
@@ -6643,12 +6703,9 @@ async function crm_adminAddNews() {
     try { localNews = JSON.parse(localStorage.getItem(CRM_PRE + 'news') || '[]') || []; } catch (e) { localNews = []; }
     const editing = crm_newsEditingId != null;
     const existing = editing ? localNews.find(n => String(n.db_id || n.id) === String(crm_newsEditingId)) : null;
-    let imgFull = crm_newsImgData || (existing && existing.image) || '';
+    let imgFull = crm_newsImgData || (existing && crm_newsImage(existing)) || '';
     let imgForDb = '';
-    if (imgFull) {
-      if (validateImageUrl(imgFull)) imgForDb = imgFull;
-      else if (imgFull.indexOf('data:image') === 0 && imgFull.length < 100000) imgForDb = imgFull;
-    }
+    if (imgFull && (validateImageUrl(imgFull) || imgFull.indexOf('data:image') === 0)) imgForDb = imgFull;
     const item = {
       id: existing && existing.id ? existing.id : Date.now(),
       db_id: existing && existing.db_id ? existing.db_id : undefined,
@@ -6699,13 +6756,14 @@ async function crm_renderAdminNewsList() {
     if (!n) return;
     const k = String(n.db_id || n.id || n.title);
     const prev = map[k];
-    map[k] = prev ? Object.assign({}, prev, n, { image: n.image || prev.image || '' }) : n;
+    map[k] = prev ? Object.assign({}, prev, n, { image: crm_newsImage(n) || crm_newsImage(prev) || '' }) : Object.assign({}, n, { image: crm_newsImage(n) });
   });
   let news = Object.keys(map).map(function(k) { return map[k]; });
   news.sort(function(a, b) { return new Date(b.date || 0) - new Date(a.date || 0); });
   try { localStorage.setItem(CRM_PRE + 'news', JSON.stringify(news)); } catch (e) {}
   $('adm-news-list').innerHTML = news.map(n => {
-    const imgHtml = n.image ? `<img src="${n.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#f5f5f5;border-radius:8px;">📢</div>`;
+    const newsImage = crm_newsImage(n);
+    const imgHtml = newsImage ? `<img src="${newsImage}" style="width:50px;height:50px;object-fit:contain;background:#171717;border-radius:8px;">` : `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#f5f5f5;border-radius:8px;">📢</div>`;
     const delId = n.db_id || n.id;
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;">
       ${imgHtml}
@@ -6729,6 +6787,11 @@ async function crm_deleteNews(id) {
   localStorage.setItem(CRM_PRE + 'news', JSON.stringify(news));
   await crm_renderAdminNewsList();
   toast('ลบข่าวสารสำเร็จ');
+}
+
+function crm_newsImage(n) {
+  if (!n) return '';
+  return String(n.image || n.image_url || n.news_image || n.photo || n.thumbnail || '').trim();
 }
 
 let crm_rewImgData = '';
@@ -6763,7 +6826,8 @@ function crm_setRewardImageUrl() {
 async function crm_renderAdminRewardList() {
   const rewards = await crm_getRewards();
   $('adm-rew-list').innerHTML = rewards.map(r => {
-    const imgHtml = r.image ? `<img src="${r.image}" alt="รูป ${r.name}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">` : `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#f5f5f5;border-radius:8px;">${r.icon||'🎁'}</div>`;
+      const rewardImage = crm_rewardImage(r);
+      const imgHtml = rewardImage ? `<img src="${rewardImage}" alt="รูป ${r.name}" style="width:50px;height:50px;object-fit:contain;background:#171717;border-radius:8px;">` : `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#f5f5f5;border-radius:8px;">${r.icon||'🎁'}</div>`;
     const delId = r.db_id || r.id;
     const isSpecial = !!(r.is_special || r.special || r.isSpecial);
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;">
@@ -7010,7 +7074,8 @@ async function crm_renderMyRewards() {
   if(el) {
     el.innerHTML = my.map(r => {
       const isSpecial = !!(r.is_special || r.special || r.isSpecial);
-      const imgHtml = r.image ? `<img src="${r.image}" alt="รูป ${r.name}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="font-size:34px;">${r.icon || '🎁'}</div>`;
+      const rewardImage = crm_rewardImage(r);
+      const imgHtml = rewardImage ? `<img src="${rewardImage}" alt="รูป ${r.name}" style="display:block;width:100%;height:auto;object-fit:contain;background:#171717;">` : `<div style="font-size:34px;">${r.icon || '🎁'}</div>`;
       return `
       <div class="reward-item${isSpecial ? ' nhs-special-reward' : ''}">
         <div class="reward-icon" style="width:112px;min-height:130px;overflow:hidden;">${imgHtml}</div>
@@ -7041,8 +7106,8 @@ async function crm_renderNews() {
     if (!n) return;
     const k = String(n.db_id || n.id || n.title);
     const prev = map[k];
-    if (!prev) map[k] = n;
-    else map[k] = Object.assign({}, prev, n, { image: n.image || prev.image || '' });
+    if (!prev) map[k] = Object.assign({}, n, { image: crm_newsImage(n) });
+    else map[k] = Object.assign({}, prev, n, { image: crm_newsImage(n) || crm_newsImage(prev) || '' });
   });
   let news = Object.keys(map).map(function(k) { return map[k]; });
   news.sort(function(a, b) { return new Date(b.date || 0) - new Date(a.date || 0); });
@@ -7051,11 +7116,11 @@ async function crm_renderNews() {
   if (el) {
     el.innerHTML = news.map(n => `
       <div class="crm-card">
-        ${n.image ? `<img src="${n.image}" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:10px;">` : ''}
+        ${crm_newsImage(n) ? `<img src="${crm_newsImage(n)}" alt="ภาพข่าวสาร ${n.title || ''}" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;border-radius:10px;margin-bottom:10px;background:#171717;">` : ''}
         <div style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;background:#F6EED8;color:#8B6B25;margin-bottom:5px;">${n.newsType || n.type || 'ทั่วไป'}</div>
         <div style="font-weight:700; font-size:14px; margin-bottom:5px;">${n.title}</div>
         <div style="font-size:12px; color:#666;">${new Date(n.date).toLocaleDateString('th-TH')}</div>
-        <div style="margin-top:10px; font-size:13px;">${n.content}</div>
+        <div style="margin-top:10px; font-size:13px; white-space:pre-wrap; line-height:1.7;">${String(n.content || '').replace(/</g, '&lt;')}</div>
       </div>
     `).join('') || '<div style="text-align:center; padding:30px; color:#999;">ยังไม่มีข่าวสาร</div>';
   }
@@ -7269,7 +7334,7 @@ async function crm_editReward(id) {
   const item = rewards.find(function(r) { return String(r.db_id || r.id) === String(id); });
   if (!item) return toast('❌ ไม่พบรางวัลนี้');
   crm_rewEditingId = item.db_id || item.id;
-  crm_rewImgData = item.image || '';
+  crm_rewImgData = crm_rewardImage(item);
   if ($('adm-rew-name')) $('adm-rew-name').value = item.name || '';
   if ($('adm-rew-pts')) $('adm-rew-pts').value = item.pts || '';
   if ($('adm-rew-cat')) $('adm-rew-cat').value = item.category || 'discount';
@@ -7281,10 +7346,10 @@ async function crm_editReward(id) {
   if ($('adm-rew-cond')) $('adm-rew-cond').value = item.conditions || '';
   if ($('adm-rew-limit')) $('adm-rew-limit').value = item.usageLimit || '';
   if ($('adm-rew-note')) $('adm-rew-note').value = item.note || '';
-  if ($('adm-rew-img-url')) $('adm-rew-img-url').value = validateImageUrl(item.image || '') ? item.image : '';
+  if ($('adm-rew-img-url')) $('adm-rew-img-url').value = validateImageUrl(crm_rewardImage(item)) ? crm_rewardImage(item) : '';
   if ($('adm-rew-img-preview')) {
-    $('adm-rew-img-preview').src = item.image || '';
-    $('adm-rew-img-preview').style.display = item.image ? 'block' : 'none';
+    $('adm-rew-img-preview').src = crm_rewardImage(item);
+    $('adm-rew-img-preview').style.display = crm_rewardImage(item) ? 'block' : 'none';
   }
   if ($('adm-rew-form-title')) $('adm-rew-form-title').textContent = '✏️ แก้ไขของรางวัล';
   if ($('adm-rew-save-btn')) $('adm-rew-save-btn').textContent = '💾 บันทึกการแก้ไข';
@@ -7336,7 +7401,7 @@ async function crm_adminAddReward() {
   }
 
   const newId = existing.length > 0 ? Math.max.apply(null, existing.map(function(r) { return r.id || 0; })) + 1 : Date.now();
-  const imgFull = crm_rewImgData || (existingItem && existingItem.image) || '';
+  const imgFull = crm_rewImgData || (existingItem && crm_rewardImage(existingItem)) || '';
   const imgForDb = await crm_prepareRewardImageForDb(imgFull);
   const item = {
     id: existingItem && existingItem.id ? existingItem.id : newId,
@@ -7537,6 +7602,7 @@ function rc_clearCustomerBox() {
   $('rc-cust-nhs').textContent = '-'; $('rc-cust-name').textContent = '-';
   $('rc-cust-phone').textContent = '-'; $('rc-cust-level').textContent = '-';
   $('rc-cust-pts-before').textContent = '-';
+  const ptsAfterEl = $('rc-cust-pts-after'); if (ptsAfterEl) ptsAfterEl.textContent = '-';
   const signCust = $('rc-sign-cust'); if (signCust) signCust.textContent = '-';
 }
 
@@ -7548,7 +7614,10 @@ function rc_bindCustomer(c) {
   $('rc-cust-name').textContent = c.name || '-';
   $('rc-cust-phone').textContent = c.phone || '-';
   $('rc-cust-level').textContent = c.member_level || 'ทั่วไป';
-  $('rc-cust-pts-before').textContent = (c.points || 0).toLocaleString();
+  const beforePts = c.points_before != null ? Number(c.points_before) : Number(c.points || 0);
+  const afterPts = c.points_after != null ? Number(c.points_after) : Number(c.points || 0);
+  $('rc-cust-pts-before').textContent = beforePts.toLocaleString();
+  const ptsAfterEl = $('rc-cust-pts-after'); if (ptsAfterEl) ptsAfterEl.textContent = afterPts.toLocaleString();
   const signCust = $('rc-sign-cust'); if (signCust) signCust.textContent = c.name || '-';
   rc_calcTotals();
 }
@@ -7767,6 +7836,13 @@ async function rc_save() {
     console.warn('crm_rewards receipt log note:', e);
   }
 
+  // อัปเดตสำเนา local ให้ใบเสร็จที่เพิ่งบันทึกมีพอยท์ก่อน/หลังรายการครบ
+  try {
+    const savedReceipts = JSON.parse(localStorage.getItem(CRM_PRE + 'receipts') || '[]');
+    const savedIndex = savedReceipts.findIndex(function(x) { return String(x.receipt_no) === String(receiptNo); });
+    if (savedIndex >= 0) savedReceipts[savedIndex] = Object.assign({}, savedReceipts[savedIndex], { points_before: latestPts, points_after: newPoints });
+    localStorage.setItem(CRM_PRE + 'receipts', JSON.stringify(savedReceipts));
+  } catch (e) { console.warn('receipt points snapshot', e); }
   const receiptRow = { id: receiptNo, ...receiptData };
 
   // 2) อัปเดตยอดสะสม + แต้ม + จำนวนครั้งในตาราง customers
@@ -7782,6 +7858,8 @@ async function rc_save() {
   } catch (e) {}
   const newSpend = (rcSelectedCustomer.total_spend || 0) + net;
   const newPoints = latestPts + earnedPts;
+  receiptData.points_before = latestPts;
+  receiptData.points_after = newPoints;
   const newVisits = (rcSelectedCustomer.visits || 0) + 1;
 
   let newLevel = rcSelectedCustomer.member_level || 'ทั่วไป';
@@ -7812,7 +7890,10 @@ async function rc_save() {
         await crm_addHistory('จากใบเสร็จ ' + receiptNo, earnedPts, 'in', rcSelectedCustomer.phone);
       } catch (e) {}
     }
+    rcSelectedCustomer.points_before = latestPts;
+    rcSelectedCustomer.points_after = newPoints;
     rcSelectedCustomer.points = newPoints;
+    const ptsAfterEl = $('rc-cust-pts-after'); if (ptsAfterEl) ptsAfterEl.textContent = newPoints.toLocaleString();
     rcSelectedCustomer.total_spend = newSpend;
     rcSelectedCustomer.visits = newVisits;
     rcSelectedCustomer.member_level = newLevel;
@@ -7848,7 +7929,12 @@ function rc_view(r) {
   rcCurrentReceiptId = r.id; rcLocked = true;
   rcItems = (r.items || []).map((it, i) => ({ id: i + 1, name: it.name, price: it.price, qty: it.qty }));
   rcItemSeq = rcItems.length;
-  rc_bindCustomer({ id: r.customer_id, nhs_id: r.customer_nhs_id, name: r.customer_name, member_level: '-', points: 0 });
+  const matchedCustomer = (allCusts || []).find(function(c) { return r.customer_id && String(c.id) === String(r.customer_id); }) ||
+    (allCusts || []).find(function(c) { return r.customer_phone && nhs_normPhone(c.phone) === nhs_normPhone(r.customer_phone); });
+  const receiptCustomer = matchedCustomer
+    ? Object.assign({}, matchedCustomer, { points_before: r.points_before, points_after: r.points_after != null ? r.points_after : matchedCustomer.points })
+    : { id: r.customer_id, nhs_id: r.customer_nhs_id, name: r.customer_name, phone: r.customer_phone, member_level: r.member_level || '-', points: r.points_after != null ? r.points_after : (r.points_before || 0), points_before: r.points_before, points_after: r.points_after };
+  rc_bindCustomer(receiptCustomer);
   const staffNameEl = $('rc-staff-name'); if (staffNameEl) staffNameEl.value = r.issued_by || '';
   const depositEl = $('rc-has-deposit');
   if (depositEl) depositEl.checked = !!(r.has_deposit || r.has_deposit_flag || Number(r.deposit_amount || 0) > 0);
@@ -7943,6 +8029,16 @@ function rc_showJpegPreview(dataUrl, fileName) {
   document.body.appendChild(overlay);
 }
 
+function rc_loadImage(src) {
+  return new Promise(function(resolve) {
+    if (!src) return resolve(null);
+    const img = new Image();
+    img.onload = function() { resolve(img); };
+    img.onerror = function() { resolve(null); };
+    img.src = src;
+  });
+}
+
 async function rc_downloadJpeg() {
   if (!rcSelectedCustomer) return toast('❌ ไม่พบข้อมูลลูกค้าในใบเสร็จ');
   const { subtotal, discount, net, hasDeposit, deposit, todayPay, earnedPoints } = rc_calcTotals();
@@ -7954,10 +8050,17 @@ async function rc_downloadJpeg() {
   const ctx = canvas.getContext('2d');
   if (!ctx) return toast('❌ เบราว์เซอร์ไม่รองรับการสร้าง JPEG');
   const gold = '#C9A84C', dark = '#1A1A1A', ink = '#2B2925', muted = '#756F66';
+  const logoImage = await rc_loadImage(CRM_LOGO);
   ctx.fillStyle = '#FAF8F4'; ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = dark; ctx.fillRect(0, 0, width, 170);
-  ctx.fillStyle = gold; ctx.font = '700 42px Georgia, serif'; ctx.fillText('N HAIR STYLIST', 68, 78);
-  ctx.fillStyle = '#FFFDF8'; ctx.font = '24px Arial, sans-serif'; ctx.fillText('PREMIUM HAIR SERVICE', 70, 122);
+  if (logoImage) {
+    ctx.save();
+    ctx.beginPath(); ctx.arc(118, 85, 62, 0, Math.PI * 2); ctx.clip();
+    ctx.drawImage(logoImage, 56, 23, 124, 124);
+    ctx.restore();
+  }
+  ctx.fillStyle = gold; ctx.font = '700 42px Georgia, serif'; ctx.fillText('N HAIR STYLIST', 205, 78);
+  ctx.fillStyle = '#FFFDF8'; ctx.font = '24px Arial, sans-serif'; ctx.fillText('PREMIUM HAIR SERVICE', 208, 122);
   ctx.textAlign = 'right'; ctx.fillStyle = '#F0D78C'; ctx.font = '700 25px Arial, sans-serif'; ctx.fillText('ใบเสร็จรับเงิน', width - 70, 62);
   ctx.fillStyle = '#FFFDF8'; ctx.font = '700 30px Arial, sans-serif'; ctx.fillText(($('rc-no') && $('rc-no').textContent) || '-', width - 70, 108);
   ctx.textAlign = 'left';
@@ -7991,6 +8094,8 @@ async function rc_downloadJpeg() {
   totalLine('ยอดรวมก่อนส่วนลด', subtotal); totalLine('ส่วนลด', discount);
   if (hasDeposit) { totalLine('มัดจำค่าจองคิว', deposit); totalLine('วันนี้จ่ายเพิ่ม', todayPay); }
   totalLine('ยอดสุทธิ', net, true); totalLine('พอยท์ที่ได้รับ', earnedPoints, false);
+  const currentPoints = rcSelectedCustomer.points_after != null ? rcSelectedCustomer.points_after : (rcSelectedCustomer.points || 0);
+  totalLine('พอยท์คงเหลือหลังรายการ', currentPoints, false);
   y += 28; ctx.fillStyle = gold; ctx.font = '700 21px Arial, sans-serif'; ctx.fillText('ขอบคุณที่ไว้วางใจใช้บริการ N Hair Stylist', 70, y);
 
   const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
@@ -8079,7 +8184,8 @@ function printReceipt() {
               <div>ชื่อ-นามสกุล: <b>${$('rc-cust-name').textContent}</b></div>
               <div>เบอร์โทร: <b>${$('rc-cust-phone').textContent}</b></div>
               <div>ระดับสมาชิก: <b>${$('rc-cust-level').textContent}</b></div>
-              <div>คะแนนก่อนใช้: <b>${$('rc-cust-pts-before').textContent}</b> แต้ม</div>
+              <div>คะแนนก่อนรายการ: <b>${$('rc-cust-pts-before').textContent}</b> แต้ม</div>
+              <div>คะแนนคงเหลือหลังรายการ: <b>${$('rc-cust-pts-after') ? $('rc-cust-pts-after').textContent : $('rc-cust-pts-before').textContent}</b> แต้ม</div>
               ${serviceDateText && serviceDateText !== '-' ? `<div>วันที่เข้าใช้บริการ: <b>${serviceDateText}</b></div>` : ''}
             </div>
           </div>
@@ -8098,6 +8204,7 @@ function printReceipt() {
         <div class="rc-totals-row net"><span>ยอดสุทธิ</span><span>฿${net.toLocaleString()}</span></div>
         ${hasDeposit ? `<div class="rc-totals-row"><span>มัดจำค่าจองคิว</span><span>+฿${deposit.toLocaleString()}</span></div><div class="rc-totals-row"><span>วันนี้จ่ายเพิ่ม</span><span>฿${todayPay.toLocaleString()}</span></div>` : ''}
         <div class="rc-totals-row"><span>พอยท์ที่ได้รับ</span><span>${earnedPoints}</span></div>
+        <div class="rc-totals-row"><span>พอยท์คงเหลือหลังรายการ</span><span>${$('rc-cust-pts-after') ? $('rc-cust-pts-after').textContent : '-'}</span></div>
         <div class="rc-words">(${thaiBahtText(net)})</div>
       </div>
       <div class="rc-section">

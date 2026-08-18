@@ -6312,9 +6312,12 @@ function crm_openTxnAdminTab() {
    สถานะ: 'pending' (รอตรวจ) → 'confirmed' (ยืนยันแล้ว)
    ================================================================ */
 let crm_txnImgData = '';
+let crm_txnImgFile = null;
+const NHS_SLIP_BUILD = 'slip-v4-image-guard-20260818';
 
 function crm_initTxnForm() {
   crm_txnImgData = '';
+  crm_txnImgFile = null;
   const prev = $('txn-slip-preview');
   if (prev) { prev.src = ''; prev.style.display = 'none'; }
   const slipInput = $('txn-slip-hidden');
@@ -6329,7 +6332,8 @@ function crm_initTxnForm() {
 
 async function crm_handleTxnSlip(input) {
   const file = input && input.files && input.files[0];
-  if (!file) return;
+  if (!file) { crm_txnImgFile = null; crm_txnImgData = ''; return; }
+  crm_txnImgFile = file;
   try {
     toast('กำลังย่อรูป...');
     const dataUrl = await nhs_compressImageFile(file, 640, 0.62, 76000);
@@ -6341,6 +6345,8 @@ async function crm_handleTxnSlip(input) {
     if (slipStatus) { slipStatus.textContent = '✅ แนบรูปสลิปแล้ว รูปนี้จะถูกส่งไปให้แอดมินตรวจสอบก่อนยืนยัน'; slipStatus.style.display = 'block'; slipStatus.style.color = '#2F6B3A'; slipStatus.style.background = '#F1F8F1'; slipStatus.style.border = '1px solid #B8D9B8'; }
     toast('✅ แนบสลิปแล้ว');
   } catch (e) {
+    // เก็บไฟล์ต้นฉบับไว้เพื่อให้ submit retry บีบอัดใหม่ได้ แม้รอบแรกสะดุด
+    crm_txnImgFile = file;
     crm_txnImgData = '';
     const slipStatus = $('txn-slip-status');
     if (slipStatus) { slipStatus.textContent = '❌ แนบรูปไม่สำเร็จ กรุณาเลือกรูปใหม่'; slipStatus.style.display = 'block'; slipStatus.style.color = '#B42318'; slipStatus.style.background = '#FFF7F5'; slipStatus.style.border = '1px solid #E6A8A1'; }
@@ -6360,6 +6366,19 @@ async function crm_updateTxnPointsPreview() {
   } catch (e) {}
 }
 
+async function crm_ensureTxnSlipImage() {
+  const input = $('txn-slip-hidden');
+  const file = (input && input.files && input.files[0]) || crm_txnImgFile;
+  if ((!crm_txnImgData || String(crm_txnImgData).indexOf('data:image') !== 0) && file) {
+    await crm_handleTxnSlip({ files: [file] });
+  }
+  const image = String(crm_txnImgData || '').trim();
+  if (!image || image.indexOf('data:image') !== 0) {
+    throw new Error('ไม่พบข้อมูลรูปสลิปหลังเตรียมไฟล์');
+  }
+  return image;
+}
+
 async function crm_submitTxn() {
   if (!crm_member || !crm_member.phone) { toast('❌ ไม่พบข้อมูลสมาชิก'); return; }
   const serviceDate = (($('txn-service-date') && $('txn-service-date').value) || '').trim();
@@ -6374,7 +6393,10 @@ async function crm_submitTxn() {
   if (!serviceDate) return toast('⚠️ กรุณาเลือกวันที่เข้าใช้บริการ');
   if (!amt || amt <= 0) return toast('⚠️ กรอกจำนวนเงินให้ถูกต้อง');
   if (!service) return toast('⚠️ กรอกรายการที่ทำ');
-  if (!crm_txnImgData || String(crm_txnImgData).indexOf('data:image') !== 0) {
+  let slipImage = '';
+  try {
+    slipImage = await crm_ensureTxnSlipImage();
+  } catch (e) {
     const slipStatus = $('txn-slip-status');
     if (slipStatus) { slipStatus.textContent = '⚠️ กรุณาเลือกรูปสลิปก่อนส่งข้อมูล เพื่อให้แอดมินตรวจสอบยอดเงินจริงได้'; slipStatus.style.display = 'block'; slipStatus.style.color = '#B42318'; slipStatus.style.background = '#FFF7F5'; slipStatus.style.border = '1px solid #E6A8A1'; }
     return toast('⚠️ กรุณาแนบรูปสลิปก่อนส่งข้อมูล');
@@ -6393,7 +6415,10 @@ async function crm_submitTxn() {
       service: service,
       service_date: serviceDate,
       note: note,
-      image: crm_txnImgData,
+      image: slipImage,
+      image_required: true,
+      image_chars: slipImage.length,
+      slip_build: NHS_SLIP_BUILD,
       appt_stylist: apptStylist,
       appt_date: apptDate,
       appt_service: apptService,
@@ -6405,7 +6430,12 @@ async function crm_submitTxn() {
     };
     const saved = await crm_dbInsert('txn', payload, estPoints);
     if (!saved) { toast('❌ ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่'); return; }
-    if (!crm_txnImage(saved)) { toast('❌ ระบบบันทึกรายการแล้วแต่ไม่พบรูปสลิป กรุณาอย่าส่งซ้ำและแจ้งแอดมินตรวจรายการนี้'); return; }
+    if (!crm_txnImage(saved)) {
+      // ป้องกัน pending row ที่ไม่มีรูป: rollback เฉพาะรายการที่เพิ่งสร้างในรอบนี้
+      if (saved.db_id) { try { await crm_dbDelete(saved.db_id); } catch (rollbackErr) { console.warn('crm_submitTxn rollback', rollbackErr); } }
+      toast('❌ ระบบยืนยันไม่ได้ว่ารูปสลิปถูกเก็บ กรุณาแนบรูปใหม่และส่งอีกครั้ง');
+      return;
+    }
     toast('✅ ส่งเรียบร้อย รอแอดมินยืนยัน');
     crm_initTxnForm();
     crm_showPage('pg-crm-home');

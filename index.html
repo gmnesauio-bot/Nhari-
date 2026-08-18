@@ -1942,7 +1942,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
     <div class="rc-sign-row">
       <div>
         <div class="rc-sign-line"></div>
-        <input type="text" id="rc-staff-name" placeholder="ชื่อผู้รับเงิน" style="width:100%;text-align:center;border:none;background:transparent;font-size:11px;padding:2px;">
+        <input type="text" id="rc-staff-name" value="ช่างมี้" placeholder="ชื่อช่าง / ผู้รับเงิน" readonly style="width:100%;text-align:center;border:none;background:transparent;font-size:11px;padding:2px;">
         ผู้รับเงิน
       </div>
       <div>
@@ -2746,6 +2746,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
         <input type="file" id="txn-slip-hidden" style="display:none;" accept="image/*" onchange="crm_handleTxnSlip(this)">
         <button type="button" class="btn btn-sm btn-outline" style="width:100%;" onclick="$('txn-slip-hidden').click()">📎 เลือกรูปสลิป</button>
         <img id="txn-slip-preview" src="" style="display:none; width:100%; max-height:220px; object-fit:contain; margin-top:8px; border-radius:8px; border:1px solid #ddd;">
+        <div id="txn-slip-status" style="display:none;font-size:12px;margin-top:6px;padding:8px;border-radius:8px;"></div>
       </div>
       <div class="fg"><label class="fl">📅 วันที่เข้าใช้บริการ <span style="color:#B42318;">*</span></label><input type="date" id="txn-service-date" class="fc" required></div>
       <div class="fg"><label class="fl">💰 จำนวนเงิน (บาท)</label><input type="number" inputmode="decimal" id="txn-amount" class="fc" placeholder="0.00" oninput="crm_updateTxnPointsPreview()"></div>
@@ -6316,6 +6317,10 @@ function crm_initTxnForm() {
   crm_txnImgData = '';
   const prev = $('txn-slip-preview');
   if (prev) { prev.src = ''; prev.style.display = 'none'; }
+  const slipInput = $('txn-slip-hidden');
+  if (slipInput) slipInput.value = '';
+  const slipStatus = $('txn-slip-status');
+  if (slipStatus) { slipStatus.textContent = ''; slipStatus.style.display = 'none'; }
   ['txn-service-date','txn-amount','txn-service','txn-note','txn-appt-stylist','txn-appt-date','txn-appt-service','txn-appt-note'].forEach(function(id){
     const el = $(id); if (el) el.value = '';
   });
@@ -6328,11 +6333,17 @@ async function crm_handleTxnSlip(input) {
   try {
     toast('กำลังย่อรูป...');
     const dataUrl = await nhs_compressImageFile(file, 640, 0.62, 76000);
+    if (!dataUrl || dataUrl.indexOf('data:image') !== 0) throw new Error('ไม่สามารถเตรียมรูปสลิปได้');
     crm_txnImgData = dataUrl;
     const prev = $('txn-slip-preview');
     if (prev) { prev.src = dataUrl; prev.style.display = 'block'; }
+    const slipStatus = $('txn-slip-status');
+    if (slipStatus) { slipStatus.textContent = '✅ แนบรูปสลิปแล้ว รูปนี้จะถูกส่งไปให้แอดมินตรวจสอบก่อนยืนยัน'; slipStatus.style.display = 'block'; slipStatus.style.color = '#2F6B3A'; slipStatus.style.background = '#F1F8F1'; slipStatus.style.border = '1px solid #B8D9B8'; }
     toast('✅ แนบสลิปแล้ว');
   } catch (e) {
+    crm_txnImgData = '';
+    const slipStatus = $('txn-slip-status');
+    if (slipStatus) { slipStatus.textContent = '❌ แนบรูปไม่สำเร็จ กรุณาเลือกรูปใหม่'; slipStatus.style.display = 'block'; slipStatus.style.color = '#B42318'; slipStatus.style.background = '#FFF7F5'; slipStatus.style.border = '1px solid #E6A8A1'; }
     toast('❌ แนบรูปไม่สำเร็จ: ' + (e.message || e));
   }
 }
@@ -6363,6 +6374,11 @@ async function crm_submitTxn() {
   if (!serviceDate) return toast('⚠️ กรุณาเลือกวันที่เข้าใช้บริการ');
   if (!amt || amt <= 0) return toast('⚠️ กรอกจำนวนเงินให้ถูกต้อง');
   if (!service) return toast('⚠️ กรอกรายการที่ทำ');
+  if (!crm_txnImgData || String(crm_txnImgData).indexOf('data:image') !== 0) {
+    const slipStatus = $('txn-slip-status');
+    if (slipStatus) { slipStatus.textContent = '⚠️ กรุณาเลือกรูปสลิปก่อนส่งข้อมูล เพื่อให้แอดมินตรวจสอบยอดเงินจริงได้'; slipStatus.style.display = 'block'; slipStatus.style.color = '#B42318'; slipStatus.style.background = '#FFF7F5'; slipStatus.style.border = '1px solid #E6A8A1'; }
+    return toast('⚠️ กรุณาแนบรูปสลิปก่อนส่งข้อมูล');
+  }
 
   try {
     toast('กำลังส่งข้อมูล...');
@@ -6377,7 +6393,7 @@ async function crm_submitTxn() {
       service: service,
       service_date: serviceDate,
       note: note,
-      image: crm_txnImgData || '',
+      image: crm_txnImgData,
       appt_stylist: apptStylist,
       appt_date: apptDate,
       appt_service: apptService,
@@ -6389,6 +6405,7 @@ async function crm_submitTxn() {
     };
     const saved = await crm_dbInsert('txn', payload, estPoints);
     if (!saved) { toast('❌ ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่'); return; }
+    if (!crm_txnImage(saved)) { toast('❌ ระบบบันทึกรายการแล้วแต่ไม่พบรูปสลิป กรุณาอย่าส่งซ้ำและแจ้งแอดมินตรวจรายการนี้'); return; }
     toast('✅ ส่งเรียบร้อย รอแอดมินยืนยัน');
     crm_initTxnForm();
     crm_showPage('pg-crm-home');
@@ -6428,7 +6445,7 @@ async function crm_refreshTxnBadge() {
 /** คืนค่า URL รูปสลิปจากทั้งชื่อฟิลด์ปัจจุบันและชื่อฟิลด์ legacy */
 function crm_txnImage(t) {
   if (!t) return '';
-  return String(t.image || t.slip_image || t.slip_url || t.receipt_image || t.image_url || '').trim();
+  return String(t.image || t.slip_image || t.slip_url || t.receipt_image || t.image_url || t.txn_image || t.receipt_slip || t.slip || '').trim();
 }
 
 /** เรนเดอร์รายการรอยืนยันในแท็บแอดมิน */
@@ -6576,7 +6593,7 @@ async function crm_openReceiptForTxn(dbId) {
   rcItems = [{ id: 1, name: t.service || 'บริการร้านทำผม', price: Number(t.amount || 0), qty: 1 }];
   rcItemSeq = 1;
   rc_renderItems();
-  if ($('rc-staff-name')) $('rc-staff-name').value = 'พนักงานตรวจสอบสลิป';
+  if ($('rc-staff-name')) $('rc-staff-name').value = 'ช่างมี้';
   const serviceDateRow = $('rc-service-date-row');
   const serviceDateEl = $('rc-service-date');
   if (serviceDateEl) serviceDateEl.textContent = t.service_date || '-';
@@ -7558,8 +7575,19 @@ const RC_SHOP = {
   name: 'N HAIR STYLIST',
   addr: '69/19 หมู่ที่ 2 ถนนพระยาสัจจา-คีรี ตำบลเสม็ด อำเภอเมืองชลบุรี จังหวัดชลบุรี 20000',
   phone: '098-024-3899',
-  line: '@024cdrbi'
+  line: '@024cdrbi',
+  address_lines: [
+    '69/19 หมู่ที่ 2',
+    'ถนนพระยาสัจจา-คีรี',
+    'ตำบลเสม็ด อำเภอเมืองชลบุรี',
+    'จังหวัดชลบุรี 20000'
+  ]
 };
+
+function rc_shopAddressLines() {
+  const lines = Array.isArray(RC_SHOP.address_lines) ? RC_SHOP.address_lines : [];
+  return lines.length ? lines : [RC_SHOP.addr];
+}
 
 // รายการบริการ+ราคามาตรฐาน (ตัวอย่าง) — แก้ราคาให้ตรงกับร้านได้ที่นี่ที่เดียว
 // พนักงานยังพิมพ์ชื่อ/ราคาเองได้อิสระในตารางรายการ อันนี้แค่ช่วยเติมให้อัตโนมัติเมื่อพิมพ์ชื่อตรงกัน
@@ -7629,7 +7657,7 @@ function rc_openNew(customer) {
   const discType = $('rc-discount-type'); if (discType) discType.value = 'member';
   const discCustom = $('rc-discount-custom'); if (discCustom) { discCustom.value = ''; discCustom.style.display = 'none'; }
   const depositEl = $('rc-has-deposit'); if (depositEl) depositEl.checked = false;
-  const staffNameEl = $('rc-staff-name'); if (staffNameEl) staffNameEl.value = '';
+  const staffNameEl = $('rc-staff-name'); if (staffNameEl) staffNameEl.value = 'ช่างมี้';
   if (customer) rc_bindCustomer(customer); else rc_clearCustomerBox();
   const serviceDateRow = $('rc-service-date-row');
   if (serviceDateRow) serviceDateRow.style.display = 'none';
@@ -7843,7 +7871,7 @@ async function rc_save() {
     items: validItems,
     subtotal, discount_pct: pct, discount_amount: discount, net_total: net,
     payment_method: payMethod,
-    issued_by: ($('rc-staff-name') && $('rc-staff-name').value.trim()) || 'พนักงาน',
+    issued_by: ($('rc-staff-name') && $('rc-staff-name').value.trim()) || 'ช่างมี้',
     receipt_date: new Date().toISOString(),
     // ช่องใหม่เพิ่มต่อท้าย — ไม่เปลี่ยน 9 ฟิลด์หลักเดิม
     service_only_amount: subtotal,
@@ -7979,7 +8007,7 @@ function rc_view(r) {
     ? Object.assign({}, matchedCustomer, { points_before: r.points_before, points_after: r.points_after != null ? r.points_after : matchedCustomer.points })
     : { id: r.customer_id, nhs_id: r.customer_nhs_id, name: r.customer_name, phone: r.customer_phone, member_level: r.member_level || '-', points: r.points_after != null ? r.points_after : (r.points_before || 0), points_before: r.points_before, points_after: r.points_after };
   rc_bindCustomer(receiptCustomer);
-  const staffNameEl = $('rc-staff-name'); if (staffNameEl) staffNameEl.value = r.issued_by || '';
+  const staffNameEl = $('rc-staff-name'); if (staffNameEl) staffNameEl.value = r.issued_by || 'ช่างมี้';
   const depositEl = $('rc-has-deposit');
   if (depositEl) depositEl.checked = !!(r.has_deposit || r.has_deposit_flag || Number(r.deposit_amount || 0) > 0);
   $('rc-no').textContent = r.receipt_no;
@@ -8083,217 +8111,177 @@ function rc_loadImage(src) {
   });
 }
 
+function rc_receiptValue(value, fallback='-') {
+  const s = String(value == null ? '' : value).trim();
+  return s || fallback;
+}
+function rc_receiptPlainDate(value) {
+  return rc_receiptValue(String(value || '').replace(/[📅🕐]/g, '').trim());
+}
+function rc_receiptEscape(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
+  });
+}
+
 async function rc_downloadJpeg() {
   if (!rcSelectedCustomer) return toast('❌ ไม่พบข้อมูลลูกค้าในใบเสร็จ');
   const { subtotal, discount, net, hasDeposit, deposit, todayPay, earnedPoints } = rc_calcTotals();
   const width = 1200;
-  const itemCount = rcItems.filter(it => it.name || it.price).length;
-  const height = 760 + Math.max(1, itemCount) * 72 + (hasDeposit ? 70 : 0);
+  const items = rcItems.filter(it => it.name || it.price);
+  const height = 1070 + Math.max(1, items.length) * 72 + (hasDeposit ? 55 : 0);
   const canvas = document.createElement('canvas');
   canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d');
   if (!ctx) return toast('❌ เบราว์เซอร์ไม่รองรับการสร้าง JPEG');
-  const gold = '#C9A84C', dark = '#1A1A1A', ink = '#2B2925', muted = '#756F66';
+
+  const gold = '#C9A84C', lightGold = '#E8D9A8', dark = '#1A1A1A';
+  const ink = '#2B2925', muted = '#756F66', paper = '#FAF8F4';
+  const font = '"Noto Sans Thai", "Segoe UI", Arial, sans-serif';
+  const bold = '700 ' + font;
+  const regular = '400 ' + font;
   const logoImage = await rc_loadImage(CRM_LOGO);
-  ctx.fillStyle = '#FAF8F4'; ctx.fillRect(0, 0, width, height);
-  ctx.fillStyle = dark; ctx.fillRect(0, 0, width, 170);
+  const receiptNo = rc_receiptValue($('rc-no') && $('rc-no').textContent, 'NHS-receipt');
+  const receiptDate = rc_receiptPlainDate($('rc-date') && $('rc-date').textContent);
+  const receiptTime = rc_receiptPlainDate($('rc-time') && $('rc-time').textContent);
+  const serviceDate = rc_receiptPlainDate((crm_receiptTxn && crm_receiptTxn.service_date) || ($('rc-service-date') && $('rc-service-date').textContent));
+  const customerName = rc_receiptValue(rcSelectedCustomer.name);
+  const memberId = rc_receiptValue(rcSelectedCustomer.nhs_id);
+  const phone = rc_receiptValue(rcSelectedCustomer.phone);
+  const level = rc_receiptValue(rcSelectedCustomer.member_level);
+  const payMethod = rc_receiptValue(document.querySelector('input[name="rc-pay"]:checked')?.value, 'เงินสด');
+  const staffName = 'ช่างมี้';
+  const pointsAfter = rcSelectedCustomer.points_after != null ? Number(rcSelectedCustomer.points_after) : Number(rcSelectedCustomer.points || 0);
+  const pointsBefore = rcSelectedCustomer.points_before != null ? Number(rcSelectedCustomer.points_before) : Math.max(0, pointsAfter - Number(earnedPoints || 0));
+
+  ctx.fillStyle = paper; ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = dark; ctx.fillRect(0, 0, width, 270);
   if (logoImage) {
-    ctx.save();
-    ctx.beginPath(); ctx.arc(118, 85, 62, 0, Math.PI * 2); ctx.clip();
-    ctx.drawImage(logoImage, 56, 23, 124, 124);
-    ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.arc(118, 95, 68, 0, Math.PI * 2); ctx.clip();
+    ctx.drawImage(logoImage, 50, 27, 136, 136); ctx.restore();
   }
-  ctx.fillStyle = gold; ctx.font = '700 42px Georgia, serif'; ctx.fillText('N HAIR STYLIST', 205, 78);
-  ctx.fillStyle = '#FFFDF8'; ctx.font = '24px Arial, sans-serif'; ctx.fillText('PREMIUM HAIR SERVICE', 208, 122);
-  ctx.textAlign = 'right'; ctx.fillStyle = '#F0D78C'; ctx.font = '700 25px Arial, sans-serif'; ctx.fillText('ใบเสร็จรับเงิน', width - 70, 62);
-  ctx.fillStyle = '#FFFDF8'; ctx.font = '700 30px Arial, sans-serif'; ctx.fillText(($('rc-no') && $('rc-no').textContent) || '-', width - 70, 108);
   ctx.textAlign = 'left';
-  let y = 220;
-  const line = (label, value, x, yy, color=ink) => { ctx.fillStyle = muted; ctx.font = '20px Arial, sans-serif'; ctx.fillText(label, x, yy); ctx.fillStyle = color; ctx.font = '700 21px Arial, sans-serif'; ctx.fillText(String(value || '-'), x + 230, yy); };
-  line('ลูกค้า', rcSelectedCustomer.name || '-', 70, y);
-  line('รหัสสมาชิก', rcSelectedCustomer.nhs_id || '-', 650, y);
-  line('เบอร์โทร', rcSelectedCustomer.phone || '-', 70, y + 42);
-  line('วันที่ออกใบเสร็จ', ($('rc-date') && $('rc-date').textContent) || '-', 650, y + 42);
-  const serviceDate = (crm_receiptTxn && crm_receiptTxn.service_date) || (($('rc-service-date') && $('rc-service-date').textContent) || '');
-  if (serviceDate && serviceDate !== '-') line('วันที่เข้าใช้บริการ', serviceDate, 70, y + 84);
-  y += serviceDate && serviceDate !== '-' ? 150 : 108;
-  ctx.strokeStyle = '#D8C89E'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(70, y); ctx.lineTo(width - 70, y); ctx.stroke();
-  y += 55;
-  ctx.fillStyle = dark; ctx.font = '700 23px Arial, sans-serif'; ctx.fillText('รายการบริการ', 70, y);
-  y += 36;
-  ctx.fillStyle = '#EFE7D3'; ctx.fillRect(70, y - 28, width - 140, 45);
-  ctx.fillStyle = muted; ctx.font = '700 18px Arial, sans-serif'; ctx.fillText('#', 88, y);
-  ctx.fillText('บริการ', 145, y); ctx.textAlign = 'right'; ctx.fillText('ราคา', width - 270, y); ctx.fillText('รวม', width - 90, y); ctx.textAlign = 'left';
+  ctx.fillStyle = '#E9C766'; ctx.font = '700 38px ' + font; ctx.fillText('N HAIR STYLIST', 215, 62);
+  ctx.fillStyle = '#FFFDF8'; ctx.font = '400 20px ' + font;
+  rc_shopAddressLines().slice(0, 4).forEach(function(lineText, idx) { ctx.fillText(lineText, 215, 101 + idx * 29); });
+  ctx.fillStyle = '#F0D78C'; ctx.font = '400 18px ' + font; ctx.fillText('โทร ' + rc_receiptValue(RC_SHOP.phone) + '  |  LINE ร้าน ' + rc_receiptValue(RC_SHOP.line), 215, 225);
+  ctx.fillStyle = '#F0D78C'; ctx.font = '700 25px ' + font; ctx.fillText('ใบเสร็จรับเงิน (RECEIPT)', 770, 60);
+  ctx.fillStyle = '#FFFDF8'; ctx.font = '700 24px ' + font; ctx.fillText('Receipt No: ' + receiptNo, 770, 102);
+  ctx.font = '400 21px ' + font; ctx.fillText('Date: ' + receiptDate, 770, 139);
+
+  const textLine = (label, value, x, y, valueOffset=205) => {
+    ctx.fillStyle = muted; ctx.font = '400 20px ' + font; ctx.fillText(label, x, y);
+    ctx.fillStyle = ink; ctx.font = '700 21px ' + font; ctx.fillText(rc_receiptValue(value), x + valueOffset, y);
+  };
+  let y = 325;
+  textLine('ลูกค้า', customerName, 70, y);
+  textLine('รหัสสมาชิก', memberId, 650, y, 205);
+  textLine('เบอร์โทร', phone, 70, y + 48);
+  textLine('วันที่ออกใบเสร็จ', receiptDate + (receiptTime !== '-' ? ' ' + receiptTime : ''), 650, y + 48, 205);
+  if (serviceDate !== '-') textLine('วันที่เข้าใช้บริการ', serviceDate, 70, y + 96);
+  textLine('ระดับสมาชิก', level, 650, y + 96, 205);
+  y += serviceDate !== '-' ? 155 : 120;
+  ctx.strokeStyle = lightGold; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(70, y); ctx.lineTo(width - 70, y); ctx.stroke();
+
   y += 54;
-  const items = rcItems.filter(it => it.name || it.price);
+  ctx.fillStyle = dark; ctx.font = '700 24px ' + font; ctx.fillText('รายการบริการ', 70, y);
+  y += 39;
+  ctx.fillStyle = '#EFE7D3'; ctx.fillRect(70, y - 30, width - 140, 48);
+  ctx.fillStyle = muted; ctx.font = '700 18px ' + font;
+  ctx.fillText('#', 88, y); ctx.fillText('บริการ', 145, y); ctx.textAlign = 'right';
+  ctx.fillText('จำนวน', 780, y); ctx.fillText('ราคา', 970, y); ctx.fillText('รวม', 1110, y); ctx.textAlign = 'left';
+  y += 58;
   items.forEach((it, idx) => {
-    ctx.fillStyle = ink; ctx.font = '20px Arial, sans-serif'; ctx.fillText(String(idx + 1), 88, y);
-    ctx.fillText(String(it.name || 'บริการ'), 145, y);
-    ctx.textAlign = 'right'; ctx.fillText('฿' + Number(it.price || 0).toLocaleString(), width - 270, y);
-    ctx.font = '700 20px Arial, sans-serif'; ctx.fillText('฿' + (Number(it.price || 0) * Number(it.qty || 1)).toLocaleString(), width - 90, y);
-    ctx.textAlign = 'left'; y += 56;
+    const name = rc_receiptValue(it.name, 'บริการ');
+    const shownName = name.length > 44 ? name.slice(0, 43) + '…' : name;
+    ctx.fillStyle = ink; ctx.font = '400 20px ' + font; ctx.fillText(String(idx + 1), 88, y); ctx.fillText(shownName, 145, y);
+    ctx.textAlign = 'right'; ctx.fillText(String(it.qty || 1), 780, y); ctx.fillText('฿' + Number(it.price || 0).toLocaleString(), 970, y);
+    ctx.font = '700 20px ' + font; ctx.fillText('฿' + (Number(it.price || 0) * Number(it.qty || 1)).toLocaleString(), 1110, y); ctx.textAlign = 'left';
+    y += 58;
   });
-  y += 8; ctx.strokeStyle = '#D8C89E'; ctx.beginPath(); ctx.moveTo(650, y); ctx.lineTo(width - 70, y); ctx.stroke(); y += 45;
-  const totalLine = (label, value, bold=false) => { ctx.fillStyle = bold ? dark : muted; ctx.font = (bold ? '700 24px' : '20px') + 'px Arial, sans-serif'; ctx.fillText(label, 650, y); ctx.textAlign = 'right'; ctx.fillText('฿' + Number(value || 0).toLocaleString(), width - 90, y); ctx.textAlign = 'left'; y += bold ? 50 : 38; };
-  totalLine('ยอดรวมก่อนส่วนลด', subtotal); totalLine('ส่วนลด', discount);
-  if (hasDeposit) { totalLine('มัดจำค่าจองคิว', deposit); totalLine('วันนี้จ่ายเพิ่ม', todayPay); }
-  totalLine('ยอดสุทธิ', net, true); totalLine('พอยท์ที่ได้รับ', earnedPoints, false);
-  const currentPoints = rcSelectedCustomer.points_after != null ? rcSelectedCustomer.points_after : (rcSelectedCustomer.points || 0);
-  totalLine('พอยท์คงเหลือหลังรายการ', currentPoints, false);
-  y += 28; ctx.fillStyle = gold; ctx.font = '700 21px Arial, sans-serif'; ctx.fillText('ขอบคุณที่ไว้วางใจใช้บริการ N Hair Stylist', 70, y);
+
+  const summaryTop = y + 20;
+  const paymentTop = summaryTop - 8;
+  const paymentHeight = 190;
+  ctx.strokeStyle = lightGold; ctx.beginPath(); ctx.moveTo(650, summaryTop); ctx.lineTo(width - 70, summaryTop); ctx.stroke();
+  ctx.fillStyle = '#FFFDF8'; ctx.strokeStyle = lightGold; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(70, paymentTop, 500, paymentHeight, 14); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = dark; ctx.font = '700 22px ' + font; ctx.fillText('รายละเอียดการชำระเงิน', 96, paymentTop + 38);
+  ctx.fillStyle = muted; ctx.font = '400 19px ' + font; ctx.fillText('ชำระโดย: ' + payMethod, 96, paymentTop + 78);
+  ctx.fillText('ผู้รับเงิน: ' + staffName, 96, paymentTop + 114);
+  ctx.fillText('LINE ร้าน: ' + rc_receiptValue(RC_SHOP.line), 96, paymentTop + 150);
+
+  let sy = summaryTop + 36;
+  const summaryLine = (label, value, strong=false) => {
+    ctx.fillStyle = strong ? dark : muted; ctx.font = (strong ? '700 24px ' : '400 20px ') + font; ctx.fillText(label, 650, sy);
+    ctx.textAlign = 'right'; ctx.fillText(value, width - 90, sy); ctx.textAlign = 'left'; sy += strong ? 48 : 36;
+  };
+  summaryLine('ยอดรวมก่อนส่วนลด', '฿' + Number(subtotal || 0).toLocaleString());
+  summaryLine('ส่วนลดสมาชิก', '-฿' + Number(discount || 0).toLocaleString());
+  if (hasDeposit) { summaryLine('มัดจำค่าจองคิว', '+฿' + Number(deposit || 0).toLocaleString()); summaryLine('วันนี้จ่ายเพิ่ม', '฿' + Number(todayPay || 0).toLocaleString()); }
+  summaryLine('ยอดสุทธิที่ชำระ', '฿' + Number(net || 0).toLocaleString(), true);
+  summaryLine('พอยท์ที่ได้รับ', String(Number(earnedPoints || 0)));
+  summaryLine('พอยท์ก่อนรายการ', String(pointsBefore));
+  summaryLine('พอยท์คงเหลือหลังรายการ', String(pointsAfter), true);
+  ctx.fillStyle = muted; ctx.font = 'italic 16px ' + font; ctx.fillText('(' + thaiBahtText(net) + ')', 650, sy + 8);
+  y = Math.max(sy + 55, paymentTop + paymentHeight + 28);
+
+  ctx.strokeStyle = lightGold; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+  ctx.fillStyle = dark; ctx.font = '700 22px ' + font; ctx.fillText('ขอบคุณที่ไว้วางใจใช้บริการ N HAIR STYLIST', 70, y + 42);
+  ctx.fillStyle = muted; ctx.font = '400 17px ' + font; ctx.fillText('สอบถามเพิ่มเติม LINE ร้าน ' + rc_receiptValue(RC_SHOP.line), 70, y + 76);
+  ctx.fillStyle = '#A33A32'; ctx.font = '400 16px ' + font; ctx.fillText('หมายเหตุ ใบเสร็จนี้ไม่สามารถนำไปออกใบกำกับภาษีได้', 70, y + 108);
 
   const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-  const rawReceiptNo = (($('rc-no') && $('rc-no').textContent) || '').trim();
-  const receiptNo = (rawReceiptNo && !rawReceiptNo.includes('จะออกเลขที่'))
-    ? rawReceiptNo.replace(/[^A-Za-z0-9-]/g, '_')
-    : 'NHS-receipt-' + new Date().toISOString().slice(0, 10);
-  const fileName = receiptNo + '.jpg';
+  const rawReceiptNo = receiptNo;
+  const fileName = rawReceiptNo.replace(/[^A-Za-z0-9-]/g, '_') + '.jpg';
   const blob = rc_dataUrlToBlob(dataUrl);
   const file = typeof File === 'function' ? new File([blob], fileName, { type: 'image/jpeg' }) : null;
   const canShareFile = !!file && typeof navigator.share === 'function' && (!navigator.canShare || navigator.canShare({ files: [file] }));
   if (canShareFile) {
     try {
       await navigator.share({ files: [file], title: 'ใบเสร็จ N Hair Stylist', text: 'เลือก “บันทึกรูปภาพ” เพื่อเก็บใบเสร็จลงใน iPhone' });
-      toast('✅ เปิดหน้าต่างแชร์แล้ว — เลือก “บันทึกรูปภาพ” เพื่อบันทึกลง iPhone');
-      return;
+      toast('✅ เปิดหน้าต่างแชร์แล้ว — เลือก “บันทึกรูปภาพ” เพื่อบันทึกลง iPhone'); return;
     } catch (err) {
       if (err && err.name === 'AbortError') return toast('ยกเลิกการแชร์แล้ว');
       console.warn('NHS JPEG share fallback:', err);
     }
   }
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (isIOS) {
-    rc_showJpegPreview(dataUrl, fileName);
-    toast('เปิดภาพตัวอย่างแล้ว — กดค้างที่รูป แล้วเลือก “บันทึกไปยังรูปภาพ”');
-    return;
-  }
+  if (isIOS) { rc_showJpegPreview(dataUrl, fileName); toast('เปิดภาพตัวอย่างแล้ว — กดค้างที่รูป แล้วเลือก “บันทึกไปยังรูปภาพ”'); return; }
   const objectUrl = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = objectUrl;
-  link.download = fileName;
-  document.body.appendChild(link); link.click(); link.remove();
+  const link = document.createElement('a'); link.href = objectUrl; link.download = fileName; document.body.appendChild(link); link.click(); link.remove();
   setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
   toast('✅ บันทึกใบเสร็จเป็น JPEG แล้ว');
 }
+
 function printReceipt() {
-  // สร้างเนื้อหาใบเสร็จจากข้อมูลจริงปัจจุบัน (ไม่ clone DOM ตรงๆ)
-  // เพื่อป้องกันบั๊ก: ช่องทางชำระ/ราคา/จำนวนที่พิมพ์แก้ไขบนหน้าจอ อาจไม่ถูกสะท้อนตอนพิมพ์
-  // เพราะ input/radio จะ serialize ตาม attribute เดิม ไม่ใช่ค่าปัจจุบันที่ผู้ใช้กรอก/เลือก
   const { subtotal, discount, net, hasDeposit, deposit, todayPay, earnedPoints } = rc_calcTotals();
-  const discountLabelHtml = $('rc-discount-label') ? $('rc-discount-label').innerHTML : 'ส่วนลด';
   const payMethod = document.querySelector('input[name="rc-pay"]:checked')?.value || 'เงินสด';
-  const staffName = ($('rc-staff-name') && $('rc-staff-name').value.trim()) || '-';
-  const custName = $('rc-sign-cust') ? $('rc-sign-cust').textContent : '-';
-  const serviceDateText = $('rc-service-date') ? $('rc-service-date').textContent : '';
-  const logoSrc = $('rc-logo') ? $('rc-logo').src : '';
-
-  const itemsRows = rcItems.filter(it => it.name || it.price).map((it, idx) => `
-    <tr>
-      <td>${idx + 1}</td>
-      <td>${(it.name || '').replace(/</g, '&lt;')}</td>
-      <td class="rc-num">฿${(it.price || 0).toLocaleString()}</td>
-      <td class="rc-num">${it.qty || 1}</td>
-      <td class="rc-num">฿${((it.price || 0) * (it.qty || 1)).toLocaleString()}</td>
-    </tr>`).join('');
-
-  const printContent = `
-    <div class="rc-wrap">
-      <div class="rc-topbar">
-        <div class="rc-brand">
-          ${logoSrc ? `<img src="${logoSrc}">` : ''}
-          <div>
-            <div class="rc-brand-name">${RC_SHOP.name}</div>
-            <div class="rc-brand-sub">Premium Hair Service</div>
-          </div>
-        </div>
-        <div class="rc-no-badge"><div>เลขที่ใบเสร็จ</div><div>${$('rc-no').textContent}</div></div>
-      </div>
-      <div class="rc-meta">
-        <span>${$('rc-date').textContent}</span>
-        <span>${$('rc-time').textContent}</span>
-      </div>
-      <div class="rc-section">
-        <div class="rc-two-col">
-          <div>
-            <div class="rc-section-title">🏪 ข้อมูลร้านค้า</div>
-            <div class="rc-shop-info">
-              ${RC_SHOP.name}<br>${RC_SHOP.addr}<br>
-              📞 ${RC_SHOP.phone} &nbsp;|&nbsp; LINE: ${RC_SHOP.line}
-            </div>
-          </div>
-          <div>
-            <div class="rc-section-title">👤 ข้อมูลลูกค้า</div>
-            <div class="rc-cust-info">
-              <div>รหัสสมาชิก: <b>${$('rc-cust-nhs').textContent}</b></div>
-              <div>ชื่อ-นามสกุล: <b>${$('rc-cust-name').textContent}</b></div>
-              <div>เบอร์โทร: <b>${$('rc-cust-phone').textContent}</b></div>
-              <div>ระดับสมาชิก: <b>${$('rc-cust-level').textContent}</b></div>
-              <div>คะแนนก่อนรายการ: <b>${$('rc-cust-pts-before').textContent}</b> แต้ม</div>
-              <div>คะแนนคงเหลือหลังรายการ: <b>${$('rc-cust-pts-after') ? $('rc-cust-pts-after').textContent : $('rc-cust-pts-before').textContent}</b> แต้ม</div>
-              ${serviceDateText && serviceDateText !== '-' ? `<div>วันที่เข้าใช้บริการ: <b>${serviceDateText}</b></div>` : ''}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="rc-section">
-        <div class="rc-section-title">✂️ รายการบริการ</div>
-        <table class="rc-item-table">
-          <thead><tr><th style="width:24px">#</th><th>ชื่อบริการ</th><th class="rc-num">ราคา</th><th class="rc-num" style="width:40px">จำนวน</th><th class="rc-num">รวม</th></tr></thead>
-          <tbody>${itemsRows}</tbody>
-        </table>
-      </div>
-      <div class="rc-totals">
-        <div class="rc-totals-row"><span>ยอดรวมก่อนส่วนลด</span><span>฿${subtotal.toLocaleString()}</span></div>
-        <div class="rc-totals-row"><span>${discountLabelHtml}</span><span>-฿${discount.toLocaleString()}</span></div>
-        <div class="rc-totals-row net"><span>ยอดสุทธิ</span><span>฿${net.toLocaleString()}</span></div>
-        ${hasDeposit ? `<div class="rc-totals-row"><span>มัดจำค่าจองคิว</span><span>+฿${deposit.toLocaleString()}</span></div><div class="rc-totals-row"><span>วันนี้จ่ายเพิ่ม</span><span>฿${todayPay.toLocaleString()}</span></div>` : ''}
-        <div class="rc-totals-row"><span>พอยท์ที่ได้รับ</span><span>${earnedPoints}</span></div>
-        <div class="rc-totals-row"><span>พอยท์คงเหลือหลังรายการ</span><span>${$('rc-cust-pts-after') ? $('rc-cust-pts-after').textContent : '-'}</span></div>
-        <div class="rc-words">(${thaiBahtText(net)})</div>
-      </div>
-      <div class="rc-section">
-        <div class="rc-section-title">💳 ช่องทางชำระเงิน</div>
-        <div class="rc-pay-methods"><b>✅ ${payMethod}</b></div>
-      </div>
-      <div class="rc-sign-row">
-        <div><div class="rc-sign-line"></div>${staffName}<br>ผู้รับเงิน</div>
-        <div><div class="rc-sign-line"></div>${custName}<br>ลูกค้าผู้รับบริการ</div>
-      </div>
-      <div class="rc-thanks">ขอบคุณที่ไว้วางใจใช้บริการ ${RC_SHOP.name} 🙏</div>
-    </div>`;
-
+  const staffName = 'ช่างมี้';
+  const custName = rc_receiptValue($('rc-sign-cust') ? $('rc-sign-cust').textContent : '', rc_receiptValue(rcSelectedCustomer && rcSelectedCustomer.name));
+  const receiptNo = rc_receiptValue($('rc-no') && $('rc-no').textContent, 'NHS-receipt');
+  const receiptDate = rc_receiptPlainDate($('rc-date') && $('rc-date').textContent);
+  const receiptTime = rc_receiptPlainDate($('rc-time') && $('rc-time').textContent);
+  const serviceDate = rc_receiptPlainDate((crm_receiptTxn && crm_receiptTxn.service_date) || ($('rc-service-date') && $('rc-service-date').textContent));
+  const pointsAfter = rcSelectedCustomer && rcSelectedCustomer.points_after != null ? Number(rcSelectedCustomer.points_after) : Number((rcSelectedCustomer && rcSelectedCustomer.points) || 0);
+  const pointsBefore = rcSelectedCustomer && rcSelectedCustomer.points_before != null ? Number(rcSelectedCustomer.points_before) : Math.max(0, pointsAfter - Number(earnedPoints || 0));
+  const discountLabel = rc_receiptValue($('rc-discount-label') ? $('rc-discount-label').textContent : '', 'ส่วนลดสมาชิก');
+  const esc = rc_receiptEscape;
+  const logoSrc = $('rc-logo') ? $('rc-logo').src : CRM_LOGO;
+  const itemsRows = rcItems.filter(it => it.name || it.price).map((it, idx) => `<tr><td>${idx + 1}</td><td>${esc(it.name || 'บริการ')}</td><td class="rc-num">${it.qty || 1}</td><td class="rc-num">฿${Number(it.price || 0).toLocaleString()}</td><td class="rc-num">฿${(Number(it.price || 0) * Number(it.qty || 1)).toLocaleString()}</td></tr>`).join('');
+  const printContent = `<div class="rc-wrap">
+    <div class="rc-topbar"><div class="rc-brand">${logoSrc ? `<img src="${esc(logoSrc)}">` : ''}<div><div class="rc-brand-name">${esc(RC_SHOP.name)}</div><div class="rc-brand-sub">Premium Hair Service</div><div class="rc-brand-address">${rc_shopAddressLines().slice(0, 4).map(esc).join('<br>')}<br>โทร ${esc(RC_SHOP.phone)} | LINE ร้าน ${esc(RC_SHOP.line)}</div></div></div><div class="rc-no-badge"><div>ใบเสร็จรับเงิน (RECEIPT)</div><div>Receipt No: ${esc(receiptNo)}</div><div>Date: ${esc(receiptDate)}</div></div></div>
+    <div class="rc-meta"><span>วันที่ออกใบเสร็จ: ${esc(receiptDate)}</span><span>เวลา: ${esc(receiptTime)}</span></div>
+    <div class="rc-section"><div class="rc-two-col"><div><div class="rc-section-title">ข้อมูลลูกค้า</div><div class="rc-cust-info"><div>ลูกค้า: <b>${esc(rcSelectedCustomer && rcSelectedCustomer.name)}</b></div><div>เบอร์โทร: <b>${esc(rcSelectedCustomer && rcSelectedCustomer.phone)}</b></div>${serviceDate !== '-' ? `<div>วันที่เข้าใช้บริการ: <b>${esc(serviceDate)}</b></div>` : ''}</div></div><div><div class="rc-section-title">สมาชิก</div><div class="rc-cust-info"><div>รหัสสมาชิก: <b>${esc(rcSelectedCustomer && rcSelectedCustomer.nhs_id)}</b></div><div>ระดับสมาชิก: <b>${esc(rcSelectedCustomer && rcSelectedCustomer.member_level)}</b></div><div>พอยท์ก่อนรายการ: <b>${pointsBefore}</b></div><div>พอยท์หลังรายการ: <b>${pointsAfter}</b></div></div></div></div></div>
+    <div class="rc-section"><div class="rc-section-title">รายการบริการ</div><table class="rc-item-table"><thead><tr><th>#</th><th>บริการ</th><th class="rc-num">จำนวน</th><th class="rc-num">ราคา</th><th class="rc-num">รวม</th></tr></thead><tbody>${itemsRows}</tbody></table></div>
+    <div class="rc-bottom-grid"><div class="rc-payment-card"><div class="rc-section-title">รายละเอียดการชำระเงิน</div><div>ชำระโดย: <b>${esc(payMethod)}</b></div><div>ผู้รับเงิน: <b>${esc(staffName)}</b></div><div>LINE ร้าน: <b>${esc(RC_SHOP.line)}</b></div></div><div class="rc-totals"><div class="rc-totals-row"><span>ยอดรวมก่อนส่วนลด</span><span>฿${Number(subtotal || 0).toLocaleString()}</span></div><div class="rc-totals-row"><span>${esc(discountLabel)}</span><span>-฿${Number(discount || 0).toLocaleString()}</span></div>${hasDeposit ? `<div class="rc-totals-row"><span>มัดจำค่าจองคิว</span><span>+฿${Number(deposit || 0).toLocaleString()}</span></div><div class="rc-totals-row"><span>วันนี้จ่ายเพิ่ม</span><span>฿${Number(todayPay || 0).toLocaleString()}</span></div>` : ''}<div class="rc-totals-row net"><span>ยอดสุทธิที่ชำระ</span><span>฿${Number(net || 0).toLocaleString()}</span></div><div class="rc-totals-row"><span>พอยท์ที่ได้รับ</span><span>${Number(earnedPoints || 0)}</span></div><div class="rc-totals-row"><span>พอยท์คงเหลือหลังรายการ</span><span>${pointsAfter}</span></div><div class="rc-words">(${thaiBahtText(net)})</div></div></div>
+    <div class="rc-footer"><div>ขอบคุณที่ไว้วางใจใช้บริการ ${esc(RC_SHOP.name)}</div><div>${esc(RC_SHOP.addr)} | โทร ${esc(RC_SHOP.phone)} | LINE ${esc(RC_SHOP.line)}</div><div>ผู้รับเงิน: ${esc(staffName)} &nbsp; ลูกค้าผู้รับบริการ: ${esc(custName)}</div><div class="rc-tax-note">หมายเหตุ ใบเสร็จนี้ไม่สามารถนำไปออกใบกำกับภาษีได้</div></div>
+  </div>`;
   const printWindow = window.open('', '_blank');
   if (!printWindow) { toast('⚠️ กรุณาอนุญาต Pop-up เพื่อพิมพ์ใบเสร็จ'); return; }
-  printWindow.document.write(`
-    <!DOCTYPE html><html><head><meta charset="UTF-8"><title>ใบเสร็จ ${$('rc-no').textContent}</title>
-    <style>
-      * { box-sizing:border-box; }
-      body { font-family:'Segoe UI',Tahoma,sans-serif; padding:20px; color:#333; }
-      .rc-wrap { max-width:720px; margin:0 auto; border:1px solid #E5D7AE; border-radius:14px; overflow:hidden; }
-      .rc-topbar { display:flex; justify-content:space-between; align-items:flex-start; padding:16px; background:#1A1A1A; color:#fff; }
-      .rc-brand { display:flex; align-items:center; gap:10px; } .rc-brand img{width:44px;height:44px;border-radius:10px;}
-      .rc-brand-name { font-weight:800; font-size:16px; color:#E9C766; } .rc-brand-sub{font-size:10px;color:#C9A84C;}
-      .rc-no-badge { background:#C9A84C; color:#1A1A1A; font-weight:800; font-size:13px; padding:8px 12px; border-radius:8px; text-align:center; }
-      .rc-meta { display:flex; justify-content:space-between; padding:10px 16px; font-size:12px; color:#666; background:#FAF6EA; border-bottom:1px solid #EEE0B8; }
-      .rc-section { padding:14px 16px; border-bottom:1px solid #F0F0F0; }
-      .rc-section-title { font-size:12px; font-weight:700; color:#A68A3D; margin-bottom:8px; }
-      .rc-two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-      .rc-shop-info, .rc-cust-info { font-size:12px; line-height:1.7; color:#444; }
-      .rc-item-table { width:100%; border-collapse:collapse; font-size:12px; }
-      .rc-item-table th { background:#F5E6BE; padding:8px 6px; text-align:left; font-size:11px; }
-      .rc-item-table td { padding:8px 6px; border-bottom:1px solid #F0F0F0; }
-      .rc-totals { padding:12px 16px; } .rc-totals-row { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; }
-      .rc-totals-row.net { font-size:17px; font-weight:800; color:#A68A3D; border-top:2px solid #1A1A1A; margin-top:6px; padding-top:10px; }
-      .rc-words { font-size:11px; color:#666; text-align:right; font-style:italic; }
-      .rc-pay-methods { display:flex; gap:14px; font-size:12px; }
-      .rc-sign-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:16px; text-align:center; font-size:11px; }
-      .rc-sign-line { border-bottom:1px dashed #999; height:40px; margin-bottom:6px; }
-      .rc-thanks { text-align:center; font-size:11px; color:#666; padding:10px; }
-    </style></head>
-    <body>${printContent}</body></html>
-  `);
-  printWindow.document.close();
-  setTimeout(() => printWindow.print(), 400);
+  printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ใบเสร็จ ${esc(receiptNo)}</title><style>
+    *{box-sizing:border-box}body{font-family:"Noto Sans Thai","Segoe UI",Arial,sans-serif;padding:20px;color:#2B2925;background:#fff}.rc-wrap{max-width:850px;margin:0 auto;border:1px solid #E5D7AE;border-radius:14px;overflow:hidden}.rc-topbar{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 20px;background:#1A1A1A;color:#fff}.rc-brand{display:flex;align-items:flex-start;gap:12px}.rc-brand img{width:64px;height:64px;border-radius:50%;object-fit:cover}.rc-brand-name{font-weight:800;font-size:21px;color:#E9C766}.rc-brand-sub{font-size:12px;color:#C9A84C;margin:2px 0 5px}.rc-brand-address{font-size:11px;color:#FFFDF8;line-height:1.45;max-width:500px}.rc-no-badge{background:#C9A84C;color:#1A1A1A;font-weight:700;font-size:13px;padding:10px 12px;border-radius:8px;text-align:left;line-height:1.7}.rc-meta{display:flex;justify-content:space-between;padding:10px 20px;font-size:12px;color:#666;background:#FAF6EA;border-bottom:1px solid #EEE0B8}.rc-section{padding:16px 20px;border-bottom:1px solid #F0F0F0}.rc-section-title{font-size:13px;font-weight:800;color:#A68A3D;margin-bottom:8px}.rc-two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}.rc-cust-info{font-size:12px;line-height:1.8;color:#444}.rc-item-table{width:100%;border-collapse:collapse;font-size:12px}.rc-item-table th{background:#F5E6BE;padding:9px 7px;text-align:left;font-size:11px}.rc-item-table td{padding:9px 7px;border-bottom:1px solid #F0F0F0}.rc-num{text-align:right}.rc-bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:16px 20px}.rc-payment-card{border:1px solid #D8C89E;border-radius:12px;padding:14px;font-size:12px;line-height:1.9;background:#FFFDF8}.rc-totals{padding:0}.rc-totals-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}.rc-totals-row.net{font-size:17px;font-weight:800;color:#A68A3D;border-top:2px solid #1A1A1A;margin-top:6px;padding-top:10px}.rc-words{font-size:11px;color:#666;text-align:right;font-style:italic}.rc-footer{text-align:center;background:#F5EEDB;padding:14px 20px;font-size:11px;color:#5C554B;line-height:1.8}.rc-tax-note{color:#A33A32;font-size:10px;font-weight:600;margin-top:4px}@media print{body{padding:0}.rc-wrap{border-radius:0;max-width:none}}
+  </style></head><body>${printContent}</body></html>`);
+  printWindow.document.close(); setTimeout(() => printWindow.print(), 400);
 }
 
 function rc_sendLine() {
@@ -8314,7 +8302,7 @@ function rc_exportRow() {
   const totals = rc_calcTotals();
   let csv = 'เลขที่ใบเสร็จ,วันที่,ลูกค้า,รหัสสมาชิก,ยอดรวม,ส่วนลด,ยอดสุทธิ,ช่องทางชำระ,ผู้รับเงิน,ยอดบริการ,มัดจำ,วันนี้จ่ายเพิ่ม,พอยท์ที่ได้รับ,มีมัดจำ\n';
   const pay = document.querySelector('input[name="rc-pay"]:checked')?.value || '';
-  const staffName = ($('rc-staff-name') && $('rc-staff-name').value.trim()) || '';
+  const staffName = 'ช่างมี้';
   csv += `"${rc_csvEscape($('rc-no').textContent)}","${rc_csvEscape($('rc-date').textContent)}","${rc_csvEscape($('rc-cust-name').textContent)}","${rc_csvEscape($('rc-cust-nhs').textContent)}","${totals.subtotal}","${totals.discount}","${totals.net}","${rc_csvEscape(pay)}","${rc_csvEscape(staffName)}","${totals.subtotal}","${totals.deposit}","${totals.todayPay}","${totals.earnedPoints}","${totals.hasDeposit ? 'ใช่' : 'ไม่ใช่'}"\n`;
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);

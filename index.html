@@ -60,16 +60,23 @@
 
 <script>
 // === CONSULTATION FORM FUNCTIONS ===
+const NHS_ICON_ASSET_DIR = '/assets/icons/';
 const CONSULT_SVCS = [
-  {l:'STRAIGHTENING', t:'ยืดผม', e:'💇‍♀️'},
-  {l:'PERM / CURL', t:'ดัดผม', e:'🌀'},
-  {l:'VOLUME PERM', t:'ดัดวอลลุ่ม', e:'🌊'},
-  {l:'KERATIN', t:'เคราติน', e:'🧴'},
-  {l:'HAIR COLOR', t:'ทำสี', e:'🎨'},
-  {l:'OLAPLEX', t:'บำรุง OLAPLEX', e:'✨'},
-  {l:'DETOX', t:'บำรุง DETOX', e:'🌿'},
-  {l:'OTHER', t:'อื่นๆ', e:'...'}
+  {l:'STRAIGHTENING', t:'ยืดผม', e:'💇‍♀️', icon:'icon_hair_straight.png'},
+  {l:'PERM / CURL', t:'ดัดผม', e:'🌀', icon:'icon_hair_perm.png'},
+  {l:'VOLUME PERM', t:'ดัดวอลลุ่ม', e:'🌊', icon:'icon_hair_perm.png'},
+  {l:'KERATIN', t:'เคราติน', e:'🧴', icon:'icon_hair_treatment.png'},
+  {l:'HAIR COLOR', t:'ทำสี', e:'🎨', icon:'icon_hair_color.png'},
+  {l:'OLAPLEX', t:'บำรุง OLAPLEX', e:'✨', icon:'icon_hair_treatment.png'},
+  {l:'DETOX', t:'บำรุง DETOX', e:'🌿', icon:'icon_hair_treatment.png'},
+  {l:'OTHER', t:'อื่นๆ', e:'...', icon:'icon_other.png'}
 ];
+function nhsIconMarkup(item, cls) {
+  const icon = item && item.icon ? NHS_ICON_ASSET_DIR + item.icon : '';
+  const fallback = item && item.e ? item.e : '•';
+  if (!icon) return '<span class="emoji">' + fallback + '</span>';
+  return '<img class="' + (cls || 'nhs-menu-icon') + '" src="' + icon + '" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="nhs-icon-fallback" hidden>' + fallback + '</span>';
+}
 
 let sigCustomer, sigStylist;
 let consultMode = 'staff'; // 'staff' or 'link'
@@ -96,7 +103,7 @@ function initConsultForm() {
   if(reqGrid) {
     reqGrid.innerHTML = CONSULT_SVCS.map(s => `
       <div class="consult-service-item" onclick="toggleConsultService(this, '${s.l}')">
-        <div class="consult-service-icon">${s.e}</div>
+        <div class="consult-service-icon">${nhsIconMarkup(s, 'consult-service-img')}</div>
         <div class="consult-service-label">${s.l}<br>${s.t}</div>
         <input type="checkbox" name="cf_service_req" value="${s.l}" style="display:none">
       </div>
@@ -648,7 +655,11 @@ body {
   text-align: center; cursor: pointer; transition: 0.2s;
 }
 .icon-btn:hover, .icon-btn.active { background: var(--goldL); border-color: var(--gold); }
-.icon-btn .emoji { font-size: 24px; display: block; margin-bottom: 5px; }
+  .icon-btn .emoji { font-size: 24px; display: block; margin-bottom: 5px; }
+  .nhs-menu-icon { width: 42px; height: 42px; object-fit: contain; display: block; margin: 0 auto 5px; }
+  .nhs-icon-fallback { font-size: 24px; display: block; margin-bottom: 5px; }
+  .consult-service-img { width: 34px; height: 34px; object-fit: contain; display: block; margin: 0 auto; }
+  .consult-service-icon .nhs-icon-fallback { font-size: 20px; margin: 0; }
 .icon-btn .label { font-size: 10px; color: var(--text); font-weight: 600; }
 
 /* MODALS */
@@ -3189,8 +3200,41 @@ document.addEventListener('DOMContentLoaded', () => {
   const rl = $('rc-logo'); if(rl) rl.src = LOGO_LARGE;
 });
 
-const SVCS = [{l:'ยืดผม', e:'💇‍♀️'}, {l:'ดัดผม', e:'🌀'}, {l:'ทำสีผม', e:'🎨'}, {l:'สระ+ไดร์', e:'🚿'}, {l:'ตัดผม', e:'✂️'}, {l:'ไฮไลท์', e:'✨'}, {l:'ทำเล็บ', e:'💅'}, {l:'ทรีตเมนต์', e:'🧴'}, {l:'ฟอกผม', e:'👱‍♀️'}, {l:'มัดจำ', e:'💰'}, {l:'อื่นๆ', e:'⚙️'}];
-const CATS = [{l:'น้ำยา/อุปกรณ์', e:'📦'}, {l:'การตลาด', e:'📢'}, {l:'เงินเดือน', e:'👥'}, {l:'ค่าเช่า', e:'🏠'}, {l:'ค่าน้ำ/ไฟ', e:'⚡'}, {l:'แชร์', e:'🤝'}, {l:'เน็ต/WiFi', e:'🌐'}, {l:'หักยอด', e:'📉'}, {l:'อื่นๆ', e:'⚙️'}];
+const SVCS = [
+  {l:'ยืดผม', e:'💇‍♀️', icon:'icon_hair_straight.png'},
+  {l:'ดัดผม', e:'🌀', icon:'icon_hair_perm.png'},
+  {l:'ทำสีผม', e:'🎨', icon:'icon_hair_color.png'},
+  {l:'สระ+ไดร์', e:'🚿', icon:'icon_hair_wash_blow.png'},
+  {l:'ตัดผม', e:'✂️', icon:'icon_haircut.png'},
+  {l:'ไฮไลท์', e:'✨', icon:'icon_hair_color.png'},
+  {l:'ทำเล็บ', e:'💅', icon:'icon_nails.png'},
+  {l:'ทรีตเมนต์', e:'🧴', icon:'icon_hair_treatment.png'},
+  {l:'ฟอกผม', e:'👱‍♀️', icon:'icon_hair_color.png'},
+  {l:'มัดจำ', e:'💰', icon:'icon_deposit.png'},
+  {l:'อื่นๆ', e:'⚙️', icon:'icon_other.png'}
+];
+const CATS = [
+  {l:'น้ำยา/อุปกรณ์', e:'📦', icon:'icon_supplies.png'},
+  {l:'การตลาด', e:'📢', icon:'icon_ads.png'},
+  {l:'เงินเดือน', e:'👥', icon:'icon_salary.png'},
+  {l:'ค่าเช่า', e:'🏠', icon:'icon_rent.png'},
+  {l:'ค่าน้ำ/ไฟ', e:'⚡', icon:'icon_utility_bills.png'},
+  {l:'แชร์', e:'🤝', icon:'icon_share_expense.png'},
+  {l:'เน็ต/WiFi', e:'🌐', icon:'icon_internet.png'},
+  {l:'หักยอด', e:'📉', icon:'icon_deduction.png'},
+  {l:'ค่าโทรศัพท์', e:'📱', icon:'icon_phone_bill.png'},
+  {l:'ผ่อนมอเตอร์ไซค์', e:'🛵', icon:'icon_motorbike_installment.png'},
+  {l:'ผ่อนรถยนต์', e:'🚗', icon:'icon_car_installment.png'},
+  {l:'ออมเงิน', e:'🐷', icon:'icon_savings.png'},
+  {l:'ช่วยเหลือครอบครัว', e:'👵', icon:'icon_family_support.png'},
+  {l:'ประกัน', e:'🛡️', icon:'icon_insurance.png'},
+  {l:'Netflix/สตรีมมิ่ง', e:'📺', icon:'icon_netflix.png'},
+  {l:'ผ่อนชำระ', e:'💳', icon:'icon_installment.png'},
+  {l:'การแพทย์', e:'🩺', icon:'icon_medical.png'},
+  {l:'ดอกเบี้ย', e:'%', icon:'icon_interest.png'},
+  {l:'ฉุกเฉิน', e:'🚨', icon:'icon_emergency.png'},
+  {l:'อื่นๆ', e:'⚙️', icon:'icon_other.png'}
+];
 const RANK_ICONS = { 'ทอง': '🏆', 'เงิน': '🥈', 'ทองแดง': '🥉', 'ทั่วไป': '👤' };
 
 function showPage(id) {
@@ -4255,10 +4299,10 @@ function renderChart(inc, exp) {
 }
 
 function initGrids() {
-  const incGrid = SVCS.map(s => `<div class="icon-btn" onclick="selectSvc(this, '${s.l}')"><span class="emoji">${s.e}</span><span class="label">${s.l}</span></div>`).join('');
+  const incGrid = SVCS.map(s => `<div class="icon-btn" onclick="selectSvc(this, '${s.l}')">${nhsIconMarkup(s)}<span class="label">${s.l}</span></div>`).join('');
   if ($('inc-svc-grid')) $('inc-svc-grid').innerHTML = incGrid;
-  if ($('q-svc-grid')) $('q-svc-grid').innerHTML = SVCS.map(s => `<div class="icon-btn" onclick="selectQSvc(this, '${s.l}')"><span class="emoji">${s.e}</span><span class="label">${s.l}</span></div>`).join('');
-  if ($('exp-cat-grid')) $('exp-cat-grid').innerHTML = CATS.map(c => `<div class="icon-btn" onclick="selectCat(this, '${c.l}')"><span class="emoji">${c.e}</span><span class="label">${c.l}</span></div>`).join('');
+  if ($('q-svc-grid')) $('q-svc-grid').innerHTML = SVCS.map(s => `<div class="icon-btn" onclick="selectQSvc(this, '${s.l}')">${nhsIconMarkup(s)}<span class="label">${s.l}</span></div>`).join('');
+  if ($('exp-cat-grid')) $('exp-cat-grid').innerHTML = CATS.map(c => `<div class="icon-btn" onclick="selectCat(this, '${c.l}')">${nhsIconMarkup(c)}<span class="label">${c.l}</span></div>`).join('');
   // ตั้งวันที่เริ่มต้นเป็นวันนี้
   const today = new Date().toISOString().split('T')[0];
   if ($('inc-date') && !$('inc-date').value) $('inc-date').value = today;

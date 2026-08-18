@@ -2654,10 +2654,10 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
         <div class="crm-title">สมัครสมาชิก N HAIR STYLIST</div>
 
         <img id="crm-reg-photo-preview" class="crm-reg-photo-preview" src="" alt="รูปโปรไฟล์ LINE">
-        <div id="crm-line-badge" class="crm-line-badge" style="justify-content:center; width:100%;">✅ เชื่อมต่อ LINE แล้ว — ระบบเติมชื่อและรูปให้อัตโนมัติ</div>
+        <div id="crm-line-badge" class="crm-line-badge" style="justify-content:center; width:100%;">🔒 ต้องล็อกอิน LINE ก่อน จึงจะยืนยันสิทธิ์สมาชิกได้</div>
 
         <button type="button" class="crm-line-btn" onclick="crm_registerWithLine()">
-          <span style="font-size:16px;">💬</span> สมัครสมาชิกผ่านไลน์ (ดึงชื่อ-รูปอัตโนมัติ)
+          <span style="font-size:16px;">💬</span> ล็อกอิน LINE และยืนยันสิทธิ์สมาชิก
         </button>
         <button type="button" class="crm-oa-btn" onclick="crm_openLineOA()">
           <span style="font-size:15px;">📩</span> แชทกับร้านทาง LINE OA
@@ -5454,26 +5454,43 @@ const CRM_LOGO = NHS_LOGO_ASSET;
 // LINE ไม่มี API ให้ดึง "วันเกิด" ของผู้ใช้ได้ ลูกค้าจึงต้องกรอกวันเกิดเองในฟอร์มเสมอ
 const LIFF_ID = "2011018056-BZZ2EfGC";
 let crm_lineProfile = null;
-
-async function crm_liffAutoInit() {
-  if (typeof liff === 'undefined') return;
-  if (!LIFF_ID || LIFF_ID.indexOf('YOUR-LIFF-ID') === 0) return; // ยังไม่ได้ตั้งค่า LIFF ID
-  try {
-    await liff.init({ liffId: LIFF_ID });
-    if (liff.isLoggedIn()) {
+let crm_lineInitPromise = null;
+/** อ่าน LINE profile จริงเพียงชุดเดียวต่อหน้า และ fail-closed หากไม่มี userId */
+async function crm_getCurrentLineProfile(requireLogin) {
+  if (typeof liff === 'undefined' || !LIFF_ID || LIFF_ID.indexOf('YOUR-LIFF-ID') === 0) {
+    if (requireLogin) throw new Error('ยังไม่ได้ตั้งค่า LINE LIFF ของร้าน');
+    return null;
+  }
+  if (!crm_lineInitPromise) {
+    crm_lineInitPromise = (async function() {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) {
+        if (requireLogin) throw new Error('กรุณาล็อกอิน LINE ก่อนสมัครสมาชิก');
+        return null;
+      }
       const profile = await liff.getProfile();
-      crm_lineProfile = profile;
-      crm_fillFromLineProfile(profile);
-    }
+      if (!profile || !profile.userId) throw new Error('อ่าน LINE userId ไม่สำเร็จ');
+      return profile;
+    })().catch(function(err) {
+      crm_lineInitPromise = null;
+      throw err;
+    });
+  }
+  const profile = await crm_lineInitPromise;
+  if (profile) crm_lineProfile = profile;
+  return profile;
+}
+async function crm_liffAutoInit() {
+  try {
+    const profile = await crm_getCurrentLineProfile(false);
+    if (profile) crm_fillFromLineProfile(profile);
   } catch (e) {
     console.warn('LIFF init ไม่สำเร็จ:', e);
   }
 }
-
 function crm_fillFromLineProfile(profile) {
   const nameEl = $('crm-reg-fullname');
   const nickEl = $('crm-reg-nickname');
-  // แก้ไข: ให้ดึงชื่อมาแสดงผลในฟอร์มเสมอ แม้ว่าจะมีข้อมูลเดิมอยู่แล้วเพื่อให้ข้อมูลจาก LINE เป็นหลัก
   if (nameEl) nameEl.value = profile.displayName || '';
   if (nickEl) nickEl.value = profile.displayName || '';
   const photo = $('crm-reg-photo-preview');
@@ -5482,26 +5499,26 @@ function crm_fillFromLineProfile(profile) {
     photo.style.display = 'block';
   }
   const badge = $('crm-line-badge');
-  if (badge) badge.style.display = 'inline-flex';
-}
-
-// ปุ่ม "สมัครสมาชิกผ่านไลน์" — ล็อกอินไลน์ (ถ้ายังไม่ล็อกอิน) แล้วดึงชื่อ/รูปมาเติมในฟอร์มให้ทันที
-async function crm_registerWithLine() {
-  if (typeof liff === 'undefined' || !LIFF_ID || LIFF_ID.indexOf('YOUR-LIFF-ID') === 0) {
-    toast('ยังไม่ได้ตั้งค่า LIFF ID ของร้าน (ดูคำแนะนำในโค้ด LIFF_ID)');
-    return;
+  if (badge) {
+    badge.textContent = '✅ เชื่อมต่อ LINE แล้ว — ระบบอ่าน userId และเติมชื่อ/รูปให้อัตโนมัติ';
+    badge.style.display = 'inline-flex';
   }
+}
+// ปุ่มสมัครสมาชิกผ่าน LINE: ต้องอ่าน userId จริงก่อนจึงจะยืนยันสมาชิกได้
+async function crm_registerWithLine() {
   try {
-    if (!liff.isLoggedIn()) {
-      liff.login();
-      return; // หลัง login จะ redirect กลับมาแล้ว liff.isLoggedIn() จะเป็น true ให้กด "สมัครสมาชิกผ่านไลน์" อีกครั้ง หรือระบบจะดึงให้อัตโนมัติจาก crm_liffAutoInit()
+    if (typeof liff === 'undefined' || !LIFF_ID || LIFF_ID.indexOf('YOUR-LIFF-ID') === 0) {
+      throw new Error('ยังไม่ได้ตั้งค่า LINE LIFF ของร้าน');
     }
-    const profile = crm_lineProfile || await liff.getProfile();
-    crm_lineProfile = profile;
+    if (!liff.isLoggedIn()) {
+      liff.login({ redirectUri: window.location.href });
+      return;
+    }
+    const profile = await crm_getCurrentLineProfile(true);
     crm_fillFromLineProfile(profile);
-    toast('ดึงชื่อและรูปจาก LINE แล้ว — กรุณากรอกวันเกิดแล้วกดยืนยันสมัครสมาชิก');
+    toast('อ่าน LINE userId แล้ว — กรุณากรอกเบอร์โทรเพื่อยืนยันสมาชิกคนนี้');
   } catch (e) {
-    toast('ไม่สามารถดึงข้อมูลจาก LINE ได้ กรุณากรอกข้อมูลด้วยตนเอง');
+    toast('❌ ' + (e.message || 'ไม่สามารถอ่านข้อมูลจาก LINE ได้'));
   }
 }
 
@@ -5573,25 +5590,30 @@ function nhs_stripMissingColumns(payload, errMsg) {
   return next;
 }
 
-async function nhs_safeCustomerInsert(payload) {
+async function nhs_safeCustomerInsert(payload, requiredColumns) {
+  const required = Array.isArray(requiredColumns) ? requiredColumns : [];
   let body = Object.assign({}, payload);
   for (let i = 0; i < 8; i++) {
     const { data, error } = await db.from('customers').insert(body).select().maybeSingle();
     if (!error) return { data, error: null };
+    const missing = String(error.message || '').match(/Could not find the '([^']+)' column/i);
+    if (missing && required.indexOf(missing[1]) !== -1) return { data: null, error };
     const stripped = nhs_stripMissingColumns(body, error.message);
     if (!stripped || Object.keys(stripped).length === Object.keys(body).length) return { data: null, error };
     body = stripped;
   }
   return { data: null, error: { message: 'insert failed after retries' } };
 }
-
-async function nhs_safeCustomerUpdate(idOrPhone, payload, byPhone) {
+async function nhs_safeCustomerUpdate(idOrPhone, payload, byPhone, requiredColumns) {
+  const required = Array.isArray(requiredColumns) ? requiredColumns : [];
   let body = Object.assign({}, payload);
   for (let i = 0; i < 8; i++) {
     let q = db.from('customers').update(body);
     q = byPhone ? q.eq('phone', idOrPhone) : q.eq('id', idOrPhone);
     const { data, error } = await q.select().maybeSingle();
     if (!error) return { data, error: null };
+    const missing = String(error.message || '').match(/Could not find the '([^']+)' column/i);
+    if (missing && required.indexOf(missing[1]) !== -1) return { data: null, error };
     const stripped = nhs_stripMissingColumns(body, error.message);
     if (!stripped || Object.keys(stripped).length === Object.keys(body).length) return { data: null, error };
     body = stripped;
@@ -5621,6 +5643,19 @@ async function nhs_findCustomerByPhone(phone) {
   return null;
 }
 
+/** ค้นสมาชิกด้วย LINE userId จริงเท่านั้น — ไม่ใช้ชื่อหรือรูปแทน identity */
+async function nhs_findCustomerByLineUserId(lineUserId) {
+  const uid = String(lineUserId || '').trim();
+  if (!uid) return null;
+  try {
+    const { data, error } = await db.from('customers').select('*').eq('line_user_id', uid).maybeSingle();
+    if (error) { console.warn('nhs_findCustomerByLineUserId', error); return null; }
+    return data || null;
+  } catch (e) {
+    console.warn('nhs_findCustomerByLineUserId', e);
+    return null;
+  }
+}
 function nhs_genMemberId(phone) {
   const pn = (typeof nhs_normPhone === 'function') ? nhs_normPhone(phone) : String(phone || '').replace(/\D/g, '');
   const now = new Date();
@@ -5658,33 +5693,52 @@ function nhs_memberDisplayId(member) {
 }
 
 async function crm_init() {
+  let profile = null;
+  try { profile = await crm_getCurrentLineProfile(false); } catch (e) { console.warn('crm_init LINE check', e); }
+  const lineUserId = profile && profile.userId ? String(profile.userId) : '';
   const local = localStorage.getItem(CRM_PRE + 'member');
+  let localMember = null;
   if (local) {
-    try { crm_member = JSON.parse(local); } catch (e) { crm_member = null; }
-    if (crm_member && crm_member.phone) {
-      const data = await nhs_findCustomerByPhone(crm_member.phone);
-      if (data) {
-        const localNhs = crm_member.nhs_id;
-        const localNick = crm_member.nickname;
-        const localPhoto = crm_member.photo_url;
-        crm_member = Object.assign({}, crm_member, data);
-        if (!crm_member.nhs_id && localNhs) crm_member.nhs_id = localNhs;
-        if (!crm_member.nickname && localNick) crm_member.nickname = localNick;
-        if (!crm_member.photo_url && localPhoto) crm_member.photo_url = localPhoto;
-        localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
-      }
-      if (crm_member) {
-        crm_member.nhs_id = nhs_memberDisplayId(crm_member);
-        localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
-      }
+    try { localMember = JSON.parse(local); } catch (e) { localMember = null; }
+  }
+  // LINE ที่ผูกแล้วต้องโหลดจากฐานข้อมูลโดยตรง ไม่พึ่ง cache ของเครื่องเดิม
+  if (lineUserId) {
+    const boundByLine = await nhs_findCustomerByLineUserId(lineUserId);
+    if (boundByLine) {
+      crm_member = Object.assign({}, boundByLine, { nhs_id: nhs_memberDisplayId(boundByLine) });
+      localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
       crm_showMember();
-    } else {
-      $('crm-reg-section').style.display = 'block';
-      $('crm-member-section').style.display = 'none';
+      return;
     }
-  } else {
-    $('crm-reg-section').style.display = 'block';
-    $('crm-member-section').style.display = 'none';
+  }
+  // ห้ามใช้ localStorage ข้าม LINE account: ต้องตรวจ userId กับแถวจริงทุกครั้ง
+  if (localMember && localMember.phone) {
+    const data = await nhs_findCustomerByPhone(localMember.phone);
+    if (data && lineUserId && data.line_user_id === lineUserId) {
+      const localNhs = localMember.nhs_id;
+      const localNick = localMember.nickname;
+      const localPhoto = localMember.photo_url;
+      crm_member = Object.assign({}, localMember, data);
+      if (!crm_member.nhs_id && localNhs) crm_member.nhs_id = localNhs;
+      if (!crm_member.nickname && localNick) crm_member.nickname = localNick;
+      if (!crm_member.photo_url && localPhoto) crm_member.photo_url = localPhoto;
+      crm_member.nhs_id = nhs_memberDisplayId(crm_member);
+      localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
+      crm_showMember();
+      return;
+    }
+    // LINE คนใหม่หรือแถวเก่ายังไม่ถูกผูก: ล้าง cache เพื่อไม่ให้เห็นบัตรคนอื่น
+    localStorage.removeItem(CRM_PRE + 'member');
+  }
+  crm_member = null;
+  $('crm-reg-section').style.display = 'block';
+  $('crm-member-section').style.display = 'none';
+  if (!lineUserId) {
+    const badge = $('crm-line-badge');
+    if (badge) {
+      badge.textContent = '🔒 กรุณากด “สมัครสมาชิกผ่านไลน์” ก่อนกรอกเบอร์เพื่อยืนยันสิทธิ์';
+      badge.style.display = 'inline-flex';
+    }
   }
 }
 
@@ -5694,22 +5748,40 @@ async function crm_register() {
   let phone = ($('crm-reg-phone') && $('crm-reg-phone').value || '').trim();
   const birthday = ($('crm-reg-birthday') && $('crm-reg-birthday').value) || '';
   const source = ($('crm-reg-source') && $('crm-reg-source').value) || '';
-
   if (!name || !phone) return toast('กรุณากรอกชื่อและเบอร์โทร');
   phone = (typeof nhs_normPhone === 'function') ? nhs_normPhone(phone) : phone.replace(/\D/g, '');
   if (phone.length < 9) return toast('เบอร์โทรไม่ถูกต้อง');
 
+  let profile;
+  try {
+    profile = await crm_getCurrentLineProfile(true);
+  } catch (e) {
+    return toast('❌ ' + (e.message || 'กรุณาล็อกอิน LINE ก่อนสมัครสมาชิก'));
+  }
+  const lineUserId = String(profile && profile.userId || '').trim();
+  if (!lineUserId) return toast('❌ ไม่พบ LINE userId จึงยืนยันสมาชิกไม่ได้');
+
   try {
     let cust = await nhs_findCustomerByPhone(phone);
+    const lineCust = await nhs_findCustomerByLineUserId(lineUserId);
+    if (lineCust && cust && String(lineCust.id) !== String(cust.id)) {
+      return alert('❌ LINE นี้และเบอร์โทรนี้ถูกผูกกับสมาชิกคนละคนแล้ว\nระบบไม่อนุญาตให้รวมสิทธิ์เอง');
+    }
+    if (lineCust && !cust) {
+      return alert('❌ LINE นี้มีสมาชิกอยู่แล้วกับเบอร์ ' + (lineCust.phone || '-') + '\nกรุณาใช้เบอร์เดิม หรือให้แอดมินตรวจสอบก่อน');
+    }
+    if (cust && cust.line_user_id && String(cust.line_user_id) !== lineUserId) {
+      return alert('❌ เบอร์โทรนี้ถูกผูกกับ LINE อื่นแล้ว\nระบบไม่อนุญาตให้ใช้ LINE นี้แทน');
+    }
+
     let isNewMember = false;
     const nhs_id = (cust && cust.nhs_id) ? cust.nhs_id : nhs_genMemberId(phone);
-    const linePhoto = (crm_lineProfile && crm_lineProfile.pictureUrl) ? crm_lineProfile.pictureUrl : null;
-
+    const linePhoto = profile.pictureUrl || null;
     if (!cust) {
-      // สร้างสมาชิกใหม่เท่านั้นเมื่อค้นหาเบอร์แล้วไม่พบ
       const payload = {
         name: name,
         phone: phone,
+        line_user_id: lineUserId,
         nhs_id: nhs_id,
         source_channel: source || null,
         birthday: birthday || null,
@@ -5718,16 +5790,15 @@ async function crm_register() {
         member_level: 'ทั่วไป',
         photo_url: linePhoto
       };
-      const { data, error: insErr } = await nhs_safeCustomerInsert(payload);
+      const { data, error: insErr } = await nhs_safeCustomerInsert(payload, ['line_user_id']);
       if (insErr || !data) {
-        // รองรับกรณีอีกคำขอหนึ่งสร้างเบอร์นี้สำเร็จระหว่างการค้นหาและ insert
         const raced = await nhs_findCustomerByPhone(phone);
-        if (raced) {
+        if (raced && (!raced.line_user_id || String(raced.line_user_id) === lineUserId)) {
           cust = raced;
           isNewMember = false;
         } else {
           console.error('crm_register insert error:', insErr);
-          alert('❌ บันทึกข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง\n' + (insErr ? ('(' + insErr.message + ')') : ''));
+          alert('❌ บันทึกสมาชิกไม่สำเร็จ ระบบป้องกันการผูก LINE ซ้ำแล้ว\n' + (insErr ? ('(' + insErr.message + ')') : ''));
           return;
         }
       } else {
@@ -5735,29 +5806,31 @@ async function crm_register() {
         isNewMember = true;
       }
     }
-
     if (!isNewMember) {
-      // สมาชิกเดิมต้องรักษารหัส พอยต์ ยอดสะสม และจำนวนครั้งเดิมไว้ ห้ามรีเซ็ต points เป็น 1
       const patch = {};
+      if (cust.line_user_id && String(cust.line_user_id) !== lineUserId) {
+        return alert('❌ สมาชิกนี้ผูกกับ LINE อื่นอยู่แล้ว ไม่สามารถเปลี่ยนเองได้');
+      }
+      if (!cust.line_user_id) patch.line_user_id = lineUserId;
       if (!cust.birthday && birthday) patch.birthday = birthday;
       if (!cust.name && name) patch.name = name;
       if (!cust.photo_url && linePhoto) patch.photo_url = linePhoto;
       if (!cust.source_channel && source) patch.source_channel = source;
       if (!cust.member_level) patch.member_level = 'ทั่วไป';
       if (!cust.nhs_id) patch.nhs_id = nhs_id;
-
       if (Object.keys(patch).length) {
-        const { data: upd, error: updErr } = await nhs_safeCustomerUpdate(cust.id, patch, false);
-        if (updErr) {
-          console.warn('crm_register existing-member update warn:', updErr);
-        } else if (upd) {
-          cust = upd;
+        const { data: upd, error: updErr } = await nhs_safeCustomerUpdate(cust.id, patch, false, ['line_user_id']);
+        if (updErr || !upd) {
+          console.error('crm_register binding update error:', updErr);
+          return alert('❌ ผูก LINE กับสมาชิกไม่สำเร็จ ระบบไม่ได้เปลี่ยนข้อมูลเดิม');
         }
+        cust = upd;
       }
     }
-
+    if (!cust.line_user_id || String(cust.line_user_id) !== lineUserId) {
+      return alert('❌ ระบบยืนยันการผูก LINE ไม่สำเร็จ จึงไม่เปิดสิทธิ์สมาชิก');
+    }
     if (!cust.nhs_id) cust.nhs_id = nhs_id;
-
     crm_member = Object.assign({}, cust);
     crm_member.nickname = nick || crm_member.nickname || '';
     if (linePhoto) crm_member.photo_url = linePhoto;
@@ -5766,15 +5839,12 @@ async function crm_register() {
       map[nhs_idMapKey({ phone: phone, id: cust.id })] = cust.nhs_id;
       nhs_idMapSet(map);
     } catch (e) {}
-
     localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
     if (isNewMember) {
       try { await crm_addHistory('สมัครสมาชิกใหม่', 1, 'in', phone); } catch (e) {}
     }
-
     crm_showMember();
     crm_showPage('pg-crm-home');
-
     if (isNewMember) {
       alert('✅ สมัครสมาชิกสำเร็จ!\n📋 รหัสสมาชิก: ' + (cust.nhs_id || nhs_id) + '\n🎁 ได้รับ 1 พอยท์ต้อนรับสมาชิกใหม่');
     } else {

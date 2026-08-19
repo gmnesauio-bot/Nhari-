@@ -8229,7 +8229,8 @@ async function rc_downloadJpeg() {
   const { subtotal, discount, net, hasDeposit, deposit, todayPay, earnedPoints } = rc_calcTotals();
   const width = 1200;
   const items = rcItems.filter(it => it.name || it.price);
-  const height = 1070 + Math.max(1, items.length) * 72 + (hasDeposit ? 55 : 0);
+  // Reserve a guaranteed footer area so the red tax note is never clipped from the JPEG.
+  const height = 1240 + Math.max(1, items.length) * 72 + (hasDeposit ? 55 : 0);
   const canvas = document.createElement('canvas');
   canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d');

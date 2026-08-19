@@ -89,6 +89,16 @@ function initConsultForm() {
   if(dateEl) dateEl.value = today;
   if(sigCustDate) sigCustDate.value = today;
   if(sigStylDate) sigStylDate.value = today;
+  ['cf-name', 'cf-phone', 'cf-birthday'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el && el.dataset.memberAutofill === 'true') {
+      el.value = '';
+      el.readOnly = false;
+      delete el.dataset.memberAutofill;
+    }
+  });
+  const memberSource = document.getElementById('cf-member-source');
+  if (memberSource) memberSource.hidden = true;
 
   // Initialize signature pads
   const sigCanvas1 = document.getElementById('cf-sig-customer');
@@ -116,6 +126,29 @@ function initConsultForm() {
     doneList.innerHTML = CONSULT_SVCS.map(s => `
       <label class="consult-check-item"><input type="checkbox" name="cf_service_done" value="${s.l}"> ${s.l} (${s.t})</label>
     `).join('');
+  }
+}
+
+async function consult_fillFromCurrentMember() {
+  try {
+    let member = crm_member;
+    const profile = crm_lineProfile || await crm_getCurrentLineProfile(false).catch(function(){ return null; });
+    if (!member && profile && profile.userId && typeof nhs_findCustomerByLineUserId === 'function') {
+      member = await nhs_findCustomerByLineUserId(profile.userId);
+    }
+    if (!member || !member.phone) return false;
+    const nameEl = document.getElementById('cf-name');
+    const phoneEl = document.getElementById('cf-phone');
+    const birthdayEl = document.getElementById('cf-birthday');
+    if (nameEl) { nameEl.value = member.name || ''; nameEl.readOnly = true; nameEl.dataset.memberAutofill = 'true'; }
+    if (phoneEl) { phoneEl.value = member.phone || ''; phoneEl.readOnly = true; phoneEl.dataset.memberAutofill = 'true'; }
+    if (birthdayEl) { birthdayEl.value = member.birthday || ''; birthdayEl.readOnly = !!member.birthday; birthdayEl.dataset.memberAutofill = 'true'; }
+    const source = document.getElementById('cf-member-source');
+    if (source) { source.hidden = false; source.textContent = member.birthday ? '✅ ดึงชื่อ เบอร์โทร และวันเกิดจากสมาชิกที่ล็อกอิน LINE แล้ว' : '✅ ดึงชื่อและเบอร์โทรจากสมาชิกที่ล็อกอิน LINE แล้ว — กรุณาเติมวันเกิดในโปรไฟล์สมาชิก'; }
+    return true;
+  } catch (e) {
+    console.warn('consult_fillFromCurrentMember', e);
+    return false;
   }
 }
 
@@ -757,7 +790,8 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
   box-shadow: 0 0 20px rgba(0,0,0,0.1); border: 1px solid var(--bd); border-radius: 12px;
 }
 .consult-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--gold); padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-.consult-logo-area { display: flex; align-items: center; gap: 10px; }
+.consult-logo-area { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.consult-logo-image { width: 58px; height: 58px; max-width: 58px; max-height: 58px; object-fit: cover; display: block; flex: 0 0 58px; border-radius: 12px; border: 1px solid var(--gold); box-shadow: 0 4px 14px rgba(0,0,0,.2); }
 .consult-logo-text { font-size: 24px; font-weight: 800; color: #000; }
 .consult-title-area { text-align: center; flex: 1; }
 .consult-main-title { font-size: 18px; font-weight: 700; color: var(--goldD); margin: 0; }
@@ -775,6 +809,8 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 .consult-section-title { font-weight: 700; font-size: 12px; }
 .consult-section-content { padding: 12px; }
 .consult-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 12px; }
+.consult-client-identity-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(150px, 1fr) minmax(170px, 1fr); align-items: end; }
+.consult-client-identity-row .consult-col { min-width: 0; }
 .consult-col { flex: 1; min-width: 150px; }
 .consult-field-label { display: block; font-size: 10px; font-weight: 700; color: var(--sub); margin-bottom: 3px; text-transform: uppercase; }
 .consult-field-input {
@@ -782,6 +818,8 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
   font-size: 13px; outline: none; background: transparent; font-family: inherit;
 }
 .consult-field-input:focus { border-bottom-color: var(--gold); }
+.consult-field-input[data-member-autofill="true"] { background: var(--nhs-theme-surface-soft); color: var(--nhs-theme-ink); cursor: not-allowed; }
+.consult-member-source { margin: -2px 0 12px; padding: 8px 10px; border: 1px solid var(--nhs-theme-line); border-radius: 8px; background: var(--nhs-theme-surface-soft); color: var(--nhs-theme-gold-dark); font-size: 11px; line-height: 1.5; }
 .consult-check-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 .consult-check-item { display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; }
 .consult-check-item input[type="checkbox"], .consult-check-item input[type="radio"] { accent-color: var(--gold); }
@@ -810,7 +848,10 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
   .consult-container { padding: 12px; }
   .consult-grid-2 { grid-template-columns: 1fr; }
   .consult-header { flex-direction: column; text-align: center; gap: 10px; }
+  .consult-logo-image { width: 58px; height: 58px; max-width: 58px; max-height: 58px; flex-basis: 58px; }
+  .consult-client-identity-row { grid-template-columns: 1fr; gap: 10px; }
 }
+
 
 /* === CUSTOMER MODE STYLES === */
 .customer-mode #top-header,
@@ -2168,7 +2209,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
         <div class="consult-section-title">CLIENT INFORMATION ข้อมูลลูกค้า</div>
       </div>
       <div class="consult-section-content">
-        <div class="consult-row">
+        <div class="consult-row consult-client-identity-row">
           <div class="consult-col" style="flex: 2;">
             <label class="consult-field-label">NAME / ชื่อ-นามสกุล</label>
             <input type="text" id="cf-name" class="consult-field-input" required>
@@ -2182,6 +2223,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
             <input type="tel" id="cf-phone" class="consult-field-input" required onblur="checkConsultCustomer(this.value)">
           </div>
         </div>
+        <div id="cf-member-source" class="consult-member-source" hidden>✅ ข้อมูลชื่อ เบอร์โทร และวันเกิดดึงจากสมาชิกที่ล็อกอิน LINE แล้ว</div>
         <div class="consult-row">
           <div class="consult-col">
             <label class="consult-field-label">VISIT STATUS / จำนวนครั้งที่ใช้บริการ</label>
@@ -3282,7 +3324,11 @@ function showPage(id) {
   }
   if(id === 'pg-report') renderReports();
   if(id === 'pg-records') { nhs_recordsRender(); loadData(true); nhs_recordsLoadReceiptLogs(); }
-  if(id === 'pg-consult') { initConsultForm(); crm_init(); crm_checkUrlParams(); }
+  if(id === 'pg-consult') {
+    initConsultForm();
+    Promise.resolve(crm_init()).then(function(){ return consult_fillFromCurrentMember(); }).catch(function(e){ console.warn('consult member prefill', e); });
+    crm_checkUrlParams();
+  }
   if(id.startsWith('pg-crm-')) { crm_init(); }
   if(id === 'pg-admin-crm') { /* admin init */ }
   if(id === 'pg-inc' || id === 'pg-exp') { loadData(); }
@@ -5708,7 +5754,7 @@ async function crm_init() {
       crm_member = Object.assign({}, boundByLine, { nhs_id: nhs_memberDisplayId(boundByLine) });
       localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
       crm_showMember();
-      return;
+      return crm_member;
     }
   }
   // ห้ามใช้ localStorage ข้าม LINE account: ต้องตรวจ userId กับแถวจริงทุกครั้ง
@@ -5725,7 +5771,7 @@ async function crm_init() {
       crm_member.nhs_id = nhs_memberDisplayId(crm_member);
       localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
       crm_showMember();
-      return;
+      return crm_member;
     }
     // LINE คนใหม่หรือแถวเก่ายังไม่ถูกผูก: ล้าง cache เพื่อไม่ให้เห็นบัตรคนอื่น
     localStorage.removeItem(CRM_PRE + 'member');
@@ -5740,8 +5786,8 @@ async function crm_init() {
       badge.style.display = 'inline-flex';
     }
   }
+  return null;
 }
-
 async function crm_register() {
   const name = ($('crm-reg-fullname') && $('crm-reg-fullname').value || '').trim();
   const nick = ($('crm-reg-nickname') && $('crm-reg-nickname').value || '').trim();

@@ -7717,7 +7717,7 @@ async function crm_renderNews() {
     el.innerHTML = news.map(n => {
       const title = crm_bookingEscape(n.title || 'ข่าวสารจาก N Hair Stylist');
       const image = crm_newsImage(n);
-      const media = image ? `<img src="${image}" alt="ภาพข่าวสาร ${title}">` : `<div class="crm-news-no-media"><span>N HAIR JOURNAL</span><b>${title}</b></div>`;
+      const media = image ? `<img src="${image}" alt="ภาพข่าวสาร ${title}">` : `<div class="crm-news-no-media"><span>N HAIR JOURNAL</span><b>N HAIR STYLIST</b></div>`;
       return `<article class="crm-news-card"><div class="crm-news-media">${media}</div><div class="crm-news-body"><div class="crm-news-meta"><span class="crm-news-type">${crm_bookingEscape(n.newsType || n.type || 'ข่าวสารร้าน')}</span><span class="crm-news-date">${crm_newsDate(n.date)}</span></div><h3>${title}</h3><div class="crm-news-copy">${crm_bookingEscape(String(n.content || '').trim() || 'รายละเอียดจะอัปเดตโดยร้าน')}</div></div></article>`;
     }).join('') || '<div class="crm-news-card" style="padding:28px;text-align:center;color:#CFC7BB;">ยังไม่มีข่าวสารจากร้าน</div>';
   }

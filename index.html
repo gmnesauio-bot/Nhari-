@@ -2183,6 +2183,8 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;"><div style="font-weight:800;font-size:16px;">รายการทั้งหมด</div><div id="nhs-records-receipt-note" style="font-size:11px;color:#777;"></div></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
         <button class="btn btn-gold" type="button" onclick="showPage('pg-inc')">➕ เพิ่มรายรับ</button>
+        <button class="btn btn-outline" type="button" onclick="nhs_openCarryForward()">📤 ยกยอด</button>
+        <button class="btn btn-outline" type="button" id="nhs-records-batch-btn" onclick="nhs_recordsToggleBatchMode()">✏️ แก้ไขหลายรายการ</button>
         <button class="btn btn-no" type="button" onclick="showPage('pg-exp')">➖ เพิ่มรายจ่าย</button>
         <button class="btn btn-outline" type="button" onclick="showPage('pg-rc-list')">🧾 ดูใบเสร็จ</button>
       </div>
@@ -2195,13 +2197,13 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 <div class="page" id="pg-inc">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
     <div style="font-weight:700; font-size:18px">💰 บันทึกรายรับ</div>
-    <button class="btn btn-sm btn-info" onclick="loadData()" style="font-size:11px">🔄 รีเฟรช</button>
+    <div style="display:flex;gap:6px"><button class="btn btn-sm btn-outline" onclick="nhs_openCarryForward()" style="font-size:11px">📤 ยกยอด</button><button class="btn btn-sm btn-info" onclick="loadData()" style="font-size:11px">🔄 รีเฟรช</button></div>
   </div>
   <div class="card">
     <div class="fl">เลือกบริการ</div>
     <div class="icon-grid" id="inc-svc-grid"></div>
     <div class="fg"><label class="fl">ชื่อลูกค้า</label><input id="inc-name" class="fc" placeholder="ค้นหาหรือพิมพ์ชื่อ"></div>
-    <div class="fg"><label class="fl">จำนวนเงิน (฿)</label><input id="inc-amt" class="fc" type="number"></div>
+    <div class="fg"><label class="fl">จำนวนเงิน (฿)</label><input id="inc-amt" class="fc" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
     <div class="fg"><label class="fl">วันที่รับเงิน</label><input id="inc-date" class="fc" type="date"></div>
     <div class="fg"><label class="fl">ช่องทางรับเงิน</label>
       <select id="inc-channel" class="fc">
@@ -2224,7 +2226,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
     <div class="fl">หมวดหมู่รายจ่าย</div>
     <div class="icon-grid" id="exp-cat-grid"></div>
     <div class="fg"><label class="fl">รายละเอียด</label><input id="exp-note" class="fc"></div>
-    <div class="fg"><label class="fl">จำนวนเงิน (฿)</label><input id="exp-amt" class="fc" type="number"></div>
+    <div class="fg"><label class="fl">จำนวนเงิน (฿)</label><input id="exp-amt" class="fc" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
     <div class="fg"><label class="fl">วันที่จ่าย</label><input id="exp-date" class="fc" type="date"></div>
     <button class="btn btn-no" style="width:100%" onclick="saveExpense()">✅ บันทึกรายจ่าย</button>
   </div>
@@ -2235,7 +2237,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 <div class="page" id="pg-cal">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
     <div style="font-weight:700; font-size:18px">📅 คิวนัดหมาย</div>
-    <button class="btn btn-sm btn-info" onclick="openQueueModal()">+ จองคิว</button>
+    <div style="display:flex;gap:6px"><button class="btn btn-sm btn-outline" id="nhs-queue-batch-btn" onclick="nhs_queueToggleBatchMode()">✏️ แก้ไขหลายคิว</button><button class="btn btn-sm btn-info" onclick="openQueueModal()">+ จองคิว</button></div>
   </div>
   <div class="card" style="padding:10px">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
@@ -3241,8 +3243,8 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
       <div class="fg"><label class="fl">เวลานัด</label><input id="q-time" class="fc" type="time"></div>
     </div>
     <div class="frow" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
-      <div class="fg"><label class="fl">ราคาประมาณ</label><input id="q-price" class="fc" type="number"></div>
-      <div class="fg"><label class="fl">มัดจำ (฿)</label><input id="q-deposit" class="fc" type="number" value="0"></div>
+      <div class="fg"><label class="fl">ราคาประมาณ</label><input id="q-price" class="fc" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+      <div class="fg"><label class="fl">มัดจำ (฿)</label><input id="q-deposit" class="fc" type="number" min="0" step="0.01" inputmode="decimal" value="0.00"></div>
     </div>
     <div class="fg"><label class="fl">ที่มาลูกค้า</label>
       <select id="q-source" class="fc"><option>เดินเข้ามา</option><option>เพจ Facebook</option><option>LINE OA</option><option>อื่นๆ</option></select>
@@ -3259,7 +3261,37 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
     <button class="btn btn-info" style="width:100%" onclick="saveQueue()">✅ บันทึกการจอง</button>
   </div>
 </div>
-
+<div class="overlay" id="mTxnUnified">
+  <div class="modal">
+    <div class="mhdr"><div class="mtitle">✏️ แก้ไขรายการ</div><button class="mclose" onclick="closeM('mTxnUnified')">✕</button></div>
+    <input type="hidden" id="utx-id"><input type="hidden" id="utx-original-kind">
+    <div class="fg"><label class="fl">ประเภท</label><select id="utx-kind" class="fc" onchange="nhs_txnEditorRefreshKind()"><option value="income">รายรับ</option><option value="expense">รายจ่าย</option></select></div>
+    <div class="fg"><label class="fl" id="utx-category-label">หมวดหมู่</label><select id="utx-category" class="fc"></select></div>
+    <div class="fg" id="utx-name-wrap"><label class="fl" id="utx-name-label">ชื่อลูกค้า</label><input id="utx-name" class="fc"></div>
+    <div class="fg" id="utx-channel-wrap"><label class="fl">ช่องทางรับเงิน</label><select id="utx-channel" class="fc"><option value="เงินสด">เงินสด</option><option value="บัญชีเชียร์">บัญชีเชียร์</option><option value="บัญชีรักษ์">บัญชีรักษ์</option><option value="ยกยอด">ยกยอด</option></select></div>
+    <div class="frow" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fg"><label class="fl">วันที่</label><input id="utx-date" class="fc" type="date"></div><div class="fg"><label class="fl">จำนวนเงิน (฿)</label><input id="utx-amount" class="fc" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></div></div>
+    <div class="fg"><label class="fl">หมายเหตุ</label><input id="utx-note" class="fc"></div>
+    <button class="btn btn-gold" style="width:100%" onclick="nhs_saveUnifiedTxn()">✅ บันทึกการแก้ไข</button>
+  </div>
+</div>
+<div class="overlay" id="mCarryForward">
+  <div class="modal">
+    <div class="mhdr"><div class="mtitle">📤 ยกยอดรายรับ</div><button class="mclose" onclick="closeM('mCarryForward')">✕</button></div>
+    <div class="fg"><label class="fl">วันที่</label><input id="cfwd-date" class="fc" type="date"></div>
+    <div class="fg"><label class="fl">ประเภทยกยอด</label><select id="cfwd-type" class="fc"><option value="ยอดยกมา">ยอดยกมา</option><option value="ปรับยอดยกมา">ปรับยอดยกมา</option></select></div>
+    <div class="fg"><label class="fl">จำนวนเงิน (฿)</label><input id="cfwd-amount" class="fc" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+    <div class="fg"><label class="fl">หมายเหตุ</label><input id="cfwd-note" class="fc" placeholder="ระบุรายละเอียดเพิ่มเติม (ถ้ามี)"></div>
+    <button class="btn btn-gold" style="width:100%" onclick="nhs_saveCarryForward()">✅ บันทึกยกยอด</button>
+  </div>
+</div>
+<div class="overlay" id="mBatchEdit">
+  <div class="modal" style="max-width:920px;width:min(920px,100%);">
+    <div class="mhdr"><div class="mtitle" id="nhs-batch-title">✏️ แก้ไขหลายรายการ</div><button class="mclose" onclick="nhs_closeBatchEditor()">✕</button></div>
+    <div style="font-size:12px;color:#666;margin-bottom:10px;">แก้ไขหลายแถวในหน้าเดียว แล้วกดบันทึกทั้งหมดเพียงครั้งเดียว</div>
+    <div id="nhs-batch-editor-list" style="max-height:62vh;overflow:auto;padding-right:2px;"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;"><button class="btn btn-outline" style="flex:1" onclick="nhs_closeBatchEditor()">ยกเลิก</button><button class="btn btn-gold" style="flex:1" onclick="nhs_saveBatchEditor()">✅ บันทึกทั้งหมด</button></div>
+  </div>
+</div>
 <div class="overlay" id="mCust">
   <div class="modal">
     <div class="mhdr"><div class="mtitle">👤 ข้อมูลลูกค้า</div><button class="mclose" onclick="closeM('mCust')">✕</button></div>
@@ -4400,8 +4432,8 @@ function renderChartDetails(date) {
   if(incs.length === 0 && exps.length === 0) {
     html = '<div style="color:var(--sub); text-align:center; padding:10px">ไม่มีรายการในวันที่เลือก</div>';
   } else {
-    incs.forEach(x =>     html += `<div style="display:flex; justify-content:space-between; padding:4px 0"><span style="color:var(--ok)">[รับ] ${x.category||'-'} (${x.customer_name||'-'})</span><b>฿${x.amount.toLocaleString()}</b></div>`);
-    exps.forEach(x =>     html += `<div style="display:flex; justify-content:space-between; padding:4px 0"><span style="color:var(--no)">[จ่าย] ${x.category} (${x.name||x.note||'-'})</span><b>฿${x.amount.toLocaleString()}</b></div>`);
+    incs.forEach(x =>     html += `<div style="display:flex; justify-content:space-between; padding:4px 0"><span style="color:var(--ok)">[รับ] ${x.category||'-'} (${x.customer_name||'-'})</span><b>${nhs_money(x.amount)}</b></div>`);
+    exps.forEach(x =>     html += `<div style="display:flex; justify-content:space-between; padding:4px 0"><span style="color:var(--no)">[จ่าย] ${x.category} (${x.name||x.note||'-'})</span><b>${nhs_money(x.amount)}</b></div>`);
   }
   $('chart-detail-list').innerHTML = html;
 }
@@ -4883,8 +4915,8 @@ function selectDate(date) {
   let html = `<div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center">
     <b style="font-size:16px">📅 ${date}</b>
     <div style="text-align:right">
-      <div style="font-size:11px; color:var(--ok)">รับ: ฿${dInc.toLocaleString()}</div>
-      <div style="font-size:11px; color:var(--no)">จ่าย: ฿${dExp.toLocaleString()}</div>
+      <div style="font-size:11px; color:var(--ok)">รับ: ${nhs_money(dInc)}</div>
+      <div style="font-size:11px; color:var(--no)">จ่าย: ${nhs_money(dExp)}</div>
     </div>
   </div>`;
 
@@ -4901,8 +4933,8 @@ function selectDate(date) {
           <div style="font-size:11px; color:var(--sub)">${q.services} | 📞 ${q.customer_phone || ''} ${editBtn}</div>
         </div>
         <div style="text-align:right">
-          <b style="color:var(--goldD)">฿${q.price.toLocaleString()}</b>
-          <div style="font-size:10px; color:var(--sub)">มัดจำ: ฿${q.deposit_amount}</div>
+          <b style="color:var(--goldD)">${nhs_money(q.price)}</b>
+          <div style="font-size:10px; color:var(--sub)">มัดจำ: ${nhs_money(q.deposit_amount)}</div>
         </div>
       </div>
       ${q.booking_slip ? `<div style="margin-top:8px">
@@ -4921,8 +4953,8 @@ function selectDate(date) {
     html += '<div class="card">ไม่มีรายการรายรับ-รายจ่าย</div>';
   } else {
     html += '<div class="card" style="padding:10px">';
-    incs.forEach(x => html += `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f0f0f0"><span style="color:var(--ok)">[รับ] ${x.category||'-'}</span><b>฿${x.amount.toLocaleString()}</b></div>`);
-    exps.forEach(x => html += `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f0f0f0"><span style="color:var(--no)">[จ่าย] ${x.category} (${x.name||x.note||''})</span><b>฿${x.amount.toLocaleString()}</b></div>`);
+    incs.forEach(x => html += `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f0f0f0"><span style="color:var(--ok)">[รับ] ${x.category||'-'}</span><b>${nhs_money(x.amount)}</b></div>`);
+    exps.forEach(x => html += `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f0f0f0"><span style="color:var(--no)">[จ่าย] ${x.category} (${x.name||x.note||''})</span><b>${nhs_money(x.amount)}</b></div>`);
     html += '</div>';
   }
   $('selected-day-queues').innerHTML = html;
@@ -5004,7 +5036,7 @@ async function saveQueue() {
   const { error } = await db.from('queues').insert({
     customer_name: name, customer_phone: phoneClean, services: selQSvc,
     queue_date: qDate, queue_time: qTime,
-    price: parseFloat($('q-price').value)||0, deposit_amount: parseFloat($('q-deposit').value)||0,
+    price: nhs_parseMoney($('q-price').value) || 0, deposit_amount: nhs_parseMoney($('q-deposit').value) || 0,
     source_channel: $('q-source').value, note: $('q-note').value, status: 'waiting',
     booking_slip: $('q-slip').value
   });
@@ -5060,8 +5092,8 @@ async function editQueue(queueId) {
     queue_date: qdate,
     queue_time: qtime,
     services: service,
-    price: parseFloat(priceStr) || 0,
-    deposit_amount: parseFloat(depStr) || 0
+    price: nhs_parseMoney(priceStr) || 0,
+    deposit_amount: nhs_parseMoney(depStr) || 0
   };
 
   const { error } = await db.from('queues').update(updateData).eq('id', queueId);
@@ -8079,11 +8111,11 @@ function rc_removeItem(id) {
 function rc_updateItem(id, field, val) {
   const it = rcItems.find(x => x.id === id);
   if (!it) return;
-  it[field] = (field === 'name') ? val : (parseFloat(val) || 0);
+  it[field] = (field === 'name') ? val : (field === 'price' ? (nhs_parseMoney(val) || 0) : (parseFloat(val) || 0));
   rc_calcTotals();
   // Update just the row total without a full re-render (keeps focus while typing)
   const rowTotalEl = document.getElementById('rc-row-total-' + id);
-  if (rowTotalEl) rowTotalEl.textContent = '฿' + ((it.price || 0) * (it.qty || 1)).toLocaleString();
+  if (rowTotalEl) rowTotalEl.textContent = nhs_money((it.price || 0) * (it.qty || 1));
 }
 function rc_renderItems() {
   const body = $('rc-items-body');
@@ -8091,9 +8123,9 @@ function rc_renderItems() {
     <tr>
       <td>${idx + 1}</td>
       <td><input value="${it.name}" list="rc-service-list" placeholder="ชื่อบริการ (พิมพ์เพื่อเลือก หรือกรอกเอง)" oninput="rc_onItemNameChange(${it.id},this.value)"></td>
-      <td><input class="rc-num" id="rc-price-${it.id}" type="number" min="0" value="${it.price}" onchange="rc_updateItem(${it.id},'price',this.value)"></td>
+      <td><input class="rc-num" id="rc-price-${it.id}" type="number" min="0" step="0.01" inputmode="decimal" value="${nhs_roundMoney(it.price).toFixed(2)}" onchange="rc_updateItem(${it.id},'price',this.value)"></td>
       <td><input class="rc-num" type="number" min="1" value="${it.qty}" onchange="rc_updateItem(${it.id},'qty',this.value)"></td>
-      <td class="rc-num" id="rc-row-total-${it.id}">฿${((it.price || 0) * (it.qty || 1)).toLocaleString()}</td>
+      <td class="rc-num" id="rc-row-total-${it.id}">${nhs_money((it.price || 0) * (it.qty || 1))}</td>
       <td class="no-print"><button class="btn btn-sm btn-no" style="padding:2px 6px;" onclick="rc_removeItem(${it.id})">✕</button></td>
     </tr>`).join('');
   rc_calcTotals();
@@ -8101,53 +8133,53 @@ function rc_renderItems() {
 }
 
 function rc_calcTotals() {
-  const subtotal = rcItems.reduce((s, it) => s + (it.price || 0) * (it.qty || 1), 0);
+  const subtotal = nhs_roundMoney(rcItems.reduce((s, it) => s + nhs_roundMoney(it.price) * (it.qty || 1), 0));
   const level = rcSelectedCustomer ? (rcSelectedCustomer.member_level || 'ทั่วไป') : 'ทั่วไป';
   const memberPct = RC_DISCOUNT_BY_LEVEL[level] ?? 0;
 
   const typeEl = $('rc-discount-type');
   const type = typeEl ? typeEl.value : 'member';
-  const customVal = parseFloat($('rc-discount-custom') ? $('rc-discount-custom').value : 0) || 0;
+  const customVal = nhs_parseMoney($('rc-discount-custom') ? $('rc-discount-custom').value : 0) || 0;
 
   let pct = memberPct, discount = 0, labelHtml = `ส่วนลดสมาชิก (<span id="rc-discount-pct">${memberPct}</span>%)`;
 
   if (type === 'pct5' || type === 'pct10' || type === 'pct15' || type === 'pct20') {
     pct = parseInt(type.replace('pct', ''), 10);
-    discount = Math.round(subtotal * pct / 100);
+    discount = nhs_roundMoney(subtotal * pct / 100);
     labelHtml = `ส่วนลดโปรโมชั่น (<span id="rc-discount-pct">${pct}</span>%)`;
   } else if (type === 'custom_pct') {
     pct = Math.max(0, Math.min(100, customVal));
-    discount = Math.round(subtotal * pct / 100);
+    discount = nhs_roundMoney(subtotal * pct / 100);
     labelHtml = `ส่วนลด กำหนดเอง (<span id="rc-discount-pct">${pct}</span>%)`;
   } else if (type === 'custom_amt') {
-    discount = Math.max(0, Math.min(subtotal, customVal));
+    discount = nhs_roundMoney(Math.max(0, Math.min(subtotal, customVal)));
     pct = subtotal > 0 ? Math.round((discount / subtotal) * 100) : 0;
-    labelHtml = `ส่วนลด กำหนดเอง (-฿${discount.toLocaleString()})`;
+    labelHtml = `ส่วนลด กำหนดเอง (-${nhs_money(discount)})`;
   } else if (type === 'none') {
     pct = 0;
     discount = 0;
     labelHtml = 'ไม่ใช้ส่วนลด (<span id="rc-discount-pct">0</span>%)';
   } else {
     // 'member' (default): ส่วนลดตามระดับสมาชิกอัตโนมัติ
-    discount = Math.round(subtotal * pct / 100);
+    discount = nhs_roundMoney(subtotal * pct / 100);
   }
 
   const hasDeposit = !!($('rc-has-deposit') && $('rc-has-deposit').checked);
   const deposit = hasDeposit ? NHS_RECEIPT_DEPOSIT_AMOUNT : 0;
-  const net = Math.max(0, subtotal + deposit - discount);
-  const todayPay = hasDeposit ? Math.max(0, net - deposit) : net;
+  const net = nhs_roundMoney(Math.max(0, subtotal + deposit - discount));
+  const todayPay = nhs_roundMoney(hasDeposit ? Math.max(0, net - deposit) : net);
   const earnedPoints = Math.floor(net / NHS_RECEIPT_POINT_RATE);
-  $('rc-subtotal').textContent = '฿' + subtotal.toLocaleString();
+  $('rc-subtotal').textContent = nhs_money(subtotal);
   const labelEl = $('rc-discount-label');
   if (labelEl) labelEl.innerHTML = labelHtml;
-  $('rc-discount').textContent = '-฿' + discount.toLocaleString();
+  $('rc-discount').textContent = '-' + nhs_money(discount);
   const depositRow = $('rc-deposit-row');
   if (depositRow) depositRow.style.display = hasDeposit ? '' : 'none';
-  if ($('rc-deposit')) $('rc-deposit').textContent = '+฿' + deposit.toLocaleString();
-  $('rc-net').textContent = '฿' + net.toLocaleString();
+  if ($('rc-deposit')) $('rc-deposit').textContent = '+' + nhs_money(deposit);
+  $('rc-net').textContent = nhs_money(net);
   const todayPayRow = $('rc-today-pay-row');
   if (todayPayRow) todayPayRow.style.display = hasDeposit ? '' : 'none';
-  if ($('rc-today-pay')) $('rc-today-pay').textContent = '฿' + todayPay.toLocaleString();
+  if ($('rc-today-pay')) $('rc-today-pay').textContent = nhs_money(todayPay);
   if ($('rc-earned-points')) $('rc-earned-points').textContent = String(earnedPoints);
   $('rc-words').textContent = '(' + thaiBahtText(net) + ')';
   return { subtotal, discount, net, pct, hasDeposit, deposit, todayPay, earnedPoints };
@@ -8700,6 +8732,287 @@ function thaiBahtText(number) {
   }
   baht += (satang === 0) ? 'ถ้วน' : (convertChunk(String(satang)) + 'สตางค์');
   return baht;
+}
+
+// === V2 MONEY + UNIFIED TRANSACTION EDITOR ===
+// เก็บเงินเป็น numeric ของตารางเดิม แต่ปัดที่ 2 ตำแหน่งก่อนบันทึกและแสดงผลทุกครั้ง
+function nhs_roundMoney(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.round((n + Number.EPSILON) * 100) / 100 : 0;
+}
+function nhs_parseMoney(v) {
+  if (v === null || v === undefined || String(v).trim() === '') return NaN;
+  const n = Number(String(v).replace(/,/g, '').trim());
+  return Number.isFinite(n) ? nhs_roundMoney(n) : NaN;
+}
+function nhs_moneyNumber(v) {
+  return nhs_roundMoney(v).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function nhs_money(v) { return '฿' + nhs_moneyNumber(v); }
+function nhs_dashNum(v) { return nhs_roundMoney(v); }
+function nhs_dashMoney(v) { return nhs_money(v); }
+function nhs_recordsMoney(v) { return nhs_money(v); }
+
+function nhs_txnCategoryList(kind, selected) {
+  const source = kind === 'income' ? (typeof SVCS !== 'undefined' ? SVCS : []) : (typeof CATS !== 'undefined' ? CATS : []);
+  const labels = source.map(function(item){ return item.l; });
+  if (selected && labels.indexOf(selected) === -1) labels.push(selected);
+  return labels;
+}
+function nhs_txnSetOptions(select, labels, selected) {
+  if (!select) return;
+  select.innerHTML = labels.map(function(label){ return '<option value="' + nhs_dashEscape(label) + '">' + nhs_dashEscape(label) + '</option>'; }).join('');
+  select.value = selected || labels[0] || '';
+}
+function nhs_txnEditorRefreshKind(selectedCategory) {
+  const kind = ($('utx-kind') || {}).value || 'income';
+  const isIncome = kind === 'income';
+  const category = $('utx-category');
+  nhs_txnSetOptions(category, nhs_txnCategoryList(kind, selectedCategory || (category && category.value)), selectedCategory || (category && category.value));
+  if ($('utx-category-label')) $('utx-category-label').textContent = isIncome ? 'ประเภทบริการ / หมวดรายรับ' : 'หมวดหมู่รายจ่าย';
+  if ($('utx-name-label')) $('utx-name-label').textContent = isIncome ? 'ชื่อลูกค้า' : 'รายละเอียดรายการ';
+  if ($('utx-channel-wrap')) $('utx-channel-wrap').style.display = isIncome ? '' : 'none';
+}
+function nhs_findTxn(kind, id) {
+  const list = kind === 'income' ? (allIncs || []) : (allExps || []);
+  return list.find(function(item){ return String(item.id || item._local_id || '') === String(id); }) || null;
+}
+function nhs_openUnifiedTxn(kind, id) {
+  const item = nhs_findTxn(kind, id);
+  if (!item) return toast('ไม่พบรายการที่เลือก');
+  if ($('utx-id')) $('utx-id').value = String(item.id || item._local_id || '');
+  if ($('utx-original-kind')) $('utx-original-kind').value = kind;
+  if ($('utx-kind')) $('utx-kind').value = kind;
+  if ($('utx-date')) $('utx-date').value = String(item.record_date || '').slice(0, 10);
+  if ($('utx-amount')) $('utx-amount').value = nhs_roundMoney(item.amount).toFixed(2);
+  if ($('utx-name')) $('utx-name').value = kind === 'income' ? (item.customer_name || '') : (item.name || item.note || '');
+  if ($('utx-note')) $('utx-note').value = item.note || '';
+  if ($('utx-channel')) $('utx-channel').value = item.channel || 'เงินสด';
+  nhs_txnEditorRefreshKind(item.category || '');
+  openM('mTxnUnified');
+}
+async function nhs_updateLocalTxn(kind, id, patch) {
+  const listName = kind === 'income' ? 'allIncs' : 'allExps';
+  const current = window[listName] || [];
+  window[listName] = current.map(function(row){ return String(row.id || row._local_id || '') === String(id) ? Object.assign({}, row, patch) : row; });
+  if (kind === 'income') nhs_incLocalSet(window[listName]); else nhs_expLocalSet(window[listName]);
+}
+async function nhs_saveTxnChange(originalKind, id, draft) {
+  const amount = nhs_parseMoney(draft.amount);
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error('จำนวนเงินต้องมากกว่า 0.00');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(draft.record_date || ''))) throw new Error('วันที่ไม่ถูกต้อง');
+  const kind = draft.kind;
+  const isLocal = String(id).indexOf('local-') === 0;
+  const targetPatch = kind === 'income'
+    ? { category: draft.category, customer_name: draft.name || '', amount: amount, record_date: draft.record_date, channel: draft.channel || 'เงินสด', note: draft.note || '' }
+    : { category: draft.category, name: draft.name || '', note: draft.note || draft.name || '', amount: amount, record_date: draft.record_date };
+  if (kind === originalKind) {
+    if (!isLocal && db) {
+      const result = await db.from(kind === 'income' ? 'incomes' : 'expenses').update(targetPatch).eq('id', id);
+      if (result.error) throw result.error;
+    }
+    await nhs_updateLocalTxn(kind, id, targetPatch);
+    return;
+  }
+  // สลับประเภทรายรับ/รายจ่าย: สร้างปลายทางก่อน แล้วลบต้นทาง เพื่อไม่ให้ข้อมูลหายหาก insert ไม่ผ่าน
+  let created = null;
+  if (!isLocal && db) {
+    const insertRes = await db.from(kind === 'income' ? 'incomes' : 'expenses').insert(targetPatch).select().maybeSingle();
+    if (insertRes.error || !insertRes.data) throw (insertRes.error || new Error('ไม่สามารถสร้างรายการปลายทาง'));
+    created = insertRes.data;
+    const deleteRes = await db.from(originalKind === 'income' ? 'incomes' : 'expenses').delete().eq('id', id);
+    if (deleteRes.error) {
+      await db.from(kind === 'income' ? 'incomes' : 'expenses').delete().eq('id', created.id);
+      throw deleteRes.error;
+    }
+  }
+  const oldListName = originalKind === 'income' ? 'allIncs' : 'allExps';
+  window[oldListName] = (window[oldListName] || []).filter(function(row){ return String(row.id || row._local_id || '') !== String(id); });
+  const newListName = kind === 'income' ? 'allIncs' : 'allExps';
+  const moved = Object.assign({ id: created && created.id ? created.id : ('local-' + kind + '-' + Date.now()), _local_id: 'local-' + kind + '-' + Date.now(), _local_only: !created }, targetPatch, created || {});
+  window[newListName] = [moved].concat(window[newListName] || []);
+  nhs_incLocalSet(allIncs || []); nhs_expLocalSet(allExps || []);
+}
+async function nhs_saveUnifiedTxn() {
+  const originalKind = ($('utx-original-kind') || {}).value;
+  const id = ($('utx-id') || {}).value;
+  const kind = ($('utx-kind') || {}).value;
+  if (!originalKind || !id || !kind) return toast('ไม่พบรายการที่ต้องการแก้ไข');
+  try {
+    await nhs_saveTxnChange(originalKind, id, {
+      kind: kind,
+      category: ($('utx-category') || {}).value || '',
+      name: ($('utx-name') || {}).value || '',
+      channel: ($('utx-channel') || {}).value || 'เงินสด',
+      amount: ($('utx-amount') || {}).value,
+      record_date: ($('utx-date') || {}).value,
+      note: ($('utx-note') || {}).value || ''
+    });
+    closeM('mTxnUnified');
+    renderTables(); nhs_recordsRender(); if (typeof renderDash === 'function') renderDash();
+    await loadData(true); toast('✅ บันทึกการแก้ไขแล้ว');
+  } catch (error) { toast('❌ แก้ไขไม่สำเร็จ: ' + (error.message || error)); }
+}
+function editIncome(id) { nhs_openUnifiedTxn('income', id); }
+function editExpense(id) { nhs_openUnifiedTxn('expense', id); }
+function nhs_openCarryForward() {
+  if ($('cfwd-date')) $('cfwd-date').value = new Date().toISOString().slice(0, 10);
+  if ($('cfwd-type')) $('cfwd-type').value = 'ยอดยกมา';
+  if ($('cfwd-amount')) $('cfwd-amount').value = '';
+  if ($('cfwd-note')) $('cfwd-note').value = '';
+  openM('mCarryForward');
+}
+async function nhs_saveCarryForward() {
+  const amount = nhs_parseMoney(($('cfwd-amount') || {}).value);
+  const recordDate = ($('cfwd-date') || {}).value;
+  const carryType = ($('cfwd-type') || {}).value || 'ยอดยกมา';
+  const note = ($('cfwd-note') || {}).value || '';
+  if (!Number.isFinite(amount) || amount <= 0) return toast('⚠️ กรุณากรอกจำนวนเงินยกยอดให้ถูกต้อง');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(recordDate || '')) return toast('⚠️ วันที่ไม่ถูกต้อง');
+  const payload = { amount: amount, customer_name: '', note: carryType + (note ? ' · ' + note : ''), record_date: recordDate, channel: 'ยกยอด', category: 'ยกยอด' };
+  try {
+    const res = await db.from('incomes').insert(payload).select().maybeSingle();
+    if (res.error) throw res.error;
+    allIncs = [Object.assign({}, payload, res.data || {})].concat(allIncs || []);
+    nhs_incLocalSet(allIncs || []);
+    closeM('mCarryForward'); renderTables(); nhs_recordsRender(); if (typeof renderDash === 'function') renderDash();
+    await loadData(true); toast('✅ เพิ่มรายการยกยอดแล้ว');
+  } catch (error) { toast('❌ บันทึกยกยอดไม่สำเร็จ: ' + (error.message || error)); }
+}
+
+const nhs_renderTablesLegacyV2 = typeof renderTables === 'function' ? renderTables : null;
+renderTables = function() {
+  if (nhs_renderTablesLegacyV2) nhs_renderTablesLegacyV2();
+  const month = (($('dash-month') || {}).value || new Date().toISOString().slice(0, 7));
+  const incomeRows = (allIncs || []).filter(function(row){ return String(row.record_date || '').indexOf(month) === 0; });
+  const expenseRows = (allExps || []).filter(function(row){ return String(row.record_date || '').indexOf(month) === 0; });
+  const applyMoney = function(bodyId, rows, color) {
+    const body = $(bodyId); if (!body) return;
+    Array.from(body.querySelectorAll('tr')).forEach(function(tr, index) {
+      const cell = tr.children[3];
+      if (!cell) return;
+      if (index < rows.length) cell.textContent = nhs_money(rows[index].amount);
+      else if (rows.length) cell.textContent = nhs_money(rows.reduce(function(sum, row){ return sum + nhs_roundMoney(row.amount); }, 0));
+      cell.style.color = color; cell.style.fontWeight = index < rows.length ? '700' : '800';
+    });
+  };
+  applyMoney('inc-body', incomeRows, 'var(--ok)'); applyMoney('exp-body', expenseRows, 'var(--no)');
+};
+
+let nhs_batchMode = '';
+function nhs_batchOption(label, value, selected) {
+  return '<option value="' + nhs_dashEscape(value) + '"' + (String(value) === String(selected) ? ' selected' : '') + '>' + nhs_dashEscape(label) + '</option>';
+}
+function nhs_batchCategoryOptions(kind, selected) {
+  return nhs_txnCategoryList(kind, selected).map(function(label){ return nhs_batchOption(label, label, selected); }).join('');
+}
+function nhs_batchTxnRefreshKind(key) {
+  const row = document.getElementById('nhs-batch-txn-' + key); if (!row) return;
+  const kind = row.querySelector('.nhs-batch-kind').value;
+  const category = row.querySelector('.nhs-batch-category');
+  category.innerHTML = nhs_batchCategoryOptions(kind, '');
+  const channelWrap = row.querySelector('.nhs-batch-channel-wrap');
+  if (channelWrap) channelWrap.style.display = kind === 'income' ? '' : 'none';
+  const nameLabel = row.querySelector('.nhs-batch-name-label');
+  if (nameLabel) nameLabel.textContent = kind === 'income' ? 'ลูกค้า' : 'รายละเอียด';
+}
+function nhs_recordsToggleBatchMode() { nhs_openTxnBatchEditor(); }
+function nhs_openTxnBatchEditor() {
+  const rows = nhs_recordsFilterRows(nhs_recordsAllRows()).filter(function(row){ return row.__source !== 'receipt' && (row.__kind === 'income' || row.__kind === 'expense') && (row.id || row._local_id); }).slice(0, 150);
+  if (!rows.length) return toast('ไม่พบรายการบันทึกเองในช่วงตัวกรองนี้');
+  nhs_batchMode = 'txn';
+  if ($('nhs-batch-title')) $('nhs-batch-title').textContent = '✏️ แก้ไขหลายรายการ · รายรับ/รายจ่าย';
+  const html = rows.map(function(row, index) {
+    const key = 't' + index;
+    const kind = row.__kind;
+    const name = kind === 'income' ? (row.customer_name || '') : (row.name || row.note || '');
+    const channels = ['เงินสด', 'บัญชีเชียร์', 'บัญชีรักษ์', 'ยกยอด'];
+    return '<div id="nhs-batch-txn-' + key + '" class="card nhs-batch-row" data-id="' + nhs_dashEscape(String(row.id || row._local_id || '')) + '" data-original-kind="' + kind + '" style="padding:12px;margin:0 0 10px;">' +
+      '<label style="display:flex;gap:8px;align-items:center;font-weight:800;margin-bottom:10px;"><input class="nhs-batch-select" type="checkbox"> เลือกรายการนี้ <span style="font-size:11px;color:#777;font-weight:500;">' + nhs_dashEscape(String(row.record_date || '')) + ' · ' + nhs_money(row.amount) + '</span></label>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;" class="nhs-batch-grid">' +
+      '<label class="fl">ประเภท<select class="fc nhs-batch-kind" onchange="nhs_batchTxnRefreshKind(\'' + key + '\')">' + nhs_batchOption('รายรับ','income',kind) + nhs_batchOption('รายจ่าย','expense',kind) + '</select></label>' +
+      '<label class="fl">หมวดหมู่<select class="fc nhs-batch-category">' + nhs_batchCategoryOptions(kind, row.category || '') + '</select></label>' +
+      '<label class="fl nhs-batch-name-label">' + (kind === 'income' ? 'ลูกค้า' : 'รายละเอียด') + '<input class="fc nhs-batch-name" value="' + nhs_dashEscape(name) + '"></label>' +
+      '<label class="fl">วันที่<input class="fc nhs-batch-date" type="date" value="' + nhs_dashEscape(String(row.record_date || '').slice(0,10)) + '"></label>' +
+      '<label class="fl">เงิน (฿)<input class="fc nhs-batch-amount" type="number" min="0.01" step="0.01" inputmode="decimal" value="' + nhs_roundMoney(row.amount).toFixed(2) + '"></label>' +
+      '<label class="fl nhs-batch-channel-wrap">ช่องทาง<select class="fc nhs-batch-channel">' + channels.map(function(channel){ return nhs_batchOption(channel, channel, row.channel || 'เงินสด'); }).join('') + '</select></label>' +
+      '</div><label class="fl" style="display:block;margin-top:8px;">หมายเหตุ<input class="fc nhs-batch-note" value="' + nhs_dashEscape(row.note || '') + '"></label></div>';
+  }).join('');
+  $('nhs-batch-editor-list').innerHTML = html;
+  openM('mBatchEdit');
+}
+function nhs_queueToggleBatchMode() { nhs_openQueueBatchEditor(); }
+function nhs_openQueueBatchEditor() {
+  const date = nhsSelectedCalDate || '';
+  if (!date) return toast('เลือกวันที่จากปฏิทินก่อน แล้วจึงกดแก้ไขหลายคิว');
+  const rows = (allQs || []).filter(function(row){ return String(row.queue_date || '').slice(0,10) === date; });
+  if (!rows.length) return toast('ไม่มีคิวในวันที่เลือก');
+  nhs_batchMode = 'queue';
+  if ($('nhs-batch-title')) $('nhs-batch-title').textContent = '✏️ แก้ไขหลายคิว · ' + date;
+  const services = function(selected) { const labels = nhs_txnCategoryList('income', selected); return labels.map(function(label){ return nhs_batchOption(label, label, selected); }).join(''); };
+  const statuses = function(selected) { return [['waiting','รอรับบริการ'],['done','เสร็จสิ้น'],['cancelled','ยกเลิก']].map(function(pair){ return nhs_batchOption(pair[1], pair[0], selected || 'waiting'); }).join(''); };
+  $('nhs-batch-editor-list').innerHTML = rows.map(function(row) {
+    return '<div class="card nhs-batch-row" data-id="' + nhs_dashEscape(String(row.id || '')) + '" data-original-status="' + nhs_dashEscape(row.status || 'waiting') + '" style="padding:12px;margin:0 0 10px;">' +
+      '<label style="display:flex;gap:8px;align-items:center;font-weight:800;margin-bottom:10px;"><input class="nhs-batch-select" type="checkbox"> เลือกคิวนี้ <span style="font-size:11px;color:#777;font-weight:500;">' + nhs_dashEscape(String(row.queue_time || '').slice(0,5)) + ' · ' + nhs_dashEscape(row.customer_name || '-') + '</span></label>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;" class="nhs-batch-grid">' +
+      '<label class="fl">ชื่อลูกค้า<input class="fc nhs-batch-name" value="' + nhs_dashEscape(row.customer_name || '') + '"></label>' +
+      '<label class="fl">เบอร์โทร<input class="fc nhs-batch-phone" value="' + nhs_dashEscape(row.customer_phone || '') + '"></label>' +
+      '<label class="fl">บริการ<select class="fc nhs-batch-service">' + services(row.services || '') + '</select></label>' +
+      '<label class="fl">วันที่<input class="fc nhs-batch-date" type="date" value="' + nhs_dashEscape(String(row.queue_date || '').slice(0,10)) + '"></label>' +
+      '<label class="fl">เวลา<input class="fc nhs-batch-time" type="time" value="' + nhs_dashEscape(String(row.queue_time || '').slice(0,5)) + '"></label>' +
+      '<label class="fl">สถานะ<select class="fc nhs-batch-status">' + statuses(row.status || 'waiting') + '</select></label>' +
+      '<label class="fl">ราคา (฿)<input class="fc nhs-batch-price" type="number" min="0" step="0.01" inputmode="decimal" value="' + nhs_roundMoney(row.price).toFixed(2) + '"></label>' +
+      '<label class="fl">มัดจำ (฿)<input class="fc nhs-batch-deposit" type="number" min="0" step="0.01" inputmode="decimal" value="' + nhs_roundMoney(row.deposit_amount).toFixed(2) + '"></label>' +
+      '</div><label class="fl" style="display:block;margin-top:8px;">หมายเหตุ<input class="fc nhs-batch-note" value="' + nhs_dashEscape(row.note || '') + '"></label></div>';
+  }).join('');
+  openM('mBatchEdit');
+}
+function nhs_closeBatchEditor() { nhs_batchMode = ''; closeM('mBatchEdit'); }
+function nhs_queueBatchDrafts() {
+  return Array.from(document.querySelectorAll('#nhs-batch-editor-list .nhs-batch-row')).filter(function(row){ return row.querySelector('.nhs-batch-select').checked; }).map(function(row){
+    return { id: row.dataset.id, originalStatus: row.dataset.originalStatus || 'waiting', customer_name: row.querySelector('.nhs-batch-name').value.trim(), customer_phone: row.querySelector('.nhs-batch-phone').value.trim(), services: row.querySelector('.nhs-batch-service').value, queue_date: row.querySelector('.nhs-batch-date').value, queue_time: row.querySelector('.nhs-batch-time').value, status: row.querySelector('.nhs-batch-status').value, price: nhs_parseMoney(row.querySelector('.nhs-batch-price').value) || 0, deposit_amount: nhs_parseMoney(row.querySelector('.nhs-batch-deposit').value) || 0, note: row.querySelector('.nhs-batch-note').value || '' };
+  });
+}
+function nhs_validateQueueBatch(drafts) {
+  const selected = new Set(drafts.map(function(d){ return String(d.id); }));
+  const slots = {};
+  (allQs || []).filter(function(row){ return !selected.has(String(row.id)) && !['done','cancelled','cancel'].includes(String(row.status || '').toLowerCase()); }).forEach(function(row){ slots[String(row.queue_date || '').slice(0,10) + '|' + String(row.queue_time || '').slice(0,5)] = String(row.id); });
+  drafts.forEach(function(draft){
+    if (!draft.customer_name || !draft.customer_phone || !draft.queue_date || !draft.queue_time) throw new Error('กรอกชื่อลูกค้า เบอร์ วันที่ และเวลาให้ครบ');
+    if (!Number.isFinite(draft.price) || draft.price < 0 || !Number.isFinite(draft.deposit_amount) || draft.deposit_amount < 0) throw new Error('ราคาและมัดจำต้องเป็นจำนวนเงินที่ถูกต้อง');
+    if (!['done','cancelled','cancel'].includes(String(draft.status || '').toLowerCase())) {
+      const key = draft.queue_date + '|' + String(draft.queue_time).slice(0,5);
+      if (slots[key]) throw new Error('พบคิวซ้อนกันที่ ' + key);
+      slots[key] = String(draft.id);
+    }
+  });
+}
+async function nhs_saveQueueBatch(drafts) {
+  nhs_validateQueueBatch(drafts);
+  for (const draft of drafts) {
+    const patch = { customer_name: draft.customer_name, customer_phone: draft.customer_phone, services: draft.services, queue_date: draft.queue_date, queue_time: draft.queue_time, status: draft.status, price: nhs_roundMoney(draft.price), deposit_amount: nhs_roundMoney(draft.deposit_amount), note: draft.note };
+    const res = await db.from('queues').update(patch).eq('id', draft.id); if (res.error) throw res.error;
+    const old = (allQs || []).find(function(row){ return String(row.id) === String(draft.id); });
+    const shouldCreateIncome = old && old.status !== 'done' && draft.status === 'done' && patch.price > 0;
+    if (shouldCreateIncome) {
+      const exists = (allIncs || []).some(function(income){ return income.note === 'จากคิว' && income.customer_name === patch.customer_name && income.record_date === patch.queue_date && income.category === patch.services && nhs_roundMoney(income.amount) === patch.price; });
+      if (!exists) { const incomeRes = await db.from('incomes').insert({ amount: patch.price, customer_name: patch.customer_name, note: 'จากคิว', record_date: patch.queue_date, category: patch.services }); if (incomeRes.error) throw incomeRes.error; }
+    }
+  }
+}
+async function nhs_saveTxnBatch() {
+  const drafts = Array.from(document.querySelectorAll('#nhs-batch-editor-list .nhs-batch-row')).filter(function(row){ return row.querySelector('.nhs-batch-select').checked; }).map(function(row){ return { originalKind: row.dataset.originalKind, id: row.dataset.id, kind: row.querySelector('.nhs-batch-kind').value, category: row.querySelector('.nhs-batch-category').value, name: row.querySelector('.nhs-batch-name').value, channel: row.querySelector('.nhs-batch-channel').value, amount: row.querySelector('.nhs-batch-amount').value, record_date: row.querySelector('.nhs-batch-date').value, note: row.querySelector('.nhs-batch-note').value }; });
+  if (!drafts.length) throw new Error('เลือกอย่างน้อย 1 รายการก่อนบันทึก');
+  for (const draft of drafts) await nhs_saveTxnChange(draft.originalKind, draft.id, draft);
+}
+async function nhs_saveBatchEditor() {
+  try {
+    if (nhs_batchMode === 'txn') await nhs_saveTxnBatch();
+    else if (nhs_batchMode === 'queue') { const drafts = nhs_queueBatchDrafts(); if (!drafts.length) throw new Error('เลือกอย่างน้อย 1 คิวก่อนบันทึก'); await nhs_saveQueueBatch(drafts); }
+    else throw new Error('ไม่พบโหมดแก้ไขชุด');
+    nhs_closeBatchEditor(); await loadData(true); renderTables(); nhs_recordsRender(); if (typeof renderCalendar === 'function') renderCalendar(); if (nhsSelectedCalDate && typeof selectDate === 'function') selectDate(nhsSelectedCalDate); if (typeof renderDash === 'function') renderDash();
+    toast('✅ บันทึกทุกรายการที่เลือกแล้ว');
+  } catch (error) { toast('❌ บันทึกทั้งหมดไม่สำเร็จ: ' + (error.message || error)); }
 }
 
 </script>

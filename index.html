@@ -411,6 +411,7 @@ async function commitConsultForm() {
 
   // Check if in customer mode
   const isCustomerMode = document.body.classList.contains('customer-mode');
+  const consultSubmittedAt = new Date().toISOString();
 
   if(isCustomerMode) {
     // === CUSTOMER MODE: Write directly to Supabase ===
@@ -460,7 +461,10 @@ async function commitConsultForm() {
             expectations: document.getElementById('cf-expectations').value,
             membership: document.querySelector('input[name="cf_member"]:checked')?.value || '',
             sig_customer: sigCustData,
-            hair_photo: document.getElementById('cf-hair-photo-url').value
+            hair_photo: document.getElementById('cf-hair-photo-url').value,
+            review_status: 'pending',
+            submitted_at: consultSubmittedAt,
+            reviewed_at: ''
           },
           consultation_date: document.getElementById('cf-date').value
         };
@@ -505,7 +509,10 @@ async function commitConsultForm() {
             expectations: document.getElementById('cf-expectations').value,
             membership: document.querySelector('input[name="cf_member"]:checked')?.value || '',
             sig_customer: sigCustData,
-            hair_photo: document.getElementById('cf-hair-photo-url').value
+            hair_photo: document.getElementById('cf-hair-photo-url').value,
+            review_status: 'pending',
+            submitted_at: consultSubmittedAt,
+            reviewed_at: ''
           },
           consultation_date: document.getElementById('cf-date').value
         };
@@ -612,7 +619,10 @@ async function commitConsultForm() {
       net_amount: parseFloat(document.getElementById('cf-pay-net').value) || 0,
       sig_customer: sigCustData,
       sig_stylist: sigStylData,
-      hair_photo: document.getElementById('cf-hair-photo-url').value
+      hair_photo: document.getElementById('cf-hair-photo-url').value,
+      review_status: 'pending',
+      submitted_at: consultSubmittedAt,
+      reviewed_at: ''
     };
 
     // Store consultation in the customer record
@@ -1943,6 +1953,9 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
       <div style="text-align:right;min-width:52px;"><div id="nhs-dash-slip-alert-count" style="font-size:28px;line-height:1;font-weight:900;color:#E9C766;">0</div><div style="font-size:10px;color:#D8D0C2;">รายการ</div></div>
     </div>
   </div>
+  <div id="nhs-dash-consult-alert" role="button" tabindex="0" onclick="crm_openConsultAdminTab()" onkeydown="if(event.key==='Enter'||event.key===' '){crm_openConsultAdminTab();}" style="display:none;background:#FFFDF8;color:#1A1A1A;border:1.5px solid #C9A84C;border-left:7px solid #A68A3D;border-radius:16px;padding:15px 16px;margin-bottom:16px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.12);">
+    <div style="display:flex;align-items:center;gap:12px;"><div style="font-size:30px;line-height:1;">📋</div><div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:16px;color:#7A5A17;">มีแบบประเมินลูกค้ารอตรวจทาน</div><div id="nhs-dash-consult-alert-detail" style="font-size:12px;color:#4B463E;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">คลิกเพื่อเปิดแบบประเมิน</div></div><div style="text-align:right;min-width:52px;"><div id="nhs-dash-consult-alert-count" style="font-size:28px;line-height:1;font-weight:900;color:#A68A3D;">0</div><div style="font-size:10px;color:#6C665C;">รายการ</div></div></div>
+  </div>
 
   <div style="background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
     <h3 style="color:#333;margin:0 0 14px 0;font-size:16px;">ประสิทธิภาพหลัก (KPIs)</h3>
@@ -2259,6 +2272,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 <!-- PAGE 7: CUSTOMER DETAIL -->
 <div class="page" id="pg-cust-detail">
   <div id="cd-header" class="card" style="background:var(--goldL)"></div>
+  <div id="cd-consult-alert" style="display:none;margin-bottom:15px;padding:14px 16px;border:1.5px solid #C9A84C;border-left:6px solid #A68A3D;border-radius:14px;background:#FFFDF8;box-shadow:0 6px 18px rgba(0,0,0,.08);"><div style="font-weight:800;color:#7A5A17;">📋 แบบประเมินลูกค้ารอตรวจทาน</div><div id="cd-consult-alert-detail" style="font-size:12px;color:#5C554B;margin-top:5px;line-height:1.5;"></div><button id="cd-consult-ack" class="btn btn-gold btn-sm" style="margin-top:10px;" onclick="crm_acknowledgeConsultation()">✅ รับทราบแบบประเมิน</button></div>
   <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px">
     <button class="btn btn-info" onclick="showTab('cd-history-tab')">📜 ประวัติคิว</button>
     <button class="btn btn-gold" onclick="showTab('cd-assess-tab')">💇 ใบประเมินผม</button>
@@ -3032,11 +3046,10 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 <div class="page" id="pg-admin-crm">
   <div class="nhs-admin-alert-wrap">
     <div id="adm-txn-top-alert" class="nhs-admin-pending-card" style="display:none;" role="button" tabindex="0" onclick="crm_openTxnAdminTab()" onkeydown="if(event.key==='Enter'||event.key===' '){crm_openTxnAdminTab();}">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="font-size:28px;line-height:1;">🔔</div>
-        <div style="flex:1;min-width:0;"><div class="pending-label">ลูกค้าส่งสลิปรอตรวจสอบ</div><div class="pending-sub">คลิกเพื่อเปิดหน้าตรวจสอบสลิปและใบเสร็จฉบับเต็ม</div></div>
-        <div style="text-align:right;"><div class="pending-count" id="adm-txn-top-count">0</div><div style="font-size:10px;color:#D8D0C2;">รายการ</div></div>
-      </div>
+      <div style="display:flex;align-items:center;gap:12px;"><div style="font-size:28px;line-height:1;">🔔</div><div style="flex:1;min-width:0;"><div class="pending-label">ลูกค้าส่งสลิปรอตรวจสอบ</div><div class="pending-sub">คลิกเพื่อเปิดหน้าตรวจสอบสลิปและใบเสร็จฉบับเต็ม</div></div><div style="text-align:right;"><div class="pending-count" id="adm-txn-top-count">0</div><div style="font-size:10px;color:#D8D0C2;">รายการ</div></div></div>
+    </div>
+    <div id="adm-consult-top-alert" class="nhs-admin-pending-card" style="display:none;background:#FFFDF8;border-color:#C9A84C;border-left-color:#A68A3D;color:#1A1A1A;" role="button" tabindex="0" onclick="crm_openConsultAdminTab()" onkeydown="if(event.key==='Enter'||event.key===' '){crm_openConsultAdminTab();}">
+      <div style="display:flex;align-items:center;gap:12px;"><div style="font-size:28px;line-height:1;">📋</div><div style="flex:1;min-width:0;"><div class="pending-label" style="color:#7A5A17;">มีแบบประเมินลูกค้ารอตรวจทาน</div><div class="pending-sub" style="color:#6C665C;">คลิกเพื่อเปิดข้อมูลลูกค้าคนนั้นและดำเนินการต่อ</div></div><div style="text-align:right;"><div class="pending-count" id="adm-consult-top-count" style="color:#A68A3D;">0</div><div style="font-size:10px;color:#6C665C;">รายการ</div></div></div>
     </div>
   </div>
   <div class="admin-tab-nav">
@@ -3793,6 +3806,7 @@ async function loadData(silent) {
       console.warn('บันทึกรหัสเข้า DB ไม่ได้ (ยังแสดงบนเครื่องนี้):', fixedResult.lastError);
     }
     if (typeof crm_refreshTxnBadge === 'function') crm_refreshTxnBadge();
+    if (typeof crm_refreshConsultBadge === 'function') crm_refreshConsultBadge();
   } catch (e) {
     console.error('loadData', e);
     // พยายามแสดงรายการที่มีอยู่
@@ -5230,6 +5244,53 @@ async function saveCustomer() {
   closeM('mCust'); loadData();
 }
 
+function nhs_consultationRecord(customer) {
+  if (!customer) return null;
+  let record = customer.consultation_record;
+  if (typeof record === 'string') { try { record = JSON.parse(record); } catch (e) { return null; } }
+  return record && typeof record === 'object' ? record : null;
+}
+function nhs_pendingConsultations() {
+  return (allCusts || []).filter(function(c) {
+    const record = nhs_consultationRecord(c);
+    return record && record.review_status === 'pending' && record.submitted_at;
+  }).sort(function(a, b) {
+    const ar = nhs_consultationRecord(a) || {}, br = nhs_consultationRecord(b) || {};
+    return String(br.submitted_at || '').localeCompare(String(ar.submitted_at || ''));
+  });
+}
+function crm_openConsultAdminTab() {
+  const pending = nhs_pendingConsultations();
+  if (!pending.length) return toast('ไม่พบแบบประเมินที่รอตรวจทาน');
+  showCustDetail(pending[0]);
+  setTimeout(function(){ showTab('cd-assess-tab'); }, 0);
+}
+async function crm_acknowledgeConsultation() {
+  if (!curCust || !curCust.id) return toast('ไม่พบลูกค้าที่เลือก');
+  const record = nhs_consultationRecord(curCust) || {};
+  if (record.review_status !== 'pending') return;
+  record.review_status = 'reviewed';
+  record.reviewed_at = new Date().toISOString();
+  const { error } = await db.from('customers').update({ consultation_record: record }).eq('id', curCust.id);
+  if (error) return toast('❌ รับทราบไม่สำเร็จ: ' + error.message);
+  curCust.consultation_record = record;
+  toast('✅ รับทราบแบบประเมินแล้ว');
+  await loadData(true);
+  const fresh = (allCusts || []).find(function(c){ return String(c.id) === String(curCust.id); }) || curCust;
+  showCustDetail(fresh);
+}
+async function crm_refreshConsultBadge() {
+  const pending = nhs_pendingConsultations();
+  const n = pending.length;
+  const first = pending[0];
+  const firstRecord = first ? (nhs_consultationRecord(first) || {}) : {};
+  const detail = first ? ('ล่าสุด: ' + (first.name || first.phone || 'ลูกค้า') + ' · คลิกเพื่อเปิดแบบประเมินและตรวจทาน') : 'คลิกเพื่อเปิดแบบประเมิน';
+  ['nhs-dash-consult-alert-count','adm-consult-top-count'].forEach(function(id){ const el = $(id); if (el) el.textContent = String(n); });
+  ['nhs-dash-consult-alert','adm-consult-top-alert'].forEach(function(id){ const el = $(id); if (el) el.style.display = n > 0 ? 'block' : 'none'; });
+  const dashDetail = $('nhs-dash-consult-alert-detail'); if (dashDetail) dashDetail.textContent = detail;
+  return { count:n, first:first, submittedAt:firstRecord.submitted_at || '' };
+}
+
 let curCust = null;
 async function showCustDetail(c) {
   curCust = c;
@@ -5244,6 +5305,17 @@ async function showCustDetail(c) {
       '<button class="btn btn-sm btn-info" onclick="callCust(\'' + phoneSafe + '\')">📞 โทร</button>' +
       '<button class="btn btn-sm btn-outline" style="border-color:#1A1A1A; color:#1A1A1A" onclick="chatLINE(\'' + phoneSafe + '\')">💬 LINE</button>' +
     '</div>';
+  const consultAlert = $('cd-consult-alert');
+  const consultDetail = $('cd-consult-alert-detail');
+  const consultAck = $('cd-consult-ack');
+  const consultRecord = nhs_consultationRecord(c);
+  if (consultAlert && consultRecord && consultRecord.review_status === 'pending') {
+    consultAlert.style.display = 'block';
+    if (consultDetail) consultDetail.textContent = 'ลูกค้ายืนยันส่งแบบประเมินเมื่อ ' + (consultRecord.submitted_at || '-') + ' · ตรวจข้อมูลในแท็บ “ใบประเมินผม” แล้วกดรับทราบเมื่อดำเนินการเสร็จ';
+    if (consultAck) consultAck.style.display = 'inline-block';
+  } else if (consultAlert) {
+    consultAlert.style.display = 'none';
+  }
 
   // เชื่อมคิว ↔ ลูกค้า ด้วยเบอร์ (normalize) และชื่อเป็นสำรอง
   const phoneN = nhs_normPhone(c.phone);
@@ -6163,6 +6235,7 @@ function crm_showPage(id) {
     const firstTab = document.querySelector('.admin-tab-item');
     if (firstTab) crm_adminTab('config', firstTab);
     if (typeof crm_refreshTxnBadge === 'function') crm_refreshTxnBadge();
+    if (typeof crm_refreshConsultBadge === 'function') crm_refreshConsultBadge();
   }
 }
 

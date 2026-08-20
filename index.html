@@ -282,7 +282,105 @@ async function checkConsultCustomer(phone) {
   } catch (e) { console.warn('checkConsultCustomer', e); }
 }
 
+let consultPendingDraft = null;
+function consultReviewText(id) {
+  const el = document.getElementById(id);
+  return el && typeof el.value !== 'undefined' ? String(el.value || '').trim() : '';
+}
+function consultReviewChecked(name) {
+  const el = document.querySelector('input[name="' + name + '"]:checked');
+  return el ? String(el.value || '').trim() : '';
+}
+function consultReviewCheckedList(name) {
+  return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked')).map(function(el){ return String(el.value || '').trim(); }).filter(Boolean);
+}
+function consultReviewEscape(value) {
+  return String(value == null ? '-' : value || '-').replace(/[&<>"']/g, function(ch){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch]; });
+}
+function consultReviewList(values) {
+  const list = Array.isArray(values) ? values.filter(Boolean) : [];
+  return list.length ? list.join(' • ') : '-';
+}
+function consultCollectDraft() {
+  const name = consultReviewText('cf-name');
+  const phone = consultReviewText('cf-phone');
+  if (!name || !phone) { toast('กรุณากรอกชื่อและเบอร์โทรศัพท์'); return null; }
+  return {
+    name: name,
+    phone: phone,
+    birthday: consultReviewText('cf-birthday'),
+    date: consultReviewText('cf-date'),
+    branch: consultReviewText('cf-branch'),
+    visitStatus: consultReviewChecked('cf_visit'),
+    sources: consultReviewCheckedList('cf_source'),
+    bleach: consultReviewChecked('cf_bleach'),
+    chemHistory: consultReviewCheckedList('cf_chem'),
+    heatFrequency: consultReviewChecked('cf_heat'),
+    concerns: consultReviewCheckedList('cf_concerns'),
+    hairType: consultReviewChecked('cf_hair_type'),
+    hairConditions: consultReviewCheckedList('cf_hair_cond'),
+    allergy: consultReviewChecked('cf_allergy'),
+    allergyDetail: consultReviewText('cf-allergy-detail'),
+    avoid: consultReviewChecked('cf_avoid'),
+    avoidDetail: consultReviewText('cf-avoid-detail'),
+    servicesRequested: consultReviewCheckedList('cf_service_req'),
+    servicesDone: consultReviewCheckedList('cf_service_done'),
+    expectations: consultReviewText('cf-expectations'),
+    membership: consultReviewChecked('cf_member'),
+    stylistNotes: consultReviewText('cf-stylist-notes'),
+    paymentNotes: consultReviewText('cf-payment-notes'),
+    totalAmount: consultReviewText('cf-pay-total'),
+    discount: consultReviewText('cf-pay-discount'),
+    netAmount: consultReviewText('cf-pay-net'),
+    hairPhoto: consultReviewText('cf-hair-photo-url'),
+    customerMode: document.body.classList.contains('customer-mode')
+  };
+}
+function consultReviewRow(label, value) {
+  return '<div class="consult-review-row"><span>' + consultReviewEscape(label) + '</span><b>' + consultReviewEscape(value || '-') + '</b></div>';
+}
+function consultShowReview(draft) {
+  consultPendingDraft = draft;
+  const old = document.getElementById('consult-review-modal');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'consult-review-modal';
+  overlay.className = 'consult-review-modal';
+  const photo = draft.hairPhoto ? '<div class="consult-review-photo-wrap"><div class="consult-review-caption">รูปสภาพผม</div><img class="consult-review-photo" src="' + consultReviewEscape(draft.hairPhoto) + '" alt="รูปสภาพผมที่แนบ"></div>' : '';
+  overlay.innerHTML = '<div class="consult-review-card" role="dialog" aria-modal="true" aria-labelledby="consult-review-title">' +
+    '<div class="consult-review-head"><div><div class="consult-review-kicker">N HAIR STYLIST</div><h2 id="consult-review-title">ตรวจทานแบบประเมินก่อนส่ง</h2><p>ตรวจสอบข้อมูลของลูกค้าคนนี้ให้ถูกต้องก่อนบันทึกเข้าระบบ</p></div><button type="button" class="consult-review-close" onclick="consultCloseReview()">✕</button></div>' +
+    '<div class="consult-review-alert">ยังไม่บันทึกลง Supabase จนกว่าจะกด “ยืนยันส่งเข้าระบบ” หากพบข้อมูลผิด ให้กด “กลับไปแก้ไข” ได้ทุกช่อง</div>' +
+    '<div class="consult-review-section"><h3>ข้อมูลลูกค้า</h3>' + consultReviewRow('ชื่อ-นามสกุล', draft.name) + consultReviewRow('เบอร์โทรศัพท์', draft.phone) + consultReviewRow('วันเกิด', draft.birthday) + consultReviewRow('วันที่ประเมิน', draft.date) + consultReviewRow('สาขา', draft.branch) + '</div>' +
+    '<div class="consult-review-section"><h3>ข้อมูลการประเมิน</h3>' + consultReviewRow('สถานะการเข้ารับบริการ', draft.visitStatus) + consultReviewRow('รู้จักร้านจาก', consultReviewList(draft.sources)) + consultReviewRow('ประวัติเคมี/ความร้อน', consultReviewList(draft.chemHistory)) + consultReviewRow('ปัญหา/ความกังวล', consultReviewList(draft.concerns)) + consultReviewRow('บริการที่สนใจ', consultReviewList(draft.servicesRequested)) + consultReviewRow('บริการที่ทำ', consultReviewList(draft.servicesDone)) + consultReviewRow('ความคาดหวัง', draft.expectations) + consultReviewRow('หมายเหตุช่าง', draft.stylistNotes) + '</div>' +
+    '<div class="consult-review-section"><h3>การแพ้และจุดที่ควรหลีกเลี่ยง</h3>' + consultReviewRow('การแพ้', draft.allergy) + consultReviewRow('รายละเอียดการแพ้', draft.allergyDetail) + consultReviewRow('จุดที่ควรหลีกเลี่ยง', draft.avoid) + consultReviewRow('รายละเอียด', draft.avoidDetail) + '</div>' +
+    ((draft.totalAmount || draft.discount || draft.netAmount || draft.paymentNotes) ? '<div class="consult-review-section"><h3>รายละเอียดการชำระเงิน</h3>' + consultReviewRow('หมายเหตุการชำระเงิน', draft.paymentNotes) + consultReviewRow('ยอดรวม', draft.totalAmount) + consultReviewRow('ส่วนลด', draft.discount) + consultReviewRow('ยอดสุทธิ', draft.netAmount) + '</div>' : '') +
+    photo +
+    '<label class="consult-review-check"><input id="consult-review-ack" type="checkbox"> ฉันตรวจสอบข้อมูลแล้ว และยืนยันให้บันทึกแบบประเมินของลูกค้าคนนี้</label>' +
+    '<div class="consult-review-actions"><button type="button" class="consult-review-edit" onclick="consultCloseReview()">กลับไปแก้ไข</button><button type="button" class="consult-review-submit" onclick="consultConfirmAndSubmit()">ยืนยันส่งเข้าระบบ</button></div>' +
+    '</div>';
+  overlay.addEventListener('click', function(event){ if (event.target === overlay) consultCloseReview(); });
+  document.body.appendChild(overlay);
+  overlay.querySelector('.consult-review-card').scrollTop = 0;
+}
+function consultCloseReview() {
+  const modal = document.getElementById('consult-review-modal');
+  if (modal) modal.remove();
+  consultPendingDraft = null;
+}
+async function consultConfirmAndSubmit() {
+  if (!consultPendingDraft) return;
+  const ack = document.getElementById('consult-review-ack');
+  if (!ack || !ack.checked) { toast('กรุณาตรวจสอบข้อมูลและติ๊กยืนยันก่อนส่ง'); return; }
+  consultCloseReview();
+  await commitConsultForm();
+}
 async function saveConsultForm() {
+  const draft = consultCollectDraft();
+  if (!draft) return;
+  consultShowReview(draft);
+}
+
+async function commitConsultForm() {
   const name = (document.getElementById('cf-name') && document.getElementById('cf-name').value || '').trim();
   let phone = (document.getElementById('cf-phone') && document.getElementById('cf-phone').value || '').trim();
   if (!name || !phone) return toast('กรุณากรอกชื่อและเบอร์โทรศัพท์');
@@ -820,6 +918,39 @@ td { padding: 12px; border-bottom: 1px solid var(--bd); }
 .consult-field-input:focus { border-bottom-color: var(--gold); }
 .consult-field-input[data-member-autofill="true"] { background: var(--nhs-theme-surface-soft); color: var(--nhs-theme-ink); cursor: not-allowed; }
 .consult-member-source { margin: -2px 0 12px; padding: 8px 10px; border: 1px solid var(--nhs-theme-line); border-radius: 8px; background: var(--nhs-theme-surface-soft); color: var(--nhs-theme-gold-dark); font-size: 11px; line-height: 1.5; }
+.consult-review-modal { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15,15,15,.74); }
+.consult-review-card { width: min(720px, 100%); max-height: 94vh; overflow-y: auto; background: #FAF8F4; color: #1A1A1A; border: 1px solid #C9A84C; border-radius: 18px; box-shadow: 0 24px 70px rgba(0,0,0,.35); }
+.consult-review-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 22px 14px; background: #1A1A1A; color: #FFFDF8; border-bottom: 2px solid #C9A84C; }
+.consult-review-kicker { color: #E9C766; font-size: 11px; letter-spacing: 1.5px; font-weight: 800; }
+.consult-review-head h2 { margin: 4px 0 3px; color: #FFFDF8; font-size: 21px; }
+.consult-review-head p { margin: 0; color: #E9E4D8; font-size: 12px; line-height: 1.5; }
+.consult-review-close { border: 1px solid #C9A84C; background: transparent; color: #FFFDF8; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 16px; }
+.consult-review-alert { margin: 16px 22px 0; padding: 11px 13px; border-left: 4px solid #C9A84C; border-radius: 8px; background: #F5E6BE; color: #4B3A18; font-size: 12px; line-height: 1.55; }
+.consult-review-section { margin: 16px 22px 0; padding: 13px 15px; border: 1px solid #E2D7B9; border-radius: 12px; background: #FFFDF8; }
+.consult-review-section h3 { margin: 0 0 9px; color: #A68A3D; font-size: 14px; }
+.consult-review-row { display: grid; grid-template-columns: minmax(145px, .72fr) minmax(0, 1.28fr); gap: 14px; align-items: start; padding: 7px 0; border-bottom: 1px solid #EFE8D8; font-size: 12px; line-height: 1.5; }
+.consult-review-row:last-child { border-bottom: 0; }
+.consult-review-row span { color: #6C665C; }
+.consult-review-row b { color: #1A1A1A; white-space: pre-wrap; overflow-wrap: anywhere; }
+.consult-review-photo-wrap { margin: 16px 22px 0; padding: 13px; border: 1px solid #E2D7B9; border-radius: 12px; background: #FFFDF8; }
+.consult-review-caption { color: #A68A3D; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
+.consult-review-photo { display: block; width: min(240px, 100%); max-height: 260px; object-fit: contain; border: 1px solid #D8C89E; border-radius: 10px; background: #FAF8F4; }
+.consult-review-check { display: flex; align-items: flex-start; gap: 9px; margin: 16px 22px 0; color: #3C3832; font-size: 12px; line-height: 1.5; }
+.consult-review-check input { margin-top: 3px; accent-color: #C9A84C; }
+.consult-review-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 18px 22px 22px; }
+.consult-review-actions button { border-radius: 10px; padding: 12px 14px; font-weight: 800; cursor: pointer; font-size: 13px; }
+.consult-review-edit { border: 1px solid #C9A84C; background: #FFFDF8; color: #5A4516; }
+.consult-review-submit { border: 1px solid #1A1A1A; background: #1A1A1A; color: #FFFDF8; }
+@media (max-width: 600px) {
+  .consult-review-modal { align-items: flex-start; padding: 8px; }
+  .consult-review-card { max-height: 96vh; border-radius: 14px; }
+  .consult-review-head { padding: 16px 15px 12px; }
+  .consult-review-head h2 { font-size: 18px; }
+  .consult-review-alert, .consult-review-section, .consult-review-photo-wrap, .consult-review-check { margin-left: 14px; margin-right: 14px; }
+  .consult-review-row { grid-template-columns: 1fr; gap: 2px; padding: 8px 0; }
+  .consult-review-row b { font-size: 13px; }
+  .consult-review-actions { padding: 16px 14px 18px; }
+}
 .consult-check-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 .consult-check-item { display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; }
 .consult-check-item input[type="checkbox"], .consult-check-item input[type="radio"] { accent-color: var(--gold); }
@@ -2483,7 +2614,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
       </div>
     </div>
 
-    <button class="btn-consult" onclick="saveConsultForm()">SAVE CONSULTATION FORM / บันทึกแบบฟอร์ม</button>
+    <button class="btn-consult" onclick="saveConsultForm()">ตรวจทานข้อมูลก่อนส่ง / REVIEW &amp; SUBMIT</button>
     <span id="consult-print-section"><button class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="printConsultForm()">🖨️ พิมพ์ / ส่งออก PDF</button></span>
   </div>
 

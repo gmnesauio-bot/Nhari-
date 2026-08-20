@@ -16,7 +16,7 @@
 <script>
 (function () {
   try {
-    var CRM_ROUTE_NAMES = ['register', 'rewards', 'my-rewards', 'points-history', 'history', 'notifications', 'profile'];
+    var CRM_ROUTE_NAMES = ['register', 'rewards', 'my-rewards', 'points-history', 'history', 'notifications', 'profile', 'booking', 'booking-review'];
     var hash = (window.location.hash || '').replace('#', '').trim().toLowerCase();
     var qp = new URLSearchParams(window.location.search);
     var pageParam = (qp.get('page') || '').trim().toLowerCase();
@@ -1956,6 +1956,9 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
   <div id="nhs-dash-consult-alert" role="button" tabindex="0" onclick="crm_openConsultAdminTab()" onkeydown="if(event.key==='Enter'||event.key===' '){crm_openConsultAdminTab();}" style="display:none;background:#FFFDF8;color:#1A1A1A;border:1.5px solid #C9A84C;border-left:7px solid #A68A3D;border-radius:16px;padding:15px 16px;margin-bottom:16px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.12);">
     <div style="display:flex;align-items:center;gap:12px;"><div style="font-size:30px;line-height:1;">📋</div><div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:16px;color:#7A5A17;">มีแบบประเมินลูกค้ารอตรวจทาน</div><div id="nhs-dash-consult-alert-detail" style="font-size:12px;color:#4B463E;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">คลิกเพื่อเปิดแบบประเมิน</div></div><div style="text-align:right;min-width:52px;"><div id="nhs-dash-consult-alert-count" style="font-size:28px;line-height:1;font-weight:900;color:#A68A3D;">0</div><div style="font-size:10px;color:#6C665C;">รายการ</div></div></div>
   </div>
+  <div id="nhs-dash-queue-alert" role="button" tabindex="0" onclick="nhs_openPendingQueueAlert()" onkeydown="if(event.key==='Enter'||event.key===' '){nhs_openPendingQueueAlert();}" style="display:none;background:#FFFDF8;color:#1A1A1A;border:1.5px solid #C9A84C;border-left:7px solid #1A1A1A;border-radius:16px;padding:15px 16px;margin-bottom:16px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.12);">
+    <div style="display:flex;align-items:center;gap:12px;"><div style="font-size:30px;line-height:1;">📅</div><div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:16px;color:#1A1A1A;">มีคิวลูกค้ารอยืนยัน</div><div id="nhs-dash-queue-alert-detail" style="font-size:12px;color:#4B463E;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">คลิกเพื่อเปิดคิวและตรวจทาน</div></div><div style="text-align:right;min-width:52px;"><div id="nhs-dash-queue-alert-count" style="font-size:28px;line-height:1;font-weight:900;color:#1A1A1A;">0</div><div style="font-size:10px;color:#6C665C;">รายการ</div></div></div>
+  </div>
 
   <div style="background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
     <h3 style="color:#333;margin:0 0 14px 0;font-size:16px;">ประสิทธิภาพหลัก (KPIs)</h3>
@@ -2907,6 +2910,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
       <div class="member-home-action-grid" aria-label="บริการสำหรับสมาชิก">
         <button type="button" class="btn member-action-outline" id="btnHairCheck" onclick="crm_openHairAssessment()">🔍 ประเมินเส้นผม</button>
         <button type="button" class="btn member-action-gold" id="btnUploadReceipt" onclick="crm_showPage('pg-crm-submit')">📄 ส่งสลิปแลก Point</button>
+        <button type="button" class="btn member-action-outline" id="btnCustomerBooking" onclick="crm_openBooking()">📅 จองคิวกับช่างมี้</button>
       </div>
       <button type="button" class="btn member-action-review" id="btnReviewFunnel" onclick="crm_openReview()">⭐ รีวิวร้าน / รับสิทธิ์ตรวจสอบส่วนลด 3%</button>
       <button class="btn btn-gold" style="width:100%; margin-bottom:10px; padding:14px; font-size:15px;" onclick="crm_showPage('pg-crm-rewards')">🎁 แลกของรางวัล</button>
@@ -2953,6 +2957,42 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 
       <button class="btn btn-gold" style="width:100%; margin-top:8px; padding:14px; font-size:15px;" onclick="crm_submitTxn()">📨 ส่งข้อมูล</button>
       <button class="btn btn-outline" style="width:100%; margin-top:8px;" onclick="crm_showPage('pg-crm-home')">ยกเลิก / กลับหน้าบัตร</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: CUSTOMER BOOKING — ใช้สมาชิก LINE และ queues เดิม -->
+<div class="page" id="pg-crm-booking">
+  <div class="crm-container">
+    <div class="crm-card">
+      <div class="crm-title">📅 จองคิวกับช่างมี้</div>
+      <div style="font-size:12px;color:#6C665C;line-height:1.6;margin:-5px 0 14px;">เลือกวัน เวลา และบริการของคุณ จากนั้นตรวจทานก่อนส่งให้ร้านยืนยัน</div>
+      <div id="crm-booking-member" style="padding:10px 12px;border-radius:12px;background:#FAF8F4;border:1px solid #E7E1D8;font-size:12px;margin-bottom:14px;"></div>
+      <div class="fg"><label class="fl">✂️ บริการที่ต้องการ <span style="color:#B42318;">*</span></label><select id="crm-booking-service" class="fc"></select></div>
+      <div class="frow" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="fg"><label class="fl">📅 วันที่นัด <span style="color:#B42318;">*</span></label><input id="crm-booking-date" class="fc" type="date"></div>
+        <div class="fg"><label class="fl">🕒 เวลาที่สะดวก <span style="color:#B42318;">*</span></label><input id="crm-booking-time" class="fc" type="time"></div>
+      </div>
+      <div class="fg"><label class="fl">📝 หมายเหตุถึงช่าง (ถ้ามี)</label><textarea id="crm-booking-note" class="fc" rows="3" placeholder="เช่น ต้องการปรึกษาทรงผม, ผมเคยฟอกสี"></textarea></div>
+      <button class="btn btn-gold" style="width:100%;padding:14px;font-size:15px;" onclick="crm_bookingOpenReview()">🔎 ตรวจทานก่อนส่ง</button>
+      <button class="btn btn-outline" style="width:100%;margin-top:8px;" onclick="crm_showPage('pg-crm-home')">กลับหน้าบัตรสมาชิก</button>
+    </div>
+    <div class="crm-card" style="margin-top:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div class="crm-title" style="margin:0;font-size:16px;">คำขอจองคิวของฉัน</div><span style="font-size:11px;color:#8B7520;">อัปเดตอัตโนมัติ</span></div>
+      <div id="crm-booking-status-list" style="margin-top:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: CUSTOMER BOOKING REVIEW -->
+<div class="page" id="pg-crm-booking-review">
+  <div class="crm-container">
+    <div class="crm-card">
+      <div class="crm-title">🔎 ตรวจทานคำขอจองคิว</div>
+      <div id="crm-booking-review-card" style="margin:14px 0;"></div>
+      <div style="padding:10px 12px;border-radius:12px;background:#FFF8E6;border:1px solid #E7C66A;font-size:12px;line-height:1.6;color:#6E5010;">เมื่อยืนยันส่ง ร้านจะตรวจสอบคิวอีกครั้งก่อนบันทึก และจะแจ้งสถานะให้คุณทราบในหน้านี้</div>
+      <button class="btn btn-gold" style="width:100%;margin-top:14px;padding:14px;font-size:15px;" onclick="crm_bookingConfirm()">✅ ยืนยันส่งคำขอจองคิว</button>
+      <button class="btn btn-outline" style="width:100%;margin-top:8px;" onclick="crm_showPage('pg-crm-booking')">✏️ กลับไปแก้ไข</button>
     </div>
   </div>
 </div>
@@ -3839,6 +3879,7 @@ async function loadData(silent) {
     }
     if (typeof crm_refreshTxnBadge === 'function') crm_refreshTxnBadge();
     if (typeof crm_refreshConsultBadge === 'function') crm_refreshConsultBadge();
+    if (typeof nhs_refreshQueueBadge === 'function') nhs_refreshQueueBadge();
   } catch (e) {
     console.error('loadData', e);
     // พยายามแสดงรายการที่มีอยู่
@@ -4940,7 +4981,10 @@ function selectDate(date) {
       ${q.booking_slip ? `<div style="margin-top:8px">
         <img src="${q.booking_slip}" style="width:80px; height:80px; object-fit:cover; border-radius:5px; border:1px solid var(--bd); cursor:pointer" onclick="showSlipImage(this.src)">
       </div>` : ''}
-      <div style="margin-top:8px; display:flex; gap:5px; align-items:center;">
+      <div style="margin-top:7px;font-size:11px;font-weight:700;color:#6C665C;">สถานะ: ${nhs_queueStatusText(q.status)}</div>
+      <div style="margin-top:8px; display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+        ${q.status === 'pending_confirmation' ? `<button class="btn btn-sm btn-gold" onclick="nhs_transitionOwnerQueue('${q.id}','confirm')">✓ ยืนยันคิว</button><button class="btn btn-sm btn-outline" onclick="editQueue('${q.id}')">เสนอเลื่อน/แก้ไข</button><button class="btn btn-sm btn-no" onclick="nhs_transitionOwnerQueue('${q.id}','cancel')">ยกเลิก</button>` : ''}
+        ${q.status === 'reschedule_requested' ? `<button class="btn btn-sm btn-gold" onclick="nhs_transitionOwnerQueue('${q.id}','confirm')">✓ ยืนยันเวลาใหม่</button><button class="btn btn-sm btn-outline" onclick="editQueue('${q.id}')">แก้ไขเวลา</button><button class="btn btn-sm btn-no" onclick="nhs_transitionOwnerQueue('${q.id}','cancel')">ยกเลิก</button>` : ''}
         <button class="btn btn-sm btn-ok" onclick="completeQ('${q.id}')">เสร็จงาน</button>
         <button class="btn btn-sm" style="font-size:10px; padding:2px 6px; background:#C9A84C; color:#fff; border:none; border-radius:4px; cursor:pointer;" onclick="editQueue('${q.id}')">✏️ แก้ไขคิว</button>
         <button class="btn btn-sm" style="font-size:10px; padding:2px 6px; background:#9B5048; color:#fff; border:none; border-radius:4px; cursor:pointer;" onclick="deleteQueue('${q.id}')">🗑️ ลบคิว</button>
@@ -4982,7 +5026,7 @@ function nhs_hasQueueConflict(date, time, excludeId) {
   return (allQs || []).find(q => {
     if (excludeId && String(q.id) === String(excludeId)) return false;
     const st = (q.status || '').toLowerCase();
-    if (st === 'done' || st === 'cancelled' || st === 'cancel') return false;
+    if (st === 'done' || st === 'completed' || st === 'cancelled' || st === 'cancel') return false;
     const qd = String(q.queue_date || '').split('T')[0];
     const qt = String(q.queue_time || '').slice(0, 5);
     return qd === date && qt === t;
@@ -5056,6 +5100,29 @@ async function saveQueue() {
   selQSvc = '';
   closeM('mQueue'); await loadData(); toast('✅ จองคิวแล้ว');
 }
+function nhs_queueStatusText(status) {
+  const map = { pending_confirmation:'รอยืนยันจากร้าน', confirmed:'ยืนยันแล้ว', reschedule_requested:'เสนอเลื่อนคิว', waiting:'รอรับบริการ', 'in-progress':'กำลังทำ', completed:'เสร็จสิ้น', done:'เสร็จสิ้น', cancelled:'ยกเลิก' };
+  return map[String(status || '').toLowerCase()] || 'รอรับบริการ';
+}
+async function nhs_transitionOwnerQueue(id, transition) {
+  const queue = (allQs || []).find(function(row){ return String(row.id) === String(id); });
+  if (!queue) return toast('ไม่พบคิวที่เลือก');
+  const map = { confirm:'confirmed', request_reschedule:'reschedule_requested', cancel:'cancelled' };
+  const status = map[transition];
+  if (!status) return toast('คำสั่งคิวไม่ถูกต้อง');
+  let note = queue.note || '';
+  if (transition === 'request_reschedule') {
+    const entered = prompt('ระบุเวลาใหม่หรือรายละเอียดที่ต้องแจ้งลูกค้า:', note);
+    if (entered === null) return;
+    note = entered;
+  }
+  const message = transition === 'confirm' ? 'ยืนยันคิวนี้?' : transition === 'cancel' ? 'ยืนยันยกเลิกคิวนี้?' : 'บันทึกข้อเสนอเลื่อนคิวนี้?';
+  if (!confirm(message)) return;
+  const { error } = await db.from('queues').update({ status:status, note:note }).eq('id', id);
+  if (error) return toast('❌ อัปเดตคิวไม่สำเร็จ: ' + error.message);
+  toast(transition === 'confirm' ? '✅ ยืนยันคิวแล้ว' : transition === 'cancel' ? '✅ ยกเลิกคิวแล้ว' : '✅ บันทึกข้อเสนอเลื่อนคิวแล้ว');
+  if (typeof loadData === 'function') loadData();
+}
 async function completeQ(id) {
   const q = allQs.find(x => x.id === id); await db.from('queues').update({status:'done'}).eq('id', id);
   if(q && q.price > 0) await db.from('incomes').insert({ amount: q.price, customer_name: q.customer_name, note: 'จากคิว', record_date: q.queue_date, category: q.services });
@@ -5080,6 +5147,10 @@ async function editQueue(queueId) {
   if (priceStr === null) return;
   const depStr = prompt('มัดจำ:', String(queue.deposit_amount || 0));
   if (depStr === null) return;
+  const status = prompt('สถานะ (pending_confirmation / confirmed / reschedule_requested / waiting / in-progress / completed / cancelled):', queue.status || 'confirmed');
+  if (status === null) return;
+  const allowedStatuses = ['pending_confirmation','confirmed','reschedule_requested','waiting','in-progress','completed','cancelled'];
+  if (allowedStatuses.indexOf(String(status).toLowerCase()) === -1) return alert('สถานะคิวไม่ถูกต้อง');
 
   const conflict = nhs_hasQueueConflict(qdate, qtime, queueId);
   if (conflict) {
@@ -5090,10 +5161,12 @@ async function editQueue(queueId) {
     customer_name: name,
     customer_phone: phone,
     queue_date: qdate,
+    queue_date_iso: qdate,
     queue_time: qtime,
     services: service,
     price: nhs_parseMoney(priceStr) || 0,
-    deposit_amount: nhs_parseMoney(depStr) || 0
+    deposit_amount: nhs_parseMoney(depStr) || 0,
+    status: String(status).toLowerCase()
   };
 
   const { error } = await db.from('queues').update(updateData).eq('id', queueId);
@@ -5290,6 +5363,48 @@ function nhs_pendingConsultations() {
     const ar = nhs_consultationRecord(a) || {}, br = nhs_consultationRecord(b) || {};
     return String(br.submitted_at || '').localeCompare(String(ar.submitted_at || ''));
   });
+}
+function nhs_queueAlertDate(queue) {
+  return String((queue && (queue.queue_date_iso || queue.queue_date)) || '').slice(0, 10);
+}
+function nhs_pendingQueues() {
+  return (allQs || []).filter(function(queue) {
+    const status = String(queue.status || '').toLowerCase();
+    return status === 'pending_confirmation' || status === 'reschedule_requested';
+  }).sort(function(a, b) {
+    return (nhs_queueAlertDate(a) + ' ' + String(a.queue_time || '')).localeCompare(nhs_queueAlertDate(b) + ' ' + String(b.queue_time || ''));
+  });
+}
+function nhs_refreshQueueBadge() {
+  const pending = nhs_pendingQueues();
+  const n = pending.length;
+  const first = pending[0];
+  const status = String((first && first.status) || '').toLowerCase();
+  const action = status === 'reschedule_requested' ? 'ร้านเสนอเลื่อนคิว' : 'รอร้านยืนยัน';
+  const detail = first ? ('ล่าสุด: ' + (first.customer_name || first.customer_phone || 'ลูกค้า') + ' · ' + (nhs_queueAlertDate(first) || '-') + ' ' + (first.queue_time || '') + ' · ' + action) : 'คลิกเพื่อเปิดคิวและตรวจทาน';
+  const alert = $('nhs-dash-queue-alert');
+  const count = $('nhs-dash-queue-alert-count');
+  const detailEl = $('nhs-dash-queue-alert-detail');
+  if (count) count.textContent = String(n);
+  if (detailEl) detailEl.textContent = detail;
+  if (alert) alert.style.display = n > 0 ? 'block' : 'none';
+  return { count:n, first:first || null };
+}
+function nhs_openPendingQueueAlert() {
+  const pending = nhs_pendingQueues();
+  const first = pending[0];
+  if (!first) return toast('ไม่พบคิวที่รอยืนยัน');
+  const date = nhs_queueAlertDate(first);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return toast('คิวนี้ไม่มีวันที่นัดที่ถูกต้อง');
+  const parts = date.split('-').map(Number);
+  curYear = parts[0]; curMonth = parts[1] - 1;
+  showPage('pg-cal');
+  setTimeout(function() {
+    renderCalendar();
+    selectDate(date);
+    const panel = $('selected-day-queues');
+    if (panel && panel.scrollIntoView) panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }, 0);
 }
 function crm_openConsultAdminTab() {
   const pending = nhs_pendingConsultations();
@@ -6251,7 +6366,7 @@ function crm_initReviewFunnel() {
 
 function crm_showPage(id) {
   showPage(id);
-  const memberPages = ['pg-crm-home', 'pg-crm-submit', 'pg-crm-review', 'pg-crm-rewards', 'pg-crm-my-rewards', 'pg-crm-history', 'pg-crm-news', 'pg-crm-profile'];
+  const memberPages = ['pg-crm-home', 'pg-crm-submit', 'pg-crm-review', 'pg-crm-rewards', 'pg-crm-my-rewards', 'pg-crm-history', 'pg-crm-news', 'pg-crm-profile', 'pg-crm-booking', 'pg-crm-booking-review'];
   document.body.classList.toggle('member-theme', memberPages.includes(id));
   if(id === 'pg-crm-home') crm_init();
   if(id === 'pg-crm-rewards') crm_renderRewards();
@@ -6260,6 +6375,7 @@ function crm_showPage(id) {
   if(id === 'pg-crm-news') crm_renderNews();
   if(id === 'pg-crm-profile') crm_initProfile();
   if(id === 'pg-crm-submit') crm_initTxnForm();
+  if(id === 'pg-crm-booking') crm_bookingInit();
   if(id === 'pg-crm-review') { crm_initReviewFunnel(); crm_reviewReset(); }
   if (id === 'pg-admin-crm') {
     crm_loadAdminConfig();
@@ -6268,7 +6384,167 @@ function crm_showPage(id) {
     if (firstTab) crm_adminTab('config', firstTab);
     if (typeof crm_refreshTxnBadge === 'function') crm_refreshTxnBadge();
     if (typeof crm_refreshConsultBadge === 'function') crm_refreshConsultBadge();
+    if (typeof nhs_refreshQueueBadge === 'function') nhs_refreshQueueBadge();
   }
+}
+
+// ===== CUSTOMER BOOKING: member LINE → review → pending confirmation =====
+let crm_bookingDraft = null;
+let crm_bookingEditingId = null;
+let crm_bookingRows = [];
+let crm_bookingPollTimer = null;
+
+function crm_bookingEscape(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
+    return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch];
+  });
+}
+function crm_bookingToday() { return new Date().toISOString().slice(0, 10); }
+function crm_bookingPhone() {
+  return typeof nhs_normPhone === 'function' ? nhs_normPhone(crm_member && crm_member.phone) : String((crm_member && crm_member.phone) || '').replace(/\D/g, '');
+}
+function crm_bookingLabel(status) {
+  const key = String(status || '').toLowerCase();
+  const map = {
+    pending_confirmation: ['รอร้านยืนยัน', '#8B7520', '#FFF8E6'],
+    reschedule_requested: ['ร้านเสนอเลื่อนคิว', '#9B5048', '#FFF1EF'],
+    confirmed: ['ยืนยันแล้ว', '#286848', '#ECF8F0'],
+    waiting: ['ยืนยันแล้ว', '#286848', '#ECF8F0'],
+    'in-progress': ['กำลังรับบริการ', '#2E5D99', '#EEF5FF'],
+    completed: ['เสร็จสิ้น', '#286848', '#ECF8F0'],
+    done: ['เสร็จสิ้น', '#286848', '#ECF8F0'],
+    cancelled: ['ยกเลิกแล้ว', '#777', '#F2F2F2']
+  };
+  return map[key] || ['รอดำเนินการ', '#6C665C', '#F5F3EF'];
+}
+function crm_bookingCanEdit(status) {
+  const key = String(status || '').toLowerCase();
+  return key === 'pending_confirmation' || key === 'reschedule_requested';
+}
+function crm_openBooking() {
+  if (!crm_member || !crm_member.phone || !crm_member.line_user_id) return toast('กรุณาล็อกอิน LINE และยืนยันสมาชิกก่อนจองคิว');
+  crm_showPage('pg-crm-booking');
+}
+function crm_bookingInit() {
+  if (!crm_member || !crm_member.phone || !crm_member.line_user_id) return;
+  const service = $('crm-booking-service');
+  if (service && !service.dataset.ready) {
+    service.innerHTML = '<option value="">เลือกบริการ</option>' + (SVCS || []).map(function(item) {
+      return '<option value="' + crm_bookingEscape(item.l) + '">' + crm_bookingEscape(item.e + ' ' + item.l) + '</option>';
+    }).join('');
+    service.dataset.ready = 'true';
+  }
+  const date = $('crm-booking-date');
+  if (date) { date.min = crm_bookingToday(); if (!date.value) date.value = crm_bookingToday(); }
+  const memberBox = $('crm-booking-member');
+  if (memberBox) memberBox.innerHTML = '<b>สมาชิกที่ใช้จอง:</b> ' + crm_bookingEscape(crm_member.name || crm_member.nickname || 'สมาชิก') + '<br><span style="color:#6C665C;">' + crm_bookingEscape(crm_member.phone) + ' · ' + crm_bookingEscape(crm_member.nhs_id || '') + '</span>';
+  crm_bookingRender();
+  if (!crm_bookingPollTimer) {
+    crm_bookingPollTimer = setInterval(function() {
+      const page = $('pg-crm-booking');
+      if (page && page.style.display !== 'none') crm_bookingRender();
+    }, 15000);
+  }
+}
+async function crm_bookingLoadOwn() {
+  const phone = crm_bookingPhone();
+  if (!phone) return [];
+  const { data, error } = await db.from('queues').select('id,customer_name,customer_phone,services,queue_date,queue_date_iso,queue_time,status,note,deposit_status,deposit_amount,created_at').eq('customer_phone', phone).order('queue_date', { ascending: false }).limit(100);
+  if (error) { console.warn('crm_bookingLoadOwn', error); return []; }
+  crm_bookingRows = Array.isArray(data) ? data : [];
+  return crm_bookingRows;
+}
+async function crm_bookingRender() {
+  const box = $('crm-booking-status-list');
+  if (!box || !crm_member) return;
+  box.innerHTML = '<div style="text-align:center;color:#888;padding:12px;">กำลังอัปเดตคำขอ...</div>';
+  const rows = await crm_bookingLoadOwn();
+  if (!rows.length) { box.innerHTML = '<div style="text-align:center;color:#888;padding:14px;">ยังไม่มีคำขอจองคิว</div>'; return; }
+  box.innerHTML = rows.map(function(q) {
+    const label = crm_bookingLabel(q.status);
+    const canEdit = crm_bookingCanEdit(q.status);
+    const actions = canEdit ? '<div style="display:flex;gap:7px;margin-top:10px;"><button class="btn btn-sm btn-outline" type="button" onclick="crm_bookingEdit(' + JSON.stringify(String(q.id)) + ')">✏️ แก้ไข</button><button class="btn btn-sm" type="button" style="background:#9B5048;color:#fff;border:none;" onclick="crm_bookingCancel(' + JSON.stringify(String(q.id)) + ')">ยกเลิกคำขอ</button></div>' : '';
+    return '<div style="border:1px solid #E7E1D8;border-left:4px solid ' + label[1] + ';border-radius:12px;padding:12px;margin-bottom:9px;background:#fff;">' +
+      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;"><div><b>' + crm_bookingEscape(q.services || '-') + '</b><div style="font-size:12px;color:#6C665C;margin-top:4px;">' + crm_bookingEscape(String(q.queue_date || '').slice(0, 10)) + ' · ' + crm_bookingEscape(String(q.queue_time || '').slice(0, 5)) + '</div></div>' +
+      '<span style="font-size:11px;font-weight:800;color:' + label[1] + ';background:' + label[2] + ';padding:5px 8px;border-radius:99px;white-space:nowrap;">' + label[0] + '</span></div>' +
+      (q.note ? '<div style="font-size:12px;color:#6C665C;margin-top:8px;">' + crm_bookingEscape(q.note) + '</div>' : '') + actions + '</div>';
+  }).join('');
+}
+async function crm_bookingConflict(date, time, excludeId) {
+  const { data, error } = await db.from('queues').select('id,status').eq('queue_date', date).eq('queue_time', String(time || '').slice(0, 5)).limit(20);
+  if (error) { console.warn('crm_bookingConflict', error); return { blocked: true, reason: 'ตรวจคิวไม่สำเร็จ กรุณาลองใหม่' }; }
+  const blocked = (data || []).some(function(q) {
+    if (excludeId && String(q.id) === String(excludeId)) return false;
+    const st = String(q.status || '').toLowerCase();
+    return !['done', 'completed', 'cancelled', 'cancel'].includes(st);
+  });
+  return { blocked: blocked, reason: blocked ? 'เวลานี้มีคิวอยู่แล้ว กรุณาเลือกเวลาอื่น' : '' };
+}
+async function crm_bookingOpenReview() {
+  if (!crm_member || !crm_member.phone || !crm_member.line_user_id) return toast('กรุณาล็อกอิน LINE และยืนยันสมาชิกก่อนจองคิว');
+  const service = String(($('crm-booking-service') || {}).value || '').trim();
+  const date = String(($('crm-booking-date') || {}).value || '').trim();
+  const time = String(($('crm-booking-time') || {}).value || '').trim();
+  const note = String(($('crm-booking-note') || {}).value || '').trim();
+  if (!service || !date || !time) return toast('กรุณาเลือกบริการ วันที่ และเวลาให้ครบ');
+  if (date < crm_bookingToday()) return toast('กรุณาเลือกวันนัดตั้งแต่วันนี้เป็นต้นไป');
+  const conflict = await crm_bookingConflict(date, time, crm_bookingEditingId);
+  if (conflict.blocked) return toast('⚠️ ' + conflict.reason);
+  crm_bookingDraft = { service: service, date: date, time: time, note: note };
+  const review = $('crm-booking-review-card');
+  if (review) review.innerHTML = '<div style="border:1px solid #E7E1D8;border-radius:14px;padding:14px;background:#FAF8F4;line-height:1.8;font-size:13px;">' +
+    '<div><span style="color:#6C665C;">สมาชิก:</span> <b>' + crm_bookingEscape(crm_member.name || crm_member.nickname || '') + '</b></div>' +
+    '<div><span style="color:#6C665C;">บริการ:</span> <b>' + crm_bookingEscape(service) + '</b></div>' +
+    '<div><span style="color:#6C665C;">วันและเวลา:</span> <b>' + crm_bookingEscape(date) + ' · ' + crm_bookingEscape(time) + '</b></div>' +
+    '<div><span style="color:#6C665C;">หมายเหตุ:</span> ' + crm_bookingEscape(note || '-') + '</div></div>';
+  crm_showPage('pg-crm-booking-review');
+}
+async function crm_bookingConfirm() {
+  if (!crm_bookingDraft || !crm_member || !crm_member.phone || !crm_member.line_user_id) return toast('ไม่พบคำขอจองคิว กรุณากรอกใหม่');
+  const draft = crm_bookingDraft;
+  const conflict = await crm_bookingConflict(draft.date, draft.time, crm_bookingEditingId);
+  if (conflict.blocked) { crm_showPage('pg-crm-booking'); return toast('⚠️ ' + conflict.reason); }
+  const phone = crm_bookingPhone();
+  const payload = {
+    customer_name: crm_member.name || crm_member.nickname || 'สมาชิก N HAIR STYLIST', customer_phone: phone,
+    services: draft.service, queue_date: draft.date, queue_date_iso: draft.date, queue_time: draft.time,
+    note: draft.note, status: 'pending_confirmation', source_channel: 'customer_line', deposit_status: 'unpaid', deposit_amount: 0, price: 0
+  };
+  let error = null;
+  if (crm_bookingEditingId) {
+    ({ error } = await db.from('queues').update(payload).eq('id', crm_bookingEditingId).eq('customer_phone', phone));
+  } else {
+    ({ error } = await db.from('queues').insert(payload));
+  }
+  if (error) { console.warn('crm_bookingConfirm', error); return toast('❌ ส่งคำขอไม่สำเร็จ: ' + error.message); }
+  crm_bookingDraft = null; crm_bookingEditingId = null;
+  if ($('crm-booking-note')) $('crm-booking-note').value = '';
+  if ($('crm-booking-time')) $('crm-booking-time').value = '';
+  if ($('crm-booking-service')) $('crm-booking-service').value = '';
+  await crm_bookingRender();
+  crm_showPage('pg-crm-booking');
+  toast('✅ ส่งคำขอจองคิวแล้ว รอร้านยืนยัน');
+}
+function crm_bookingEdit(id) {
+  const q = (crm_bookingRows || []).find(function(row) { return String(row.id) === String(id); });
+  if (!q || !crm_bookingCanEdit(q.status)) return toast('รายการนี้ไม่สามารถแก้ไขได้');
+  crm_bookingEditingId = q.id;
+  crm_showPage('pg-crm-booking');
+  setTimeout(function() {
+    if ($('crm-booking-service')) $('crm-booking-service').value = q.services || '';
+    if ($('crm-booking-date')) $('crm-booking-date').value = String(q.queue_date || '').slice(0, 10);
+    if ($('crm-booking-time')) $('crm-booking-time').value = String(q.queue_time || '').slice(0, 5);
+    if ($('crm-booking-note')) $('crm-booking-note').value = q.note || '';
+  }, 0);
+}
+async function crm_bookingCancel(id) {
+  const q = (crm_bookingRows || []).find(function(row) { return String(row.id) === String(id); });
+  if (!q || !crm_bookingCanEdit(q.status)) return toast('รายการนี้ไม่สามารถยกเลิกได้');
+  if (!confirm('ยืนยันยกเลิกคำขอจองคิวนี้?')) return;
+  const { error } = await db.from('queues').update({ status: 'cancelled', note: String(q.note || '') + (q.note ? '\n' : '') + '[ลูกค้ายกเลิกคำขอ]' }).eq('id', id).eq('customer_phone', crm_bookingPhone());
+  if (error) return toast('❌ ยกเลิกไม่สำเร็จ: ' + error.message);
+  await crm_bookingRender();
+  toast('ยกเลิกคำขอแล้ว');
 }
 
 function crm_defaultRewards() {
@@ -8950,7 +9226,7 @@ function nhs_openQueueBatchEditor() {
   nhs_batchMode = 'queue';
   if ($('nhs-batch-title')) $('nhs-batch-title').textContent = '✏️ แก้ไขหลายคิว · ' + date;
   const services = function(selected) { const labels = nhs_txnCategoryList('income', selected); return labels.map(function(label){ return nhs_batchOption(label, label, selected); }).join(''); };
-  const statuses = function(selected) { return [['waiting','รอรับบริการ'],['done','เสร็จสิ้น'],['cancelled','ยกเลิก']].map(function(pair){ return nhs_batchOption(pair[1], pair[0], selected || 'waiting'); }).join(''); };
+  const statuses = function(selected) { return [['pending_confirmation','รอยืนยันจากร้าน'],['confirmed','ยืนยันแล้ว'],['reschedule_requested','เสนอเลื่อนคิว'],['waiting','รอรับบริการ'],['in-progress','กำลังทำ'],['completed','เสร็จสิ้น'],['done','เสร็จสิ้น (เดิม)'],['cancelled','ยกเลิก']].map(function(pair){ return nhs_batchOption(pair[1], pair[0], selected || 'waiting'); }).join(''); };
   $('nhs-batch-editor-list').innerHTML = rows.map(function(row) {
     return '<div class="card nhs-batch-row" data-id="' + nhs_dashEscape(String(row.id || '')) + '" data-original-status="' + nhs_dashEscape(row.status || 'waiting') + '" style="padding:12px;margin:0 0 10px;">' +
       '<label style="display:flex;gap:8px;align-items:center;font-weight:800;margin-bottom:10px;"><input class="nhs-batch-select" type="checkbox"> เลือกคิวนี้ <span style="font-size:11px;color:#777;font-weight:500;">' + nhs_dashEscape(String(row.queue_time || '').slice(0,5)) + ' · ' + nhs_dashEscape(row.customer_name || '-') + '</span></label>' +
@@ -8976,11 +9252,11 @@ function nhs_queueBatchDrafts() {
 function nhs_validateQueueBatch(drafts) {
   const selected = new Set(drafts.map(function(d){ return String(d.id); }));
   const slots = {};
-  (allQs || []).filter(function(row){ return !selected.has(String(row.id)) && !['done','cancelled','cancel'].includes(String(row.status || '').toLowerCase()); }).forEach(function(row){ slots[String(row.queue_date || '').slice(0,10) + '|' + String(row.queue_time || '').slice(0,5)] = String(row.id); });
+  (allQs || []).filter(function(row){ return !selected.has(String(row.id)) && !['done','completed','cancelled','cancel'].includes(String(row.status || '').toLowerCase()); }).forEach(function(row){ slots[String(row.queue_date || '').slice(0,10) + '|' + String(row.queue_time || '').slice(0,5)] = String(row.id); });
   drafts.forEach(function(draft){
     if (!draft.customer_name || !draft.customer_phone || !draft.queue_date || !draft.queue_time) throw new Error('กรอกชื่อลูกค้า เบอร์ วันที่ และเวลาให้ครบ');
     if (!Number.isFinite(draft.price) || draft.price < 0 || !Number.isFinite(draft.deposit_amount) || draft.deposit_amount < 0) throw new Error('ราคาและมัดจำต้องเป็นจำนวนเงินที่ถูกต้อง');
-    if (!['done','cancelled','cancel'].includes(String(draft.status || '').toLowerCase())) {
+    if (!['done','completed','cancelled','cancel'].includes(String(draft.status || '').toLowerCase())) {
       const key = draft.queue_date + '|' + String(draft.queue_time).slice(0,5);
       if (slots[key]) throw new Error('พบคิวซ้อนกันที่ ' + key);
       slots[key] = String(draft.id);
@@ -8990,7 +9266,7 @@ function nhs_validateQueueBatch(drafts) {
 async function nhs_saveQueueBatch(drafts) {
   nhs_validateQueueBatch(drafts);
   for (const draft of drafts) {
-    const patch = { customer_name: draft.customer_name, customer_phone: draft.customer_phone, services: draft.services, queue_date: draft.queue_date, queue_time: draft.queue_time, status: draft.status, price: nhs_roundMoney(draft.price), deposit_amount: nhs_roundMoney(draft.deposit_amount), note: draft.note };
+    const patch = { customer_name: draft.customer_name, customer_phone: draft.customer_phone, services: draft.services, queue_date: draft.queue_date, queue_date_iso: draft.queue_date, queue_time: draft.queue_time, status: draft.status, price: nhs_roundMoney(draft.price), deposit_amount: nhs_roundMoney(draft.deposit_amount), note: draft.note };
     const res = await db.from('queues').update(patch).eq('id', draft.id); if (res.error) throw res.error;
     const old = (allQs || []).find(function(row){ return String(row.id) === String(draft.id); });
     const shouldCreateIncome = old && old.status !== 'done' && draft.status === 'done' && patch.price > 0;
@@ -9014,6 +9290,17 @@ async function nhs_saveBatchEditor() {
     toast('✅ บันทึกทุกรายการที่เลือกแล้ว');
   } catch (error) { toast('❌ บันทึกทั้งหมดไม่สำเร็จ: ' + (error.message || error)); }
 }
+
+let nhs_ownerPollTimer = null;
+function nhs_startOwnerPolling() {
+  if (nhs_ownerPollTimer) return;
+  if (document.documentElement.classList.contains('nhs-customer-route')) return;
+  nhs_ownerPollTimer = setInterval(function() {
+    if (document.hidden || document.documentElement.classList.contains('nhs-customer-route')) return;
+    if (typeof loadData === 'function') loadData(true);
+  }, 15000);
+}
+nhs_startOwnerPolling();
 
 </script>
 </body>

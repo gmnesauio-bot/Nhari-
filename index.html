@@ -552,12 +552,10 @@ async function commitConsultForm() {
     });
 
     if(!existingCust) {
-      nhs_id = nhs_genMemberId(phone);
       const sourceChannel = sources.length > 0 ? sources.join(', ') : 'แบบฟอร์มประเมินผม';
       const staffPayload = {
         name: name,
         phone: phone,
-        nhs_id: nhs_id,
         member_level: 'ทั่วไป',
         source_channel: sourceChannel,
         birthday: document.getElementById('cf-birthday').value,
@@ -572,7 +570,7 @@ async function commitConsultForm() {
       } else {
         await db.from('customers').insert(staffPayload);
       }
-      toast('✅ สร้างลูกค้าใหม่: ' + nhs_id);
+      toast('✅ สร้างลูกค้าใหม่ — รอยืนยันตัวตนก่อนออกเลขสมาชิก');
     } else {
       nhs_id = nhs_memberDisplayId(existingCust);
       const staffUpd = {
@@ -588,7 +586,7 @@ async function commitConsultForm() {
       } else {
         await db.from('customers').update(staffUpd).eq('id', existingCust.id);
       }
-      toast('✅ อัปเดตข้อมูลลูกค้า: ' + nhs_id);
+      toast('✅ อัปเดตข้อมูลลูกค้า: ' + (nhs_id || 'รอยืนยันตัวตน'));
     }
 
     // 2. Save consultation record in customers table (as JSON metadata)
@@ -3267,7 +3265,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
     <div class="fg"><label class="fl">ชื่อลูกค้า *</label><input id="q-name" class="fc"></div>
     <div class="card" style="background:var(--goldL); padding:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center">
       <span style="font-size:13px; font-weight:700">รหัสลูกค้า:</span>
-      <span id="q-nhs-display" style="font-size:16px; font-weight:800; color:var(--goldD)">NHS-???</span>
+      <span id="q-nhs-display" style="font-size:16px; font-weight:800; color:var(--goldD)">รอยืนยันตัวตน</span>
     </div>
     <div class="fg"><label class="fl">เลือกบริการ</label>
       <div class="icon-grid" id="q-svc-grid"></div>
@@ -3594,24 +3592,6 @@ function nameMatches(fieldValue, queryValue) {
   return f.includes(q) || fStripped.includes(qStripped) || fStripped.includes(q) || f.includes(qStripped);
 }
 
-/** หาเลขรันนิ่งสูงสุดจากรหัส NHS ที่มีอยู่ */
-function nhs_nextSeq() {
-  let max = 0;
-  (allCusts || []).forEach(c => {
-    const m = String(c.nhs_id || '').match(/NHS-?0*(\d+)/i);
-    if (m) max = Math.max(max, parseInt(m[1], 10));
-  });
-  // รวมจาก local cache ด้วย
-  try {
-    const map = JSON.parse(localStorage.getItem('nhs-v2-id-map') || '{}');
-    Object.values(map).forEach(v => {
-      const m = String(v || '').match(/NHS-?0*(\d+)/i);
-      if (m) max = Math.max(max, parseInt(m[1], 10));
-    });
-  } catch (e) {}
-  return max + 1;
-}
-
 /** จัดรูปแบบเบอร์ให้เปรียบเทียบได้ (ตัดช่องว่าง/ขีด) */
 function nhs_normPhone(p) {
   let s = String(p || '').replace(/\D/g, '');
@@ -3619,157 +3599,16 @@ function nhs_normPhone(p) {
   return s;
 }
 
-/** อ่าน/เขียนแผนที่รหัสสำรองในเครื่อง (กัน RLS บล็อกแล้วรหัสหาย) */
-function nhs_idMapGet() {
-  try { return JSON.parse(localStorage.getItem('nhs-v2-id-map') || '{}') || {}; }
-  catch (e) { return {}; }
-}
-function nhs_idMapSet(map) {
-  try { localStorage.setItem('nhs-v2-id-map', JSON.stringify(map)); } catch (e) {}
-}
-function nhs_idMapKey(c) {
-  if (c && c.id) return 'id:' + c.id;
-  const p = nhs_normPhone(c && c.phone);
-  return p ? ('p:' + p) : '';
-}
-
-/** ใส่รหัสจาก local map เข้า allCusts ก่อนแสดง */
-function nhs_mergeLocalIds() {
-  const map = nhs_idMapGet();
-  let n = 0;
-  (allCusts || []).forEach(c => {
-    const has = c.nhs_id && String(c.nhs_id).trim() && String(c.nhs_id).trim() !== '---';
-    if (has) return;
-    const k = nhs_idMapKey(c);
-    if (k && map[k]) {
-      c.nhs_id = map[k];
-      c._nhs_local_only = true;
-      n++;
-    }
-  });
-  return n;
-}
-
-/**
- * สร้างรหัส NHS ให้ลูกค้าที่ยังไม่มี
- * พยายามเขียน DB — ถ้าไม่ได้ เก็บใน localStorage แล้วโชว์บนจอเสมอ
- */
-async function genMissingCustomerIds() {
-  try {
-    nhs_mergeLocalIds();
-    const missing = (allCusts || []).filter(c => {
-      const id = String(c.nhs_id || '').trim();
-      return !id || id === '---' || id === '-' || id === 'null';
-    });
-    if (!missing.length) return { ok: 0, fail: 0, lastError: null };
-
-    let seq = nhs_nextSeq();
-    const plan = missing.map(c => ({ c, nhsId: 'NHS-' + String(seq++).padStart(5, '0') }));
-    const map = nhs_idMapGet();
-    let ok = 0, fail = 0, lastError = null;
-    const canDb = !!(typeof db !== 'undefined' && db);
-
-    for (let i = 0; i < plan.length; i += 10) {
-      const batch = plan.slice(i, i + 10);
-      const results = await Promise.all(batch.map(async ({ c, nhsId }) => {
-        // ใส่ในจอ + local ก่อนเสมอ
-        c.nhs_id = nhsId;
-        const k = nhs_idMapKey(c);
-        if (k) map[k] = nhsId;
-
-        if (!canDb || !c.id) {
-          c._nhs_local_only = true;
-          return { ok: false, err: !canDb ? 'no db' : 'no id' };
-        }
-        try {
-          let error = null;
-          if (typeof nhs_safeCustomerUpdate === 'function') {
-            const r = await nhs_safeCustomerUpdate(c.id, { nhs_id: nhsId }, false);
-            error = r.error;
-          } else {
-            const r = await db.from('customers').update({ nhs_id: nhsId }).eq('id', c.id);
-            error = r.error;
-          }
-          if (error) {
-            c._nhs_local_only = true;
-            return { ok: false, err: error.message || String(error) };
-          }
-          c._nhs_local_only = false;
-          return { ok: true };
-        } catch (e) {
-          c._nhs_local_only = true;
-          return { ok: false, err: e.message || String(e) };
-        }
-      }));
-      results.forEach(r => {
-        if (r.ok) ok++;
-        else { fail++; lastError = r.err; }
-      });
-    }
-    nhs_idMapSet(map);
-    return { ok, fail, lastError };
-  } catch (e) {
-    console.warn('genMissingCustomerIds', e);
-    return { ok: 0, fail: 0, lastError: e.message || String(e) };
-  }
-}
-
-/**
- * สร้างลูกค้าจากคิวที่ยังไม่มีใน customers (เชื่อมอัตโนมัติด้วยเบอร์)
- * ❌ ไม่สร้างตารางใหม่ — insert เข้า customers ที่มีอยู่
- */
 async function nhs_linkQueuesToCustomers() {
-  let created = 0;
-  const phones = new Set((allCusts || []).map(c => nhs_normPhone(c.phone)).filter(Boolean));
-  const seen = new Set();
-  for (const q of (allQs || [])) {
-    const pn = nhs_normPhone(q.customer_phone);
-    if (!pn || pn.length < 9) continue;
-    if (phones.has(pn) || seen.has(pn)) continue;
-    seen.add(pn);
-    const name = (q.customer_name || '').trim() || ('ลูกค้า ' + pn.slice(-4));
-    const nhs = 'NHS-' + String(nhs_nextSeq() + created).padStart(5, '0');
-    try {
-      const payload = {
-        name: name,
-        phone: pn,
-        nhs_id: nhs,
-        member_level: 'ทั่วไป',
-        points: 0,
-        visits: 0,
-        source_channel: q.source_channel || 'จากคิว'
-      };
-      let data = null, error = null;
-      if (typeof nhs_safeCustomerInsert === 'function') {
-        const r = await nhs_safeCustomerInsert(payload);
-        data = r.data; error = r.error;
-      } else {
-        const r = await db.from('customers').insert(payload).select().maybeSingle();
-        data = r.data; error = r.error;
-      }
-      if (!error && data) {
-        if (!data.nhs_id) data.nhs_id = nhs;
-        allCusts.unshift(data);
-        phones.add(pn);
-        created++;
-      }
-    } catch (e) {
-      console.warn('link queue customer', e);
-    }
-  }
-  return created;
+  // คิวจากชื่อ/เบอร์ไม่ใช่หลักฐานตัวตน LINE จึงห้ามสร้างรหัสสมาชิกหรือผูกสิทธิ์อัตโนมัติ
+  return { created: 0, skipped: (allQs || []).length, reason: 'identity verification required' };
 }
 
-/** ปุ่มซิงค์ข้อมูล: โหลด → สร้างรหัส → เชื่อมคิว → รีเรนเดอร์ */
+/** ปุ่มซิงค์ข้อมูล: โหลดข้อมูลจริงแล้วรีเรนเดอร์ โดยไม่ออกเลขหรือผูกตัวตนอัตโนมัติ */
 async function nhs_syncAllData() {
   toast('กำลังซิงค์ข้อมูล...');
   try {
     await loadData(true); // silent internal
-    const idResult = await genMissingCustomerIds();
-    const linkedNew = await nhs_linkQueuesToCustomers();
-    // สร้างรหัสอีกรอบให้คนที่เพิ่งสร้างจากคิว
-    const idResult2 = await genMissingCustomerIds();
-    const fixed = (idResult.ok || 0) + (idResult2.ok || 0);
 
     if (typeof renderCRM === 'function') renderCRM(allCusts);
     if (typeof renderCalendar === 'function') renderCalendar();
@@ -3783,16 +3622,11 @@ async function nhs_syncAllData() {
     const cnt = document.getElementById('crm-count-label');
     if (cnt) {
       cnt.textContent = 'ลูกค้า ' + allCusts.length + ' คน · คิว ' + allQs.length +
-        ' · เชื่อมคิวได้ ' + linkedQs + '/' + allQs.length +
-        (fixed ? ' · รหัสใหม่ +' + fixed : '') +
-        (linkedNew ? ' · ลูกค้าจากคิว +' + linkedNew : '');
+        ' · เชื่อมคิวได้ ' + linkedQs + '/' + allQs.length;
     }
 
     let msg = '✅ ซิงค์แล้ว: ลูกค้า ' + allCusts.length + ' · คิว ' + allQs.length + ' · เชื่อมได้ ' + linkedQs;
-    if (fixed) msg += ' · สร้างรหัส ' + fixed + ' คน';
-    if (linkedNew) msg += ' · ดึงจากคิว ' + linkedNew + ' คน';
-    if (stillMissing) msg += ' · ยังขาดรหัส ' + stillMissing;
-    if (idResult.lastError && idResult.fail) msg += ' (DB: ' + idResult.lastError + ')';
+    if (stillMissing) msg += ' · รอยืนยันตัวตน ' + stillMissing + ' คน';
     toast(msg);
   } catch (e) {
     console.error(e);
@@ -3804,7 +3638,6 @@ async function loadData(silent) {
   try {
     if (typeof db === 'undefined' || !db) {
       // ยังแสดงจาก cache ถ้ารีเฟรช
-      nhs_mergeLocalIds();
       if (typeof renderCRM === 'function') renderCRM(allCusts || []);
       if (!silent) toast('⚠️ ยังเชื่อม Supabase ไม่ได้ — เช็คเน็ตหรือรีเฟรชหน้า');
       return;
@@ -3848,9 +3681,7 @@ async function loadData(silent) {
     if (rq.data) allQs = rq.data;
     if (rc.data) allCusts = rc.data;
 
-    // ผสานรหัสจากเครื่อง แล้วสร้างให้คนที่ยังไม่มี
-    nhs_mergeLocalIds();
-    const fixedResult = await genMissingCustomerIds();
+    // แสดงเฉพาะรหัสที่ฐานข้อมูลมีอยู่จริง ห้ามผสานหรือสร้างจากเครื่อง
     const shown = (allCusts || []).filter(c => c.nhs_id && String(c.nhs_id).trim()).length;
 
     if (typeof renderDash === 'function') try { renderDash(); } catch (e) { console.warn(e); }
@@ -5013,7 +4844,7 @@ function openQueueModal() {
   $('q-name').value = ''; $('q-phone').value = ''; $('q-price').value = ''; $('q-deposit').value = '0'; $('q-note').value = '';
   $('q-slip').value = ''; $('q-slip-file').value = ''; $('q-slip-preview').style.display = 'none';
   if ($('q-time')) $('q-time').value = '';
-  $('q-nhs-display').textContent = 'NHS-' + String(allCusts.length + 1).padStart(3, '0');
+  $('q-nhs-display').textContent = 'รอยืนยันตัวตน';
   document.querySelectorAll('#q-svc-grid .icon-btn').forEach(b => b.classList.remove('active'));
   selQSvc = '';
   openM('mQueue');
@@ -5039,10 +4870,10 @@ function checkCustomerByPhone(phone) {
   const c = (allCusts || []).find(x => nhs_normPhone(x.phone) === pn || x.phone === phone);
   if (c) {
     if ($('q-name') && !$('q-name').value) $('q-name').value = c.name || '';
-    if ($('q-nhs-display')) $('q-nhs-display').textContent = c.nhs_id || '⚠ ไม่มีรหัส';
-    toast('พบข้อมูลลูกค้าเดิม' + (c.nhs_id ? ' (' + c.nhs_id + ')' : ''));
+    if ($('q-nhs-display')) $('q-nhs-display').textContent = c.nhs_id || 'รอยืนยันตัวตน';
+    toast('พบข้อมูลลูกค้าเดิม' + (c.nhs_id ? ' (' + c.nhs_id + ')' : ' — รอยืนยันตัวตน'));
   } else {
-    if ($('q-nhs-display')) $('q-nhs-display').textContent = 'ลูกค้าใหม่ (จะสร้างรหัสอัตโนมัติ)';
+    if ($('q-nhs-display')) $('q-nhs-display').textContent = 'รอยืนยันตัวตน';
   }
 }
 
@@ -5095,7 +4926,7 @@ async function saveQueue() {
   $('q-date').value = new Date().toISOString().split('T')[0];
   $('q-name').value = ''; $('q-phone').value = ''; $('q-price').value = ''; $('q-deposit').value = '0'; $('q-note').value = '';
   $('q-slip').value = ''; $('q-slip-file').value = ''; $('q-slip-preview').style.display = 'none';
-  $('q-nhs-display').textContent = 'NHS-' + String(allCusts.length + 1).padStart(3, '0');
+  $('q-nhs-display').textContent = 'รอยืนยันตัวตน';
   document.querySelectorAll('#q-svc-grid .icon-btn').forEach(b => b.classList.remove('active'));
   selQSvc = '';
   closeM('mQueue'); await loadData(); toast('✅ จองคิวแล้ว');
@@ -5221,11 +5052,9 @@ async function checkAndCreateCustomer(name, phone, source) {
   } catch (e) { console.warn('checkAndCreateCustomer find', e); }
 
   if (!exist) {
-    const nhs = 'NHS-' + String((typeof nhs_nextSeq === 'function' ? nhs_nextSeq() : ((allCusts && allCusts.length) || 0) + 1)).padStart(5, '0');
     const payload = {
       name: name,
       phone: phoneClean,
-      nhs_id: nhs,
       source_channel: source || null,
       member_level: 'ทั่วไป',
       points: 0,
@@ -5241,18 +5070,14 @@ async function checkAndCreateCustomer(name, phone, source) {
     }
     if (error) console.warn('สร้างลูกค้าตอนจองคิวไม่สำเร็จ', error);
     else if (data) {
-      if (!data.nhs_id) data.nhs_id = nhs;
       allCusts = allCusts || [];
       allCusts.unshift(data);
     }
     return data || null;
   }
 
-  // มีลูกค้าแล้ว — เติมรหัสถ้ายังไม่มี + sync เบอร์ให้เป็นตัวเลขล้วน
+  // มีลูกค้าแล้ว — sync เบอร์ให้เป็นตัวเลขล้วนเท่านั้น; รหัสสมาชิกต้องออกหลังยืนยัน LINE
   const patch = {};
-  if (!exist.nhs_id || !String(exist.nhs_id).trim()) {
-    patch.nhs_id = 'NHS-' + String((typeof nhs_nextSeq === 'function' ? nhs_nextSeq() : ((allCusts && allCusts.length) || 0) + 1)).padStart(5, '0');
-  }
   if (exist.phone !== phoneClean && phoneClean) patch.phone = phoneClean;
   if (Object.keys(patch).length && exist.id) {
     if (typeof nhs_safeCustomerUpdate === 'function') {
@@ -5280,8 +5105,8 @@ function renderCRM(list) {
   el.innerHTML = list.map(c => {
     const hasId = c.nhs_id && String(c.nhs_id).trim() && String(c.nhs_id).trim() !== '---';
     const idLabel = hasId
-      ? `<span style="font-family:monospace;color:#A68A3D;font-weight:800;">${c.nhs_id}${c._nhs_local_only ? ' *' : ''}</span>`
-      : `<span style="color:#9B5048;font-size:11px;">⚠ ไม่มีรหัส</span>`;
+      ? `<span style="font-family:monospace;color:#A68A3D;font-weight:800;">${c.nhs_id}</span>`
+      : `<span style="color:#9B5048;font-size:11px;">รอยืนยันตัวตน</span>`;
     const initial = (c.name || '?').charAt(0);
     // ใช้ id อ้างอิงแทน JSON.stringify ทั้งก้อน — กันชื่อมีอัญประกาศพัง HTML
     const cid = c.id;
@@ -5319,7 +5144,7 @@ function editCust(c) {
 }
 function openAddCustModal() {
   $('c-id').value = '';
-  $('c-nhs').value = 'NHS-' + String(typeof nhs_nextSeq === 'function' ? nhs_nextSeq() : (allCusts.length + 1)).padStart(5, '0');
+  $('c-nhs').value = 'รอยืนยันตัวตน (ออกหลังยืนยัน LINE)';
   if ($('c-name')) $('c-name').value = '';
   if ($('c-phone')) $('c-phone').value = '';
   openM('mCust');
@@ -5330,7 +5155,6 @@ async function saveCustomer() {
   const data = {
     name: ($('c-name') && $('c-name').value) || '',
     phone: phone,
-    nhs_id: ($('c-nhs') && $('c-nhs').value) || '',
     member_level: ($('c-level') && $('c-level').value) || 'ทั่วไป'
   };
   if ($('c-id').value) {
@@ -5441,7 +5265,7 @@ async function crm_refreshConsultBadge() {
 let curCust = null;
 async function showCustDetail(c) {
   curCust = c;
-  const nhsShow = (c.nhs_id && String(c.nhs_id).trim()) ? c.nhs_id : '⚠ ไม่มีรหัส';
+  const nhsShow = (c.nhs_id && String(c.nhs_id).trim()) ? c.nhs_id : 'รอยืนยันตัวตน';
   const phoneSafe = (c.phone || '').replace(/'/g, '');
   $('cd-header').innerHTML =
     '<div style="font-weight:700; font-size:18px">' + ((typeof RANK_ICONS!=='undefined' && RANK_ICONS[c.member_level]) || '👤') + ' ' + nhsShow + ' ' + (c.name || '') + '</div>' +
@@ -6052,40 +5876,32 @@ async function nhs_findCustomerByLineUserId(lineUserId) {
     return null;
   }
 }
-function nhs_genMemberId(phone) {
-  const pn = (typeof nhs_normPhone === 'function') ? nhs_normPhone(phone) : String(phone || '').replace(/\D/g, '');
-  const now = new Date();
-  const yy = String(now.getFullYear()).slice(-2);
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  let hash = 0;
-  for (let i = 0; i < pn.length; i++) hash = ((hash * 31) + pn.charCodeAt(i)) >>> 0;
-  const seq = String(100 + (hash % 900)).padStart(3, '0');
-  const id = 'NHS-' + yy + mm + '-' + seq;
-  if (pn) {
-    const map = nhs_idMapGet();
-    map['p:' + pn] = id;
-    nhs_idMapSet(map);
-  }
-  return id;
-}
 function nhs_memberDisplayId(member) {
-  const c = member || {};
-  const existing = String(c.nhs_id || '').trim();
-  // Preserve legacy IDs already shown on receipts/cards; only generate the new format when missing.
-  if (existing && existing !== '---' && existing !== '-') return existing;
-  const key = nhs_idMapKey(c);
-  if (key) {
-    const map = nhs_idMapGet();
-    if (map[key]) { c.nhs_id = map[key]; return map[key]; }
+  const value = String(member && member.nhs_id || '').trim();
+  return value || 'รอยืนยันตัวตน';
+}
+function nhs_memberCodePrefix() {
+  const now = new Date();
+  return 'NHS-' + String(now.getFullYear()).slice(-2) + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '-';
+}
+async function nhs_issuePersistentMemberId(customer, verifiedLineUserId) {
+  if (!customer || !customer.id || !verifiedLineUserId || String(customer.line_user_id || '') !== String(verifiedLineUserId)) return null;
+  if (String(customer.nhs_id || '').trim()) return customer.nhs_id;
+  const prefix = nhs_memberCodePrefix();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const latest = await db.from('customers').select('nhs_id').like('nhs_id', prefix + '%').order('nhs_id', { ascending: false }).limit(1);
+    if (latest.error) { console.warn('nhs_issuePersistentMemberId read', latest.error); return null; }
+    const existing = latest.data && latest.data[0] && String(latest.data[0].nhs_id || '');
+    const match = existing.match(/-(\d{3})$/);
+    const next = (match ? Number(match[1]) : 0) + 1;
+    const candidate = prefix + String(next).padStart(3, '0');
+    const updated = await db.from('customers').update({ nhs_id: candidate }).eq('id', customer.id).is('nhs_id', null).select().maybeSingle();
+    if (!updated.error && updated.data && updated.data.nhs_id) return updated.data.nhs_id;
+    const fresh = await db.from('customers').select('nhs_id,line_user_id').eq('id', customer.id).maybeSingle();
+    if (fresh.data && String(fresh.data.line_user_id || '') === String(verifiedLineUserId) && String(fresh.data.nhs_id || '').trim()) return fresh.data.nhs_id;
+    if (updated.error) console.warn('nhs_issuePersistentMemberId write', updated.error);
   }
-  const generated = nhs_genMemberId(c.phone);
-  if (key) {
-    const map = nhs_idMapGet();
-    map[key] = generated;
-    nhs_idMapSet(map);
-  }
-  c.nhs_id = generated;
-  return generated;
+  return null;
 }
 
 async function crm_init() {
@@ -6101,7 +5917,8 @@ async function crm_init() {
   if (lineUserId) {
     const boundByLine = await nhs_findCustomerByLineUserId(lineUserId);
     if (boundByLine) {
-      crm_member = Object.assign({}, boundByLine, { nhs_id: nhs_memberDisplayId(boundByLine) });
+      const issuedNhsId = await nhs_issuePersistentMemberId(boundByLine, lineUserId);
+      crm_member = Object.assign({}, boundByLine, { nhs_id: issuedNhsId || boundByLine.nhs_id || '' });
       localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
       crm_showMember();
       return crm_member;
@@ -6111,14 +5928,13 @@ async function crm_init() {
   if (localMember && localMember.phone) {
     const data = await nhs_findCustomerByPhone(localMember.phone);
     if (data && lineUserId && data.line_user_id === lineUserId) {
-      const localNhs = localMember.nhs_id;
       const localNick = localMember.nickname;
       const localPhoto = localMember.photo_url;
       crm_member = Object.assign({}, localMember, data);
-      if (!crm_member.nhs_id && localNhs) crm_member.nhs_id = localNhs;
       if (!crm_member.nickname && localNick) crm_member.nickname = localNick;
       if (!crm_member.photo_url && localPhoto) crm_member.photo_url = localPhoto;
-      crm_member.nhs_id = nhs_memberDisplayId(crm_member);
+      const issuedNhsId = await nhs_issuePersistentMemberId(crm_member, lineUserId);
+      crm_member.nhs_id = issuedNhsId || crm_member.nhs_id || '';
       localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
       crm_showMember();
       return crm_member;
@@ -6171,14 +5987,12 @@ async function crm_register() {
     }
 
     let isNewMember = false;
-    const nhs_id = (cust && cust.nhs_id) ? cust.nhs_id : nhs_genMemberId(phone);
     const linePhoto = profile.pictureUrl || null;
     if (!cust) {
       const payload = {
         name: name,
         phone: phone,
         line_user_id: lineUserId,
-        nhs_id: nhs_id,
         source_channel: source || null,
         birthday: birthday || null,
         points: 1,
@@ -6213,7 +6027,6 @@ async function crm_register() {
       if (!cust.photo_url && linePhoto) patch.photo_url = linePhoto;
       if (!cust.source_channel && source) patch.source_channel = source;
       if (!cust.member_level) patch.member_level = 'ทั่วไป';
-      if (!cust.nhs_id) patch.nhs_id = nhs_id;
       if (Object.keys(patch).length) {
         const { data: upd, error: updErr } = await nhs_safeCustomerUpdate(cust.id, patch, false, ['line_user_id']);
         if (updErr || !upd) {
@@ -6226,15 +6039,11 @@ async function crm_register() {
     if (!cust.line_user_id || String(cust.line_user_id) !== lineUserId) {
       return alert('❌ ระบบยืนยันการผูก LINE ไม่สำเร็จ จึงไม่เปิดสิทธิ์สมาชิก');
     }
-    if (!cust.nhs_id) cust.nhs_id = nhs_id;
+    const issuedNhsId = await nhs_issuePersistentMemberId(cust, lineUserId);
+    cust.nhs_id = issuedNhsId || cust.nhs_id || '';
     crm_member = Object.assign({}, cust);
     crm_member.nickname = nick || crm_member.nickname || '';
     if (linePhoto) crm_member.photo_url = linePhoto;
-    try {
-      const map = nhs_idMapGet();
-      map[nhs_idMapKey({ phone: phone, id: cust.id })] = cust.nhs_id;
-      nhs_idMapSet(map);
-    } catch (e) {}
     localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
     if (isNewMember) {
       try { await crm_addHistory('สมัครสมาชิกใหม่', 1, 'in', phone); } catch (e) {}
@@ -6242,9 +6051,9 @@ async function crm_register() {
     crm_showMember();
     crm_showPage('pg-crm-home');
     if (isNewMember) {
-      alert('✅ สมัครสมาชิกสำเร็จ!\n📋 รหัสสมาชิก: ' + (cust.nhs_id || nhs_id) + '\n🎁 ได้รับ 1 พอยท์ต้อนรับสมาชิกใหม่');
+      alert('✅ สมัครสมาชิกสำเร็จ!\n📋 รหัสสมาชิก: ' + nhs_memberDisplayId(cust) + '\n🎁 ได้รับ 1 พอยท์ต้อนรับสมาชิกใหม่');
     } else {
-      alert('✅ พบสมาชิกเดิมแล้ว!\n📋 รหัสสมาชิก: ' + (cust.nhs_id || nhs_id) + '\n🎁 พอยท์สะสม: ' + (cust.points || 0) + '\nระบบไม่ได้เพิ่มพอยท์ซ้ำ');
+      alert('✅ พบสมาชิกเดิมแล้ว!\n📋 รหัสสมาชิก: ' + nhs_memberDisplayId(cust) + '\n🎁 พอยท์สะสม: ' + (cust.points || 0) + '\nระบบไม่ได้เพิ่มพอยท์ซ้ำ');
     }
   } catch (err) {
     console.error('crm_register error:', err);
@@ -6271,12 +6080,12 @@ function crm_showRegSuccess(nhsId) {
 
 function crm_showMember() {
   if (!crm_member) return;
-  crm_member.nhs_id = nhs_memberDisplayId(crm_member);
   localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
   $('crm-reg-section').style.display = 'none';
   $('crm-member-section').style.display = 'block';
+  const displayNhsId = nhs_memberDisplayId(crm_member);
   const idEl = $('crm-card-id');
-  if (idEl) idEl.textContent = crm_member.nhs_id || '---';
+  if (idEl) idEl.textContent = displayNhsId;
   const nickEl = $('crm-card-nickname');
   if (nickEl) nickEl.textContent = crm_member.nickname || crm_member.name || 'สมาชิก';
   const ptsEl = $('crm-card-points');
@@ -6844,10 +6653,6 @@ async function crm_initProfile() {
   } catch (e) { console.warn('crm_initProfile', e); }
   if (!c) return;
   const profileNhsId = nhs_memberDisplayId(c);
-  if (crm_member) {
-    crm_member.nhs_id = profileNhsId;
-    localStorage.setItem(CRM_PRE + 'member', JSON.stringify(crm_member));
-  }
   // โลโก้ร้าน
   const logoEl = document.getElementById('crm-prof-shop-logo');
   if (logoEl && typeof CRM_LOGO !== 'undefined' && CRM_LOGO) {
@@ -8338,9 +8143,9 @@ function rc_clearCustomerBox() {
 
 function rc_bindCustomer(c) {
   rcSelectedCustomer = c;
-  if (c) c.nhs_id = nhs_memberDisplayId(c);
+  const displayNhsId = nhs_memberDisplayId(c);
   $('rc-cust-id').value = c.id;
-  $('rc-cust-nhs').textContent = c.nhs_id || '-';
+  $('rc-cust-nhs').textContent = displayNhsId;
   $('rc-cust-name').textContent = c.name || '-';
   $('rc-cust-phone').textContent = c.phone || '-';
   $('rc-cust-level').textContent = c.member_level || 'ทั่วไป';

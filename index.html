@@ -1909,6 +1909,51 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
   .nhs-records-donut { width:170px; height:170px; }
   .nhs-records-toolbar .fg { min-width:125px; }
 }
+/* === CUSTOMER DISCOVERY: NEWS, REWARDS & BOOKING === */
+body.member-theme #pg-crm-news .crm-container,
+body.member-theme #pg-crm-rewards .crm-container,
+body.member-theme #pg-crm-booking .crm-container,
+body.member-theme #pg-crm-booking-review .crm-container { background:linear-gradient(160deg,#171717 0%,#1E1B16 48%,#121212 100%) !important; min-height:100%; }
+.crm-discovery-head { padding:8px 2px 16px; }
+.crm-discovery-eyebrow { color:#E9C767; font-size:10px; font-weight:900; letter-spacing:1.6px; }
+.crm-discovery-title { color:#FFFDF8; margin:5px 0 0; font-size:26px; line-height:1.12; font-family:'Playfair Display','Prompt',serif; }
+.crm-discovery-sub { color:#CFC7BB; margin:8px 0 0; font-size:12px; line-height:1.6; }
+.crm-news-feed,.crm-reward-grid { display:grid; gap:14px; }
+.crm-news-card,.crm-reward-card { overflow:hidden; border-radius:20px; background:#211F1B; border:1px solid rgba(232,202,112,.42); box-shadow:0 14px 35px rgba(0,0,0,.22); }
+.crm-news-media { position:relative; aspect-ratio:16/9; overflow:hidden; background:linear-gradient(135deg,#2C271D,#161616); }
+.crm-news-media img,.crm-reward-visual img { width:100%; height:100%; display:block; object-fit:cover; }
+.crm-news-no-media { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:18px; background:radial-gradient(circle at 75% 20%,rgba(233,199,103,.28),transparent 38%),linear-gradient(135deg,#2A251C,#151515); }
+.crm-news-no-media span { color:#E9C767; font-size:10px; font-weight:900; letter-spacing:1.7px; }
+.crm-news-no-media b { color:#FFFDF8; font-family:'Playfair Display','Prompt',serif; margin-top:5px; font-size:22px; line-height:1.12; }
+.crm-news-body,.crm-reward-body { padding:16px; }
+.crm-news-meta,.crm-reward-top,.crm-reward-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.crm-news-meta { margin-bottom:10px; }
+.crm-news-type { display:inline-flex; padding:5px 10px; border-radius:999px; background:#F4E7B4; color:#5C4411; font-size:10px; font-weight:900; }
+.crm-news-date { color:#BEB5A8; font-size:11px; white-space:nowrap; }
+.crm-news-card h3 { color:#FFFDF8; margin:0; font-size:19px; line-height:1.35; }
+.crm-news-copy { color:#D3CCC2; white-space:pre-wrap; font-size:13px; line-height:1.75; margin-top:9px; }
+.crm-reward-summary { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px; border-radius:18px; background:linear-gradient(135deg,#F4E7B4,#D8AA42); color:#1A1712; box-shadow:0 12px 26px rgba(0,0,0,.2); margin-bottom:14px; }
+.crm-reward-summary .label { font-size:11px; font-weight:800; letter-spacing:.4px; }
+.crm-reward-summary .value { font-size:30px; font-weight:900; line-height:1; margin-top:4px; }
+.crm-reward-summary .btn { background:#1A1712; color:#F4E7B4; border:1px solid #1A1712; }
+.crm-reward-visual { height:132px; position:relative; overflow:hidden; background:linear-gradient(135deg,#39301F,#181715); display:flex; align-items:flex-end; padding:15px; }
+.crm-reward-visual::after { content:''; position:absolute; inset:0; background:linear-gradient(0deg,rgba(0,0,0,.6),transparent 66%); }
+.crm-reward-value { position:relative; z-index:1; color:#F4D777; font-family:'Playfair Display','Prompt',serif; font-size:33px; font-weight:900; letter-spacing:-1px; }
+.crm-reward-value small { display:block; color:#FFFDF8; font-family:'Prompt',sans-serif; font-size:10px; letter-spacing:1.2px; margin-bottom:3px; }
+.crm-reward-title { color:#FFFDF8; font-size:18px; font-weight:900; line-height:1.35; }
+.crm-reward-stock { flex:0 0 auto; padding:5px 8px; border-radius:999px; color:#1A1712; background:#F4E7B4; font-size:10px; font-weight:900; }
+.crm-reward-desc { color:#CFC7BB; font-size:12px; line-height:1.65; margin:8px 0 0; }
+.crm-reward-footer { align-items:end; padding-top:14px; margin-top:14px; border-top:1px solid rgba(255,255,255,.1); }
+.crm-reward-points { color:#F4D777; font-size:23px; line-height:1; font-weight:900; }
+.crm-reward-points small { display:block; color:#CFC7BB; font-size:10px; font-weight:700; margin-top:4px; }
+.crm-reward-actions { display:flex; gap:7px; align-items:center; }
+.crm-booking-journey { display:flex; gap:7px; margin:8px 0 16px; }
+.crm-booking-step { flex:1; padding:9px; border-radius:12px; background:#F6F1E8; color:#6C665C; font-size:10px; font-weight:800; text-align:center; }
+.crm-booking-step.active { background:#1A1712; color:#F4D777; }
+.crm-booking-visit { display:flex; gap:10px; align-items:center; padding:12px; border-radius:14px; background:#F6EED8; border:1px solid #E7C66A; color:#4F3B10; font-size:12px; line-height:1.45; margin-bottom:14px; }
+.crm-booking-visit b { display:block; font-size:13px; }
+.crm-booking-slot-note { color:#6C665C; font-size:11px; margin:-4px 0 10px; line-height:1.55; }
+@media (max-width:420px) { .crm-news-card h3,.crm-reward-title { font-size:17px; } .crm-reward-actions { flex-direction:column; align-items:stretch; } .crm-reward-actions .btn { width:100%; } }
 </style>
 </head>
 <body>
@@ -2963,14 +3008,17 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 <div class="page" id="pg-crm-booking">
   <div class="crm-container">
     <div class="crm-card">
-      <div class="crm-title">📅 จองคิวกับช่างมี้</div>
-      <div style="font-size:12px;color:#6C665C;line-height:1.6;margin:-5px 0 14px;">เลือกวัน เวลา และบริการของคุณ จากนั้นตรวจทานก่อนส่งให้ร้านยืนยัน</div>
+      <div class="crm-title">จองคิวกับช่างมี้</div>
+      <div class="crm-booking-journey"><div class="crm-booking-step active">1. เลือกวันและเวลา</div><div class="crm-booking-step">2. ตรวจทาน</div><div class="crm-booking-step">3. รอร้านยืนยัน</div></div>
+      <div style="font-size:12px;color:#6C665C;line-height:1.6;margin:-5px 0 14px;">เลือกบริการ ช่วงเวลา และรายละเอียดนัดของคุณ จากนั้นตรวจทานก่อนส่งให้ร้านยืนยัน</div>
       <div id="crm-booking-member" style="padding:10px 12px;border-radius:12px;background:#FAF8F4;border:1px solid #E7E1D8;font-size:12px;margin-bottom:14px;"></div>
+      <div id="crm-booking-visit" class="crm-booking-visit"></div>
       <div class="fg"><label class="fl">✂️ บริการที่ต้องการ <span style="color:#B42318;">*</span></label><select id="crm-booking-service" class="fc"></select></div>
       <div class="frow" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="fg"><label class="fl">📅 วันที่นัด <span style="color:#B42318;">*</span></label><input id="crm-booking-date" class="fc" type="date"></div>
-        <div class="fg"><label class="fl">🕒 เวลาที่สะดวก <span style="color:#B42318;">*</span></label><input id="crm-booking-time" class="fc" type="time"></div>
+        <div class="fg"><label class="fl">🕒 ช่วงเวลาที่ต้องการ <span style="color:#B42318;">*</span></label><select id="crm-booking-time" class="fc"></select></div>
       </div>
+      <div class="crm-booking-slot-note">เลือกได้ครั้งละ 1 ช่วงเวลา (ทุก 30 นาที) ระบบจะตรวจคิวซ้ำก่อนส่งและอีกครั้งก่อนร้านยืนยัน</div>
       <div class="fg"><label class="fl">📝 หมายเหตุถึงช่าง (ถ้ามี)</label><textarea id="crm-booking-note" class="fc" rows="3" placeholder="เช่น ต้องการปรึกษาทรงผม, ผมเคยฟอกสี"></textarea></div>
       <button class="btn btn-gold" style="width:100%;padding:14px;font-size:15px;" onclick="crm_bookingOpenReview()">🔎 ตรวจทานก่อนส่ง</button>
       <button class="btn btn-outline" style="width:100%;margin-top:8px;" onclick="crm_showPage('pg-crm-home')">กลับหน้าบัตรสมาชิก</button>
@@ -2987,6 +3035,7 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
   <div class="crm-container">
     <div class="crm-card">
       <div class="crm-title">🔎 ตรวจทานคำขอจองคิว</div>
+      <div class="crm-booking-journey"><div class="crm-booking-step">1. เลือกวันและเวลา</div><div class="crm-booking-step active">2. ตรวจทาน</div><div class="crm-booking-step">3. รอร้านยืนยัน</div></div>
       <div id="crm-booking-review-card" style="margin:14px 0;"></div>
       <div style="padding:10px 12px;border-radius:12px;background:#FFF8E6;border:1px solid #E7C66A;font-size:12px;line-height:1.6;color:#6E5010;">เมื่อยืนยันส่ง ร้านจะตรวจสอบคิวอีกครั้งก่อนบันทึก และจะแจ้งสถานะให้คุณทราบในหน้านี้</div>
       <button class="btn btn-gold" style="width:100%;margin-top:14px;padding:14px;font-size:15px;" onclick="crm_bookingConfirm()">✅ ยืนยันส่งคำขอจองคิว</button>
@@ -2998,11 +3047,9 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 <!-- PAGE 10: REWARDS LIST -->
 <div class="page" id="pg-crm-rewards">
   <div class="crm-container">
-    <div class="crm-card" style="display:flex; justify-content:space-between; align-items:center;">
-      <div><span style="font-size:12px; color:#666;">พอยท์ของคุณ</span><div style="font-size:24px; font-weight:800; color:var(--crm-gold-dark);" id="crm-reward-pts">0</div></div>
-      <button class="btn btn-sm btn-gold" onclick="crm_showPage('pg-crm-my-rewards')">ของที่แลกแล้ว 🎫</button>
-    </div>
-    <div id="crm-reward-list"></div>
+    <div class="crm-discovery-head"><div class="crm-discovery-eyebrow">MEMBER BENEFITS</div><div class="crm-discovery-title">แลกรางวัลของคุณ</div><div class="crm-discovery-sub">เลือกของรางวัลจากพอยท์จริงในบัญชีสมาชิกและตรวจเงื่อนไขก่อนยืนยัน</div></div>
+    <div class="crm-reward-summary"><div><div class="label">พอยท์พร้อมใช้</div><div class="value" id="crm-reward-pts">0</div></div><button class="btn btn-sm" onclick="crm_showPage('pg-crm-my-rewards')">ของที่แลกแล้ว</button></div>
+    <div id="crm-reward-list" class="crm-reward-grid"></div>
   </div>
 </div>
 
@@ -3033,8 +3080,8 @@ body.member-theme .crm-review-success { color: #F0D78C; font-size: 18px; font-we
 <!-- PAGE 13: NEWS & NOTIFICATIONS -->
 <div class="page" id="pg-crm-news">
   <div class="crm-container">
-    <div class="crm-title">ข่าวสารและโปรโมชั่น</div>
-    <div id="crm-news-list"></div>
+    <div class="crm-discovery-head"><div class="crm-discovery-eyebrow">N HAIR JOURNAL</div><div class="crm-discovery-title">ข่าวสารและโปรโมชั่น</div><div class="crm-discovery-sub">อัปเดตข่าวและสิทธิประโยชน์จากร้านโดยตรง</div></div>
+    <div id="crm-news-list" class="crm-news-feed"></div>
   </div>
 </div>
 
@@ -5891,7 +5938,7 @@ async function nhs_issuePersistentMemberId(customer, verifiedLineUserId) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const latest = await db.from('customers').select('nhs_id').like('nhs_id', prefix + '%').order('nhs_id', { ascending: false }).limit(1);
     if (latest.error) { console.warn('nhs_issuePersistentMemberId read', latest.error); return null; }
-    const existing = latest.data && latest.data[0] && String(latest.data[0].nhs_id || '');
+    const existing = String((latest.data && latest.data[0] && latest.data[0].nhs_id) || '');
     const match = existing.match(/-(\d{3})$/);
     const next = (match ? Number(match[1]) : 0) + 1;
     const candidate = prefix + String(next).padStart(3, '0');
@@ -6245,8 +6292,16 @@ function crm_bookingInit() {
   }
   const date = $('crm-booking-date');
   if (date) { date.min = crm_bookingToday(); if (!date.value) date.value = crm_bookingToday(); }
+  const slot = $('crm-booking-time');
+  if (slot && !slot.dataset.ready) {
+    slot.innerHTML = '<option value="">เลือกช่วงเวลา</option>' + crm_bookingTimeSlots().map(function(time) { return '<option value="' + time + '">' + time + ' น.</option>'; }).join('');
+    slot.dataset.ready = 'true';
+  }
   const memberBox = $('crm-booking-member');
-  if (memberBox) memberBox.innerHTML = '<b>สมาชิกที่ใช้จอง:</b> ' + crm_bookingEscape(crm_member.name || crm_member.nickname || 'สมาชิก') + '<br><span style="color:#6C665C;">' + crm_bookingEscape(crm_member.phone) + ' · ' + crm_bookingEscape(crm_member.nhs_id || '') + '</span>';
+  if (memberBox) memberBox.innerHTML = '<b>สมาชิกที่ใช้จอง:</b> ' + crm_bookingEscape(crm_member.name || crm_member.nickname || 'สมาชิก') + '<br><span style="color:#6C665C;">' + crm_bookingEscape(crm_member.phone) + (crm_member.nhs_id ? ' · ' + crm_bookingEscape(crm_member.nhs_id) : '') + '</span>';
+  const visitBox = $('crm-booking-visit');
+  const visit = crm_bookingVisitType();
+  if (visitBox) visitBox.innerHTML = '<span style="font-size:20px;">' + visit.icon + '</span><div><b>' + visit.label + '</b><span>' + visit.detail + '</span></div>';
   crm_bookingRender();
   if (!crm_bookingPollTimer) {
     crm_bookingPollTimer = setInterval(function() {
@@ -6255,6 +6310,25 @@ function crm_bookingInit() {
     }, 15000);
   }
 }
+function crm_bookingTimeSlots() {
+  const slots = [];
+  for (let hour = 10; hour <= 19; hour += 1) {
+    slots.push(String(hour).padStart(2, '0') + ':00');
+    slots.push(String(hour).padStart(2, '0') + ':30');
+  }
+  return slots;
+}
+function crm_bookingVisitType() {
+  const visits = Number((crm_member || {}).visits || 0);
+  return visits > 0
+    ? { label: 'นัดหมายครั้งถัดไป', icon: '↻', detail: 'ระบบอ้างอิงจากประวัติใช้บริการ ' + visits + ' ครั้ง' }
+    : { label: 'นัดหมายครั้งแรก', icon: '✦', detail: 'ระบบอ้างอิงจากประวัติใช้บริการที่ยังไม่มีรายการ' };
+}
+function crm_bookingVisitLabelFromNote(note) {
+  const found = String(note || '').match(/^\[ประเภทการนัด:([^\]]+)\]\s*/);
+  return found ? found[1].trim() : '';
+}
+function crm_bookingUserNote(note) { return String(note || '').replace(/^\[ประเภทการนัด:[^\]]+\]\s*/, '').trim(); }
 async function crm_bookingLoadOwn() {
   const phone = crm_bookingPhone();
   if (!phone) return [];
@@ -6276,7 +6350,8 @@ async function crm_bookingRender() {
     return '<div style="border:1px solid #E7E1D8;border-left:4px solid ' + label[1] + ';border-radius:12px;padding:12px;margin-bottom:9px;background:#fff;">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;"><div><b>' + crm_bookingEscape(q.services || '-') + '</b><div style="font-size:12px;color:#6C665C;margin-top:4px;">' + crm_bookingEscape(String(q.queue_date || '').slice(0, 10)) + ' · ' + crm_bookingEscape(String(q.queue_time || '').slice(0, 5)) + '</div></div>' +
       '<span style="font-size:11px;font-weight:800;color:' + label[1] + ';background:' + label[2] + ';padding:5px 8px;border-radius:99px;white-space:nowrap;">' + label[0] + '</span></div>' +
-      (q.note ? '<div style="font-size:12px;color:#6C665C;margin-top:8px;">' + crm_bookingEscape(q.note) + '</div>' : '') + actions + '</div>';
+      (crm_bookingVisitLabelFromNote(q.note) ? '<div style="font-size:11px;color:#8B7520;margin-top:8px;font-weight:800;">' + crm_bookingEscape(crm_bookingVisitLabelFromNote(q.note)) + '</div>' : '') +
+      (crm_bookingUserNote(q.note) ? '<div style="font-size:12px;color:#6C665C;margin-top:5px;">' + crm_bookingEscape(crm_bookingUserNote(q.note)) + '</div>' : '') + actions + '</div>';
   }).join('');
 }
 async function crm_bookingConflict(date, time, excludeId) {
@@ -6296,14 +6371,17 @@ async function crm_bookingOpenReview() {
   const time = String(($('crm-booking-time') || {}).value || '').trim();
   const note = String(($('crm-booking-note') || {}).value || '').trim();
   if (!service || !date || !time) return toast('กรุณาเลือกบริการ วันที่ และเวลาให้ครบ');
+  if (!crm_bookingTimeSlots().includes(time)) return toast('กรุณาเลือกช่วงเวลาจากรายการที่กำหนด');
   if (date < crm_bookingToday()) return toast('กรุณาเลือกวันนัดตั้งแต่วันนี้เป็นต้นไป');
   const conflict = await crm_bookingConflict(date, time, crm_bookingEditingId);
   if (conflict.blocked) return toast('⚠️ ' + conflict.reason);
-  crm_bookingDraft = { service: service, date: date, time: time, note: note };
+  const visit = crm_bookingVisitType();
+  crm_bookingDraft = { service: service, date: date, time: time, note: note, visitLabel: visit.label };
   const review = $('crm-booking-review-card');
   if (review) review.innerHTML = '<div style="border:1px solid #E7E1D8;border-radius:14px;padding:14px;background:#FAF8F4;line-height:1.8;font-size:13px;">' +
     '<div><span style="color:#6C665C;">สมาชิก:</span> <b>' + crm_bookingEscape(crm_member.name || crm_member.nickname || '') + '</b></div>' +
     '<div><span style="color:#6C665C;">บริการ:</span> <b>' + crm_bookingEscape(service) + '</b></div>' +
+    '<div><span style="color:#6C665C;">ประเภทการนัด:</span> <b>' + crm_bookingEscape(visit.label) + '</b></div>' +
     '<div><span style="color:#6C665C;">วันและเวลา:</span> <b>' + crm_bookingEscape(date) + ' · ' + crm_bookingEscape(time) + '</b></div>' +
     '<div><span style="color:#6C665C;">หมายเหตุ:</span> ' + crm_bookingEscape(note || '-') + '</div></div>';
   crm_showPage('pg-crm-booking-review');
@@ -6317,7 +6395,7 @@ async function crm_bookingConfirm() {
   const payload = {
     customer_name: crm_member.name || crm_member.nickname || 'สมาชิก N HAIR STYLIST', customer_phone: phone,
     services: draft.service, queue_date: draft.date, queue_date_iso: draft.date, queue_time: draft.time,
-    note: draft.note, status: 'pending_confirmation', source_channel: 'customer_line', deposit_status: 'unpaid', deposit_amount: 0, price: 0
+    note: '[ประเภทการนัด: ' + draft.visitLabel + ']' + (draft.note ? '\n' + draft.note : ''), status: 'pending_confirmation', source_channel: 'customer_line', deposit_status: 'unpaid', deposit_amount: 0, price: 0
   };
   let error = null;
   if (crm_bookingEditingId) {
@@ -6343,7 +6421,7 @@ function crm_bookingEdit(id) {
     if ($('crm-booking-service')) $('crm-booking-service').value = q.services || '';
     if ($('crm-booking-date')) $('crm-booking-date').value = String(q.queue_date || '').slice(0, 10);
     if ($('crm-booking-time')) $('crm-booking-time').value = String(q.queue_time || '').slice(0, 5);
-    if ($('crm-booking-note')) $('crm-booking-note').value = q.note || '';
+    if ($('crm-booking-note')) $('crm-booking-note').value = crm_bookingUserNote(q.note);
   }, 0);
 }
 async function crm_bookingCancel(id) {
@@ -6514,35 +6592,33 @@ async function crm_renderRewards() {
     const canRedeem = crm_member && crm_member.points >= r.pts && (r.qty === undefined || r.qty > 0);
     const isSpecial = !!(r.is_special || r.special || r.isSpecial);
     const rewardImage = crm_rewardImage(r);
+    const rewardId = Number(r.id || r.db_id || 0);
+    const rewardName = crm_rewardTitle(r.name || 'รางวัลสมาชิก');
+    const rewardValue = crm_rewardValue(r.name || '') || 'REWARD';
     const imgHtml = rewardImage
-      ? `<img src="${rewardImage}" alt="รูป ${r.name}" style="display:block;width:100%;height:auto;min-height:150px;object-fit:contain;background:#171717;">`
-      : `<div style="font-size:34px;">${r.icon || '🎁'}</div>`;
+      ? `<img src="${rewardImage}" alt="รูป ${crm_bookingEscape(rewardName)}">`
+      : `<div class="crm-reward-value"><small>MEMBER REWARD</small>${crm_bookingEscape(rewardValue)}</div>`;
+    const rewardDesc = crm_rewardExcerpt(r.desc || 'ตรวจรายละเอียดและเงื่อนไขก่อนยืนยันการแลก');
     return `
-    <div class="reward-item${isSpecial ? ' nhs-special-reward' : ''}">
-      <div class="reward-icon" style="width:112px;min-height:150px;height:auto;overflow:hidden;align-items:flex-start;">${imgHtml}</div>
-      <div class="reward-body">
-        ${isSpecial ? '<div class="nhs-special-ribbon">✦ SPECIAL REWARD</div>' : ''}
-        <div style="font-weight:800;font-size:15px;">${r.name}</div>
-        ${isSpecial ? '<div class="nhs-special-note">รางวัลพิเศษคัดสรรสำหรับสมาชิก</div>' : ''}
-        <div style="font-size:11px; color:#666;margin-top:4px;">${r.desc || ''}</div>
-        <div class="reward-pts" style="font-size:18px;margin-top:6px;">${r.pts} พอยท์</div>
-        ${r.qty !== undefined ? `<div style="font-size:10px;color:#999;">เหลือ ${r.qty} ชิ้น</div>` : ''}
-        ${r.endDate ? `<div style="font-size:10px;color:#9B5048;">หมดอายุ ${r.endDate}</div>` : ''}
-        ${r.conditions ? `<div style="font-size:10px;color:#888;margin-top:3px;cursor:pointer;" onclick="crm_showRewardCond(${r.id})">📋 ดูเงื่อนไข</div>` : ''}
-        <button class="btn btn-sm btn-gold" style="width:100%; margin-top:8px;"
-          ${canRedeem ? '' : 'disabled'}
-          onclick="crm_redeem(${r.id})">
-          ${canRedeem ? 'แลก Point' : (r.qty === 0 ? 'หมดแล้ว' : 'พอยท์ไม่พอ')}
-        </button>
+    <article class="crm-reward-card${isSpecial ? ' nhs-special-reward' : ''}">
+      <div class="crm-reward-visual">${imgHtml}</div>
+      <div class="crm-reward-body">
+        <div class="crm-reward-top"><div class="crm-reward-title">${crm_bookingEscape(rewardName)}</div>${r.qty !== undefined ? `<div class="crm-reward-stock">เหลือ ${Number(r.qty)} สิทธิ์</div>` : ''}</div>
+        <div class="crm-reward-desc">${crm_bookingEscape(rewardDesc)}</div>
+        ${r.endDate ? `<div style="font-size:11px;color:#F0C5BD;margin-top:8px;">ใช้ได้ถึง ${crm_bookingEscape(r.endDate)}</div>` : ''}
+        <div class="crm-reward-footer"><div class="crm-reward-points">${Number(r.pts || 0).toLocaleString()}<small>พอยท์ที่ใช้แลก</small></div><div class="crm-reward-actions">${r.conditions ? `<button class="btn btn-sm btn-outline" type="button" onclick="crm_showRewardCond(${rewardId})">เงื่อนไข</button>` : ''}<button class="btn btn-sm btn-gold" ${canRedeem ? '' : 'disabled'} onclick="crm_redeem(${rewardId})">${canRedeem ? 'แลกรางวัล' : (r.qty === 0 ? 'หมดแล้ว' : 'พอยท์ไม่พอ')}</button></div></div>
       </div>
-    </div>
+    </article>
   `;
   }).join('');
 }
+function crm_rewardTitle(value) { return String(value || '').replace(/\s*\(ใช้[^)]*\)\s*/g, ' ').replace(/[🎁🏷️]/g, '').replace(/\s+/g, ' ').trim(); }
+function crm_rewardValue(value) { const match = String(value || '').match(/(\d[\d,]*)\s*บาท/); return match ? match[1] + ' บาท' : ''; }
+function crm_rewardExcerpt(value) { const text = String(value || '').replace(/[✂️📍📅]/g, '').replace(/\s+/g, ' ').trim(); return text.length > 150 ? text.slice(0, 147) + '…' : text; }
 
 async function crm_showRewardCond(id) {
   const rewards = await crm_getRewards();
-  const r = rewards.find(x => x.id === id);
+  const r = rewards.find(x => String(x.id || x.db_id) === String(id));
   if(!r) return;
   let msg = 'เงื่อนไข: ' + r.name + '\n';
   if(r.conditions) msg += '⚠️ ' + r.conditions + '\n';
@@ -6555,7 +6631,7 @@ async function crm_showRewardCond(id) {
 async function crm_redeem(id) {
   if (!crm_member || !crm_member.phone) return toast('กรุณาเข้าสู่ระบบสมาชิกก่อน');
   const rewards = await crm_getRewards();
-  const r = rewards.find(x => x.id === id || x.db_id === id);
+  const r = rewards.find(x => String(x.id || x.db_id) === String(id));
   if (!r) return toast('ไม่พบรางวัล');
   if (!confirm('ยืนยันการแลก "' + r.name + '" ใช้ ' + r.pts + ' พอยท์?')) return;
 
@@ -7638,17 +7714,15 @@ async function crm_renderNews() {
   try { localStorage.setItem(CRM_PRE + 'news', JSON.stringify(news)); } catch (e) {}
   const el = document.getElementById('crm-news-list');
   if (el) {
-    el.innerHTML = news.map(n => `
-      <div class="crm-card">
-        ${crm_newsImage(n) ? `<img src="${crm_newsImage(n)}" alt="ภาพข่าวสาร ${n.title || ''}" style="display:block;width:100%;height:auto;max-height:none;object-fit:contain;border-radius:10px;margin-bottom:10px;background:#171717;">` : ''}
-        <div style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;background:#F6EED8;color:#8B6B25;margin-bottom:5px;">${n.newsType || n.type || 'ทั่วไป'}</div>
-        <div style="font-weight:700; font-size:14px; margin-bottom:5px;">${n.title}</div>
-        <div style="font-size:12px; color:#666;">${new Date(n.date).toLocaleDateString('th-TH')}</div>
-        <div style="margin-top:10px; font-size:13px; white-space:pre-wrap; line-height:1.7;">${String(n.content || '').replace(/</g, '&lt;')}</div>
-      </div>
-    `).join('') || '<div style="text-align:center; padding:30px; color:#999;">ยังไม่มีข่าวสาร</div>';
+    el.innerHTML = news.map(n => {
+      const title = crm_bookingEscape(n.title || 'ข่าวสารจาก N Hair Stylist');
+      const image = crm_newsImage(n);
+      const media = image ? `<img src="${image}" alt="ภาพข่าวสาร ${title}">` : `<div class="crm-news-no-media"><span>N HAIR JOURNAL</span><b>${title}</b></div>`;
+      return `<article class="crm-news-card"><div class="crm-news-media">${media}</div><div class="crm-news-body"><div class="crm-news-meta"><span class="crm-news-type">${crm_bookingEscape(n.newsType || n.type || 'ข่าวสารร้าน')}</span><span class="crm-news-date">${crm_newsDate(n.date)}</span></div><h3>${title}</h3><div class="crm-news-copy">${crm_bookingEscape(String(n.content || '').trim() || 'รายละเอียดจะอัปเดตโดยร้าน')}</div></div></article>`;
+    }).join('') || '<div class="crm-news-card" style="padding:28px;text-align:center;color:#CFC7BB;">ยังไม่มีข่าวสารจากร้าน</div>';
   }
 }
+function crm_newsDate(value) { const date = new Date(value || ''); return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' }); }
 
 /** เรทพอยท์กลางร้าน — เก็บใน crm_rewards type=config (ไม่ใช้ local เป็นแหล่งจริง) */
 const CRM_CONFIG_KEY = 'point_rate';

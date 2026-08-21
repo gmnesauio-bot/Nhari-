@@ -414,132 +414,65 @@ async function commitConsultForm() {
   const consultSubmittedAt = new Date().toISOString();
 
   if(isCustomerMode) {
-    // === CUSTOMER MODE: Write directly to Supabase ===
+    // แบบประเมินจากลูกค้าต้องผูกกับ LINE ที่ยืนยันแล้วเท่านั้น: ห้ามจับคู่ด้วยชื่อ/เบอร์ และห้ามออก NHS ID ในเบราว์เซอร์
     try {
-      // First, check if customer exists by phone
-      const { data: existing } = await db.from('customers').select('*').eq('phone', phone).limit(1);
-
-      let nhs_id = '';
-      let custId = null;
-
-      if(existing && existing.length > 0) {
-        nhs_id = existing[0].nhs_id || '';
-        custId = existing[0].id;
+      const profile = crm_lineProfile || await crm_getCurrentLineProfile(false).catch(function(){ return null; });
+      const lineUserId = (profile && profile.userId) || (crm_member && crm_member.line_user_id) || '';
+      if (!lineUserId || typeof nhs_findCustomerByLineUserId !== 'function') {
+        return toast('⚠️ กรุณาล็อกอิน LINE และยืนยันสมาชิกก่อนส่งแบบประเมิน');
       }
-
-      if(!custId) {
-        // Create new customer
-        nhs_id = 'NHS-' + String(Date.now()).slice(-6);
-        const sourceChannel = sources.length > 0 ? sources.join(', ') : 'แบบฟอร์มออนไลน์';
-        const consultPayload = {
-          name: name,
-          phone: phone,
-          nhs_id: nhs_id,
-          member_level: 'ทั่วไป',
-          source_channel: sourceChannel,
-          birthday: document.getElementById('cf-birthday').value || null,
-          chemistry_history: chemHistory.join(', '),
-          hair_type: concerns.join(', '),
-          allergy: allergyVal,
-          stylist_note: '',
-          hair_photo_url: document.getElementById('cf-hair-photo-url').value || null,
-          consultation_record: {
-            date: document.getElementById('cf-date').value,
-            branch: document.getElementById('cf-branch').value,
-            name: name,
-            phone: phone,
-            nhs_id: nhs_id,
-            visit_status: document.querySelector('input[name="cf_visit"]:checked')?.value || '',
-            sources: sources,
-            bleach_history: document.querySelector('input[name="cf_bleach"]:checked')?.value || '',
-            chem_history: chemHistory,
-            heat_freq: document.querySelector('input[name="cf_heat"]:checked')?.value || '',
-            concerns: concerns,
-            allergy: allergyVal,
-            avoid_areas: avoidVal,
-            services_requested: servicesRequested,
-            expectations: document.getElementById('cf-expectations').value,
-            membership: document.querySelector('input[name="cf_member"]:checked')?.value || '',
-            sig_customer: sigCustData,
-            hair_photo: document.getElementById('cf-hair-photo-url').value,
-            review_status: 'pending',
-            submitted_at: consultSubmittedAt,
-            reviewed_at: ''
-          },
-          consultation_date: document.getElementById('cf-date').value
-        };
-        let error = null;
-        if (typeof nhs_safeCustomerInsert === 'function') {
-          const r = await nhs_safeCustomerInsert(consultPayload);
-          error = r.error;
-        } else {
-          const r = await db.from('customers').insert(consultPayload).select();
-          error = r.error;
-        }
-
-        if(error) {
-          toast('❌ เกิดข้อผิดพลาด: ' + error.message);
-          console.error(error);
-          return;
-        }
-        toast('✅ บันทึกสำเร็จ! ขอบคุณที่เลือกใช้ N Hair Stylist');
-      } else {
-        // Update existing customer
-        const updatePayload = {
-          chemistry_history: chemHistory.join(', '),
-          hair_type: concerns.join(', '),
-          allergy: allergyVal,
-          hair_photo_url: document.getElementById('cf-hair-photo-url').value || undefined,
-          birthday: document.getElementById('cf-birthday').value || undefined,
-          consultation_record: {
-            date: document.getElementById('cf-date').value,
-            branch: document.getElementById('cf-branch').value,
-            name: name,
-            phone: phone,
-            nhs_id: nhs_id,
-            visit_status: document.querySelector('input[name="cf_visit"]:checked')?.value || '',
-            sources: sources,
-            bleach_history: document.querySelector('input[name="cf_bleach"]:checked')?.value || '',
-            chem_history: chemHistory,
-            heat_freq: document.querySelector('input[name="cf_heat"]:checked')?.value || '',
-            concerns: concerns,
-            allergy: allergyVal,
-            avoid_areas: avoidVal,
-            services_requested: servicesRequested,
-            expectations: document.getElementById('cf-expectations').value,
-            membership: document.querySelector('input[name="cf_member"]:checked')?.value || '',
-            sig_customer: sigCustData,
-            hair_photo: document.getElementById('cf-hair-photo-url').value,
-            review_status: 'pending',
-            submitted_at: consultSubmittedAt,
-            reviewed_at: ''
-          },
-          consultation_date: document.getElementById('cf-date').value
-        };
-        let error = null;
-        if (typeof nhs_safeCustomerUpdate === 'function') {
-          const r = await nhs_safeCustomerUpdate(custId, updatePayload, false);
-          error = r.error;
-        } else {
-          const r = await db.from('customers').update(updatePayload).eq('id', custId);
-          error = r.error;
-        }
-
-        if(error) {
-          toast('❌ เกิดข้อผิดพลาด: ' + error.message);
-          console.error(error);
-          return;
-        }
-        toast('✅ อัปเดตข้อมูลสำเร็จ! ขอบคุณที่เลือกใช้ N Hair Stylist');
+      const verifiedCustomer = await nhs_findCustomerByLineUserId(lineUserId);
+      if (!verifiedCustomer || String(verifiedCustomer.line_user_id || '') !== String(lineUserId)) {
+        return toast('⚠️ ไม่พบสมาชิก LINE ที่ยืนยันแล้ว ระบบจึงยังไม่บันทึกข้อมูล');
       }
-
-      // Show success screen
-      document.getElementById('consult-success-msg').style.display = 'block';
-      // Scroll to top
+      const verifiedPhone = (typeof nhs_normPhone === 'function') ? nhs_normPhone(verifiedCustomer.phone) : String(verifiedCustomer.phone || '').replace(/\D/g, '');
+      if (!verifiedPhone || verifiedPhone !== phone) {
+        return toast('⚠️ ข้อมูลสมาชิกไม่ตรงกับ LINE ที่ยืนยัน โปรดเปิดแบบประเมินจากหน้าสมาชิกของคุณ');
+      }
+      const nhsId = verifiedCustomer.nhs_id || '';
+      const updatePayload = {
+        chemistry_history: chemHistory.join(', '),
+        hair_type: concerns.join(', '),
+        allergy: allergyVal,
+        hair_photo_url: document.getElementById('cf-hair-photo-url').value || verifiedCustomer.hair_photo_url || null,
+        birthday: document.getElementById('cf-birthday').value || verifiedCustomer.birthday || null,
+        consultation_record: {
+          date: document.getElementById('cf-date').value,
+          branch: document.getElementById('cf-branch').value,
+          name: verifiedCustomer.name || name,
+          phone: verifiedPhone,
+          nhs_id: nhsId,
+          line_user_id: lineUserId,
+          visit_status: document.querySelector('input[name="cf_visit"]:checked')?.value || '',
+          sources: sources,
+          bleach_history: document.querySelector('input[name="cf_bleach"]:checked')?.value || '',
+          chem_history: chemHistory,
+          heat_freq: document.querySelector('input[name="cf_heat"]:checked')?.value || '',
+          concerns: concerns,
+          allergy: allergyVal,
+          avoid_areas: avoidVal,
+          services_requested: servicesRequested,
+          expectations: document.getElementById('cf-expectations').value,
+          membership: document.querySelector('input[name="cf_member"]:checked')?.value || '',
+          sig_customer: sigCustData,
+          hair_photo: document.getElementById('cf-hair-photo-url').value,
+          review_status: 'pending',
+          submitted_at: consultSubmittedAt,
+          reviewed_at: ''
+        },
+        consultation_date: document.getElementById('cf-date').value
+      };
+      const result = (typeof nhs_safeCustomerUpdate === 'function')
+        ? await nhs_safeCustomerUpdate(verifiedCustomer.id, updatePayload, false)
+        : await db.from('customers').update(updatePayload).eq('id', verifiedCustomer.id);
+      const error = result && result.error;
+      if (error) return toast('❌ บันทึกแบบประเมินไม่สำเร็จ: ' + error.message);
+      toast('✅ ส่งแบบประเมินแล้ว รอร้านตรวจสอบ');
+      const success = document.getElementById('consult-success-msg');
+      if (success) success.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
-
     } catch(err) {
-      toast('❌ เกิดข้อผิดพลาด: ' + err.message);
+      toast('❌ เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : err));
       console.error(err);
     }
   } else {
@@ -1940,6 +1873,10 @@ body.member-theme #pg-crm-booking-review .crm-container { background:linear-grad
 .crm-reward-visual::after { content:''; position:absolute; inset:0; background:linear-gradient(0deg,rgba(0,0,0,.6),transparent 66%); }
 .crm-reward-value { position:relative; z-index:1; color:#F4D777; font-family:'Playfair Display','Prompt',serif; font-size:33px; font-weight:900; letter-spacing:-1px; }
 .crm-reward-value small { display:block; color:#FFFDF8; font-family:'Prompt',sans-serif; font-size:10px; letter-spacing:1.2px; margin-bottom:3px; }
+.crm-reward-no-image { position:relative; z-index:1; display:flex; flex-direction:column; justify-content:flex-end; min-height:100%; color:#F4D777; }
+.crm-reward-no-image small { color:#FFFDF8; font-size:10px; font-weight:900; letter-spacing:1.2px; }
+.crm-reward-no-image b { margin-top:3px; font-family:'Playfair Display','Prompt',serif; font-size:33px; line-height:1; }
+.crm-reward-no-image span { color:#CFC7BB; font-size:10px; line-height:1.4; margin-top:8px; }
 .crm-reward-title { color:#FFFDF8; font-size:18px; font-weight:900; line-height:1.35; }
 .crm-reward-stock { flex:0 0 auto; padding:5px 8px; border-radius:999px; color:#1A1712; background:#F4E7B4; font-size:10px; font-weight:900; }
 .crm-reward-desc { color:#CFC7BB; font-size:12px; line-height:1.65; margin:8px 0 0; }
@@ -2998,7 +2935,7 @@ body.member-theme #pg-crm-booking-review .crm-container { background:linear-grad
       <div class="fg"><label class="fl">✂️ รายการที่จะทำ</label><input type="text" id="txn-appt-service" class="fc" placeholder="รายการ/บริการที่จะทำ"></div>
       <div class="fg"><label class="fl">📝 หมายเหตุ</label><textarea id="txn-appt-note" class="fc" rows="2" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea></div>
 
-      <button class="btn btn-gold" style="width:100%; margin-top:8px; padding:14px; font-size:15px;" onclick="crm_submitTxn()">📨 ส่งข้อมูล</button>
+      <button class="btn btn-gold" style="width:100%; margin-top:8px; padding:14px; font-size:15px;" onclick="crm_openTxnReview()">🔎 ตรวจทานก่อนส่ง</button>
       <button class="btn btn-outline" style="width:100%; margin-top:8px;" onclick="crm_showPage('pg-crm-home')">ยกเลิก / กลับหน้าบัตร</button>
     </div>
   </div>
@@ -6434,20 +6371,13 @@ async function crm_bookingCancel(id) {
   toast('ยกเลิกคำขอแล้ว');
 }
 
-function crm_defaultRewards() {
-  return [
-    { id: 1, name: 'ส่วนลด 100 บาท', pts: 500, desc: 'ใช้แทนเงินสดในการใช้บริการ', icon: '💰', image: '',
-      category: 'discount', qty: 10, startDate: '', endDate: '', conditions: 'ใช้ได้ 1 ครั้งต่อเดือน, ไม่สามารถใช้ร่วมกับโปรโมชั่นอื่น', usageLimit: '1 ครั้ง/เดือน', note: '' },
-    { id: 2, name: 'ทรีตเมนต์ฟรี', pts: 1200, desc: 'ทรีตเมนต์บำรุงผมล้ำลึก', icon: '🧴', image: '',
-      category: 'service', qty: 8, startDate: '', endDate: '', conditions: 'ต้องใช้บริการอื่นร่วมด้วย', usageLimit: 'ไม่มีจำกัด', note: '' },
-    { id: 3, name: 'ตัดผมฟรี', pts: 2000, desc: 'ตัดผมฟรีโดยช่างมืออาชีพ', icon: '✂️', image: '',
-      category: 'service', qty: 3, startDate: '', endDate: '', conditions: 'รวมสระ+ไดร์, ไม่รวมทำสี', usageLimit: '1 ครั้ง', note: '' }
-  ];
-}
-
 // ===== CRM helpers: เก็บรางวัล/ข่าว/ประวัติในตาราง crm_rewards เท่านั้น =====
 // ใช้ name เก็บ JSON { type, ...payload } เพื่อไม่ต้องสร้างคอลัมน์ใหม่
 // points_required ใช้เก็บ pts (รางวัล) หรือ amount (ประวัติ) ตาม type
+const crm_dataLoadState = {};
+function crm_setDataLoadState(type, ok, message) {
+  crm_dataLoadState[type] = { ok: !!ok, message: String(message || '') };
+}
 function crm_encodePayload(type, payload) {
   return JSON.stringify({ type, ...payload, _ts: Date.now() });
 }
@@ -6456,23 +6386,32 @@ function crm_decodeRow(row) {
   try {
     const parsed = JSON.parse(row.name);
     if (parsed && parsed.type) {
-      return { db_id: row.id, pts: row.points_required, ...parsed };
+      return Object.assign({ db_id: row.id, pts: row.points_required }, parsed, {
+        image_url: row.image_url || parsed.image_url || '',
+        image_data: row.image_data || parsed.image_data || ''
+      });
     }
   } catch (e) { /* legacy plain name */ }
-  return { db_id: row.id, name: row.name, pts: row.points_required, type: 'legacy' };
+  return { db_id: row.id, name: row.name, pts: row.points_required, type: 'legacy', image_url: row.image_url || '', image_data: row.image_data || '' };
 }
 
 async function crm_dbFetchByType(type, phoneFilter) {
   try {
     const { data, error } = await db.from('crm_rewards').select('*').order('id', { ascending: false }).limit(500);
-    if (error || !data) return [];
-    return data.map(crm_decodeRow).filter(r => {
+    if (error || !data) {
+      crm_setDataLoadState(type, false, error && error.message ? error.message : 'ไม่พบข้อมูลจากฐานข้อมูล');
+      return [];
+    }
+    const rows = data.map(crm_decodeRow).filter(r => {
       if (!r || r.type !== type) return false;
       if (phoneFilter && r.phone && r.phone !== phoneFilter) return false;
       return true;
     });
+    crm_setDataLoadState(type, true, '');
+    return rows;
   } catch (e) {
     console.warn('crm_dbFetchByType', e);
+    crm_setDataLoadState(type, false, e && e.message ? e.message : 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ');
     return [];
   }
 }
@@ -6495,9 +6434,17 @@ async function crm_prepareGenericImageForDb(value) {
 
 async function crm_dbInsert(type, payload, pointsVal) {
   try {
-    // เก็บรูปสลิป/รางวัล/ข่าวสารไว้เสมอ และบีบอัดแทนการตัดเป็นค่าว่าง
+    // รางวัลเก็บรูปแยกจากรายละเอียด JSON: URL สำหรับรูปที่เผยแพร่แล้ว, image_data สำหรับไฟล์ที่อัปโหลดจากฟอร์ม
     const safe = Object.assign({}, payload);
     if (safe.image && typeof safe.image === 'string') safe.image = await crm_prepareGenericImageForDb(safe.image);
+    let imageUrl = null;
+    let imageData = null;
+    if (type === 'reward') {
+      const image = String(safe.image || '').trim();
+      if (image.indexOf('data:image/') === 0) imageData = image;
+      else if (validateImageUrl(image)) imageUrl = image;
+      safe.image = imageUrl || '';
+    }
     const encoded = crm_encodePayload(type, safe);
     if (encoded.length > 500000) {
       console.warn('crm_dbInsert payload too large', encoded.length);
@@ -6505,7 +6452,8 @@ async function crm_dbInsert(type, payload, pointsVal) {
     }
     const { data, error } = await db.from('crm_rewards').insert({
       name: encoded,
-      points_required: pointsVal || 0
+      points_required: pointsVal || 0,
+      ...(type === 'reward' ? { image_url: imageUrl, image_data: imageData } : {})
     }).select();
     if (error) { console.warn('crm_dbInsert', error); return null; }
     return data && data[0] ? crm_decodeRow(data[0]) : null;
@@ -6519,9 +6467,18 @@ async function crm_dbUpdate(dbId, type, payload, pointsVal) {
   try {
     const safe = Object.assign({}, payload);
     if (safe.image && typeof safe.image === 'string') safe.image = await crm_prepareGenericImageForDb(safe.image);
+    let imageUrl = null;
+    let imageData = null;
+    if (type === 'reward') {
+      const image = String(safe.image || '').trim();
+      if (image.indexOf('data:image/') === 0) imageData = image;
+      else if (validateImageUrl(image)) imageUrl = image;
+      safe.image = imageUrl || '';
+    }
     const { error } = await db.from('crm_rewards').update({
       name: crm_encodePayload(type, safe),
-      points_required: pointsVal || 0
+      points_required: pointsVal || 0,
+      ...(type === 'reward' ? { image_url: imageUrl, image_data: imageData } : {})
     }).eq('id', dbId);
     return !error;
   } catch (e) {
@@ -6542,53 +6499,26 @@ async function crm_dbDelete(dbId) {
 
 function crm_rewardImage(r) {
   if (!r) return '';
-  return String(r.image || r.image_url || r.reward_image || r.photo || r.thumbnail || '').trim();
+  return String(r.image_url || r.imageUrl || r.image_data || r.imageData || r.image || r.reward_image || r.rewardImage || r.photo || r.photo_url || r.photoUrl || r.thumbnail || r.media_url || r.mediaUrl || r.cover_url || r.coverUrl || r.asset_url || r.assetUrl || '').trim();
 }
 
 async function crm_getRewards() {
-  let fromDb = [];
-  try { fromDb = await crm_dbFetchByType('reward'); } catch (e) { fromDb = []; }
-  let local = [];
-  try { local = JSON.parse(localStorage.getItem(CRM_PRE + 'rewards') || '[]') || []; } catch (e) { local = []; }
-
-  // รวม DB + local — ไม่ทับรายการที่แอดมินเพิ่งเพิ่มในเครื่อง
-  const map = {};
-  (local || []).forEach(function(r) {
-    if (!r) return;
-    const k = String(r.db_id || r.id || r.name);
-    map[k] = r;
-  });
-  (fromDb || []).forEach(function(r) {
-    if (!r) return;
-    const k = String(r.db_id || r.id || r.name);
-    const prev = map[k];
-    if (!prev) {
-      map[k] = r;
-    } else {
-      // รวมฟิลด์ — คงรูป local ถ้า DB ไม่มีรูป
-      map[k] = Object.assign({}, prev, r, {
-        image: crm_rewardImage(r) || crm_rewardImage(prev) || '',
-        desc: r.desc || prev.desc || '',
-        conditions: r.conditions || prev.conditions || '',
-        is_special: r.is_special != null ? !!r.is_special : !!(prev.is_special || prev.special || prev.isSpecial)
-      });
-    }
-  });
-  let merged = Object.keys(map).map(function(k) { return map[k]; });
-  // เรียงตาม id ใหม่ก่อน
-  merged.sort(function(a, b) {
+  const rewards = await crm_dbFetchByType('reward');
+  return (rewards || []).slice().sort(function(a, b) {
     return (b.id || b.db_id || 0) - (a.id || a.db_id || 0);
   });
-  if (merged.length > 0) {
-    try { localStorage.setItem(CRM_PRE + 'rewards', JSON.stringify(merged)); } catch (e) {}
-    return merged;
-  }
-  return crm_defaultRewards();
 }
 
 async function crm_renderRewards() {
   const rewards = await crm_getRewards();
-  $('crm-reward-list').innerHTML = rewards.map(r => {
+  const list = $('crm-reward-list');
+  if (!list) return;
+  if (!rewards.length) {
+    const status = crm_dataLoadState.reward || {};
+    list.innerHTML = `<div class="crm-card crm-news-empty" style="padding:20px;text-align:center;">${status.ok === false ? 'ขณะนี้โหลดรายการรางวัลจากฐานข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง' : 'ยังไม่มีรางวัลที่เผยแพร่จากฐานข้อมูล'}</div>`;
+    return;
+  }
+  list.innerHTML = rewards.map(r => {
     const canRedeem = crm_member && crm_member.points >= r.pts && (r.qty === undefined || r.qty > 0);
     const isSpecial = !!(r.is_special || r.special || r.isSpecial);
     const rewardImage = crm_rewardImage(r);
@@ -6596,12 +6526,12 @@ async function crm_renderRewards() {
     const rewardName = crm_rewardTitle(r.name || 'รางวัลสมาชิก');
     const rewardValue = crm_rewardValue(r.name || '') || 'REWARD';
     const imgHtml = rewardImage
-      ? `<img src="${rewardImage}" alt="รูป ${crm_bookingEscape(rewardName)}">`
-      : `<div class="crm-reward-value"><small>MEMBER REWARD</small>${crm_bookingEscape(rewardValue)}</div>`;
+      ? `<img src="${crm_bookingEscape(rewardImage)}" alt="รูป ${crm_bookingEscape(rewardName)}" onerror="crm_rewardImageFailed(this)">`
+      : `<div class="crm-reward-no-image"><small>MEMBER REWARD</small><b>${crm_bookingEscape(rewardValue)}</b><span>รอภาพจริงจากร้าน</span></div>`;
     const rewardDesc = crm_rewardExcerpt(r.desc || 'ตรวจรายละเอียดและเงื่อนไขก่อนยืนยันการแลก');
     return `
     <article class="crm-reward-card${isSpecial ? ' nhs-special-reward' : ''}">
-      <div class="crm-reward-visual">${imgHtml}</div>
+      <div class="crm-reward-visual" data-reward-value="${crm_bookingEscape(rewardValue)}">${imgHtml}</div>
       <div class="crm-reward-body">
         <div class="crm-reward-top"><div class="crm-reward-title">${crm_bookingEscape(rewardName)}</div>${r.qty !== undefined ? `<div class="crm-reward-stock">เหลือ ${Number(r.qty)} สิทธิ์</div>` : ''}</div>
         <div class="crm-reward-desc">${crm_bookingEscape(rewardDesc)}</div>
@@ -6611,6 +6541,12 @@ async function crm_renderRewards() {
     </article>
   `;
   }).join('');
+}
+function crm_rewardImageFailed(img) {
+  const holder = img && img.parentElement;
+  if (!holder) return;
+  const value = crm_bookingEscape(holder.dataset.rewardValue || 'REWARD');
+  holder.innerHTML = `<div class="crm-reward-no-image"><small>MEMBER REWARD</small><b>${value}</b><span>ไม่สามารถโหลดภาพจริงได้</span></div>`;
 }
 function crm_rewardTitle(value) { return String(value || '').replace(/\s*\(ใช้[^)]*\)\s*/g, ' ').replace(/[🎁🏷️]/g, '').replace(/\s+/g, ' ').trim(); }
 function crm_rewardValue(value) { const match = String(value || '').match(/(\d[\d,]*)\s*บาท/); return match ? match[1] + ' บาท' : ''; }
@@ -6652,11 +6588,11 @@ async function crm_redeem(id) {
       used: false,
       phone: crm_member.phone
     };
-    await crm_dbInsert('my-reward', myItem, r.pts);
-    let my = [];
-    try { my = JSON.parse(localStorage.getItem(CRM_PRE + 'my-rewards') || '[]'); } catch (e) {}
-    my.unshift(myItem);
-    localStorage.setItem(CRM_PRE + 'my-rewards', JSON.stringify(my));
+    const savedReward = await crm_dbInsert('my-reward', myItem, r.pts);
+    if (!savedReward) {
+      await adjustPoints(crm_member.phone, Math.abs(r.pts), 'คืนพอยท์: บันทึกสิทธิ์รางวัลไม่สำเร็จ');
+      return toast('❌ แลกรางวัลไม่สำเร็จ ระบบคืนพอยท์ให้แล้ว');
+    }
 
     if (r.db_id && r.qty !== undefined) {
       const newQty = Math.max(0, (r.qty || 0) - 1);
@@ -6664,11 +6600,6 @@ async function crm_redeem(id) {
       delete clean.type; delete clean.db_id; delete clean._ts; delete clean.pts;
       await crm_dbUpdate(r.db_id, 'reward', Object.assign({}, clean, { qty: newQty }), r.pts);
     }
-    const updated = rewards.map(x => (x.id === id || x.db_id === id)
-      ? Object.assign({}, x, { qty: x.qty !== undefined ? Math.max(0, x.qty - 1) : x.qty })
-      : x);
-    localStorage.setItem(CRM_PRE + 'rewards', JSON.stringify(updated));
-
     toast('✅ แลกรางวัลสำเร็จ!');
     crm_showMember();
     crm_showPage('pg-crm-rewards');
@@ -6680,12 +6611,7 @@ async function crm_redeem(id) {
 
 async function crm_renderHistory() {
   const phone = crm_member ? crm_member.phone : null;
-  let hist = await crm_dbFetchByType('history', phone);
-  if (hist.length === 0) {
-    hist = JSON.parse(localStorage.getItem(CRM_PRE + 'history') || '[]');
-  } else {
-    localStorage.setItem(CRM_PRE + 'history', JSON.stringify(hist));
-  }
+  const hist = await crm_dbFetchByType('history', phone);
   $('crm-hist-list').innerHTML = hist.map(h => `
     <div class="hist-item">
       <div>
@@ -6707,11 +6633,6 @@ async function crm_addHistory(title, amt, type, phone) {
     phone: phone || (crm_member ? crm_member.phone : '')
   };
   try { await crm_dbInsert('history', entry, type === 'out' ? -Math.abs(amt) : Math.abs(amt)); } catch (e) {}
-  try {
-    let hist = JSON.parse(localStorage.getItem(CRM_PRE + 'history') || '[]');
-    hist.unshift(entry);
-    localStorage.setItem(CRM_PRE + 'history', JSON.stringify(hist));
-  } catch (e) {}
 }
 
 async function crm_initProfile() {
@@ -6825,6 +6746,7 @@ let crm_txnImgFile = null;
 const NHS_SLIP_BUILD = 'slip-v4-image-guard-20260818';
 
 function crm_initTxnForm() {
+  crm_txnReviewConfirmed = false;
   crm_txnImgData = '';
   crm_txnImgFile = null;
   const prev = $('txn-slip-preview');
@@ -6888,8 +6810,73 @@ async function crm_ensureTxnSlipImage() {
   return image;
 }
 
+let crm_txnReviewConfirmed = false;
+let crm_txnReviewDraft = null;
+function crm_txnReviewEscape(value) {
+  return String(value == null ? '-' : value || '-').replace(/[&<>"']/g, function(ch) { return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch]; });
+}
+function crm_txnReviewRow(label, value) {
+  return '<div class="consult-review-row"><span>' + crm_txnReviewEscape(label) + '</span><b>' + crm_txnReviewEscape(value) + '</b></div>';
+}
+async function crm_openTxnReview() {
+  if (!crm_member || !crm_member.phone) return toast('❌ กรุณาล็อกอิน LINE และยืนยันสมาชิกก่อนส่งสลิป');
+  const serviceDate = String(($('txn-service-date') || {}).value || '').trim();
+  const amount = parseFloat((($('txn-amount') || {}).value || '0')) || 0;
+  const service = String(($('txn-service') || {}).value || '').trim();
+  if (!serviceDate) return toast('⚠️ กรุณาเลือกวันที่เข้าใช้บริการ');
+  if (!amount || amount <= 0) return toast('⚠️ กรอกจำนวนเงินให้ถูกต้อง');
+  if (!service) return toast('⚠️ กรอกรายการที่ทำ');
+  let image = '';
+  try { image = await crm_ensureTxnSlipImage(); }
+  catch (e) { return toast('⚠️ กรุณาแนบรูปสลิปก่อนตรวจทาน'); }
+  crm_txnReviewDraft = {
+    serviceDate: serviceDate,
+    amount: amount,
+    service: service,
+    note: String(($('txn-note') || {}).value || '').trim(),
+    apptStylist: String(($('txn-appt-stylist') || {}).value || '').trim(),
+    apptDate: String(($('txn-appt-date') || {}).value || '').trim(),
+    apptService: String(($('txn-appt-service') || {}).value || '').trim(),
+    apptNote: String(($('txn-appt-note') || {}).value || '').trim(),
+    image: image
+  };
+  crm_showTxnReview(crm_txnReviewDraft);
+}
+function crm_showTxnReview(draft) {
+  const old = document.getElementById('txn-review-modal');
+  if (old) old.remove();
+  const appointment = draft.apptDate || draft.apptStylist || draft.apptService || draft.apptNote
+    ? '<div class="consult-review-section"><h3>นัดหมายครั้งถัดไป</h3>' + crm_txnReviewRow('ช่าง', draft.apptStylist) + crm_txnReviewRow('วันที่นัด', draft.apptDate) + crm_txnReviewRow('บริการ', draft.apptService) + crm_txnReviewRow('หมายเหตุ', draft.apptNote) + '</div>' : '';
+  const overlay = document.createElement('div');
+  overlay.id = 'txn-review-modal';
+  overlay.className = 'consult-review-modal';
+  overlay.innerHTML = '<div class="consult-review-card" role="dialog" aria-modal="true" aria-labelledby="txn-review-title">' +
+    '<div class="consult-review-head"><div><div class="consult-review-kicker">N HAIR STYLIST</div><h2 id="txn-review-title">ตรวจทานสลิปก่อนส่ง</h2><p>ตรวจสอบข้อมูลและรูปสลิปก่อนส่งให้ร้านตรวจสอบ</p></div><button type="button" class="consult-review-close" onclick="crm_closeTxnReview()">✕</button></div>' +
+    '<div class="consult-review-alert">ระบบจะยังไม่บันทึกข้อมูลจนกว่าจะกด “ยืนยันส่งให้ร้านตรวจสอบ” หากข้อมูลผิดให้กลับไปแก้ไขได้ทุกช่อง</div>' +
+    '<div class="consult-review-section"><h3>ข้อมูลสมาชิกและยอดบริการ</h3>' + crm_txnReviewRow('สมาชิก', (crm_member && (crm_member.name || crm_member.nickname)) || '-') + crm_txnReviewRow('วันที่ใช้บริการ', draft.serviceDate) + crm_txnReviewRow('รายการบริการ', draft.service) + crm_txnReviewRow('จำนวนเงิน', Number(draft.amount).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' บาท') + crm_txnReviewRow('หมายเหตุ', draft.note) + '</div>' +
+    '<div class="consult-review-photo-wrap"><div class="consult-review-caption">รูปสลิปที่จะส่งให้ร้าน</div><img class="consult-review-photo" src="' + crm_txnReviewEscape(draft.image) + '" alt="รูปสลิปที่แนบ"></div>' + appointment +
+    '<label class="consult-review-check"><input id="txn-review-ack" type="checkbox"> ฉันตรวจสอบข้อมูลและรูปสลิปแล้ว</label>' +
+    '<div class="consult-review-actions"><button type="button" class="consult-review-edit" onclick="crm_closeTxnReview()">กลับไปแก้ไข</button><button type="button" class="consult-review-submit" onclick="crm_confirmTxnReview()">ยืนยันส่งให้ร้านตรวจสอบ</button></div></div>';
+  overlay.addEventListener('click', function(event) { if (event.target === overlay) crm_closeTxnReview(); });
+  document.body.appendChild(overlay);
+}
+function crm_closeTxnReview() {
+  const modal = document.getElementById('txn-review-modal');
+  if (modal) modal.remove();
+  crm_txnReviewDraft = null;
+}
+async function crm_confirmTxnReview() {
+  const ack = document.getElementById('txn-review-ack');
+  if (!ack || !ack.checked) return toast('กรุณาติ๊กยืนยันหลังตรวจสอบข้อมูลและรูปสลิป');
+  crm_closeTxnReview();
+  crm_txnReviewConfirmed = true;
+  await crm_submitTxn();
+}
+
 async function crm_submitTxn() {
   if (!crm_member || !crm_member.phone) { toast('❌ ไม่พบข้อมูลสมาชิก'); return; }
+  if (!crm_txnReviewConfirmed) return crm_openTxnReview();
+  crm_txnReviewConfirmed = false;
   const serviceDate = (($('txn-service-date') && $('txn-service-date').value) || '').trim();
   const amt = parseFloat(($('txn-amount') && $('txn-amount').value) || '0') || 0;
   const service = (($('txn-service') && $('txn-service').value) || '').trim();
@@ -7268,15 +7255,11 @@ function crm_resetNewsForm() {
   if ($('adm-news-cancel-btn')) $('adm-news-cancel-btn').style.display = 'none';
 }
 async function crm_editNews(id) {
-  let local = [];
-  try { local = JSON.parse(localStorage.getItem(CRM_PRE + 'news') || '[]') || []; } catch (e) { local = []; }
-  let item = local.find(n => String(n.db_id || n.id) === String(id));
-  if (!item) {
-    try {
-      const rows = await crm_dbFetchByType('news');
-      item = rows.find(n => String(n.db_id || n.id) === String(id));
-    } catch (e) {}
-  }
+  let item = null;
+  try {
+    const rows = await crm_dbFetchByType('news');
+    item = rows.find(n => String(n.db_id || n.id) === String(id));
+  } catch (e) {}
   if (!item) return toast('❌ ไม่พบข่าวสารนี้');
   crm_newsEditingId = item.db_id || item.id;
   if ($('adm-news-type')) $('adm-news-type').value = item.newsType || item.type || 'ข่าวสารร้าน';
@@ -7299,10 +7282,9 @@ async function crm_adminAddNews() {
     const title = ($('adm-news-title') && $('adm-news-title').value || '').trim();
     const content = ($('adm-news-content') && $('adm-news-content').value || '').trim();
     if (!title || !content) return toast('กรุณากรอกหัวข้อและเนื้อหา');
-    let localNews = [];
-    try { localNews = JSON.parse(localStorage.getItem(CRM_PRE + 'news') || '[]') || []; } catch (e) { localNews = []; }
+    const persistedNews = await crm_dbFetchByType('news');
     const editing = crm_newsEditingId != null;
-    const existing = editing ? localNews.find(n => String(n.db_id || n.id) === String(crm_newsEditingId)) : null;
+    const existing = editing ? persistedNews.find(n => String(n.db_id || n.id) === String(crm_newsEditingId)) : null;
     let imgFull = crm_newsImgData || (existing && crm_newsImage(existing)) || '';
     let imgForDb = '';
     if (imgFull && (validateImageUrl(imgFull) || imgFull.indexOf('data:image') === 0)) imgForDb = imgFull;
@@ -7328,39 +7310,18 @@ async function crm_adminAddNews() {
       synced = !!saved;
       if (saved && saved.db_id) item.db_id = saved.db_id;
     }
-    if (editing) {
-      const idx = localNews.findIndex(n => String(n.db_id || n.id) === String(crm_newsEditingId));
-      if (idx >= 0) localNews[idx] = Object.assign({}, localNews[idx], item);
-      else localNews.unshift(item);
-    } else {
-      localNews.unshift(item);
-    }
-    localStorage.setItem(CRM_PRE + 'news', JSON.stringify(localNews));
     crm_resetNewsForm();
     await crm_renderAdminNewsList();
-    if (editing) toast(synced ? '✅ แก้ไขข่าวสารสำเร็จ!' : '✅ แก้ไขในเครื่องแล้ว (ซิงค์ DB ไม่สำเร็จ)');
-    else toast(synced ? '✅ เพิ่มข่าวสารสำเร็จ!' : '✅ บันทึกข่าวแล้วในเครื่อง (ซิงค์ DB ไม่สำเร็จ)');
+    if (editing) toast(synced ? '✅ แก้ไขข่าวสารสำเร็จ!' : '❌ แก้ไขข่าวสารไม่สำเร็จ ระบบไม่ได้เก็บข้อมูลเฉพาะเครื่อง');
+    else toast(synced ? '✅ เพิ่มข่าวสารสำเร็จ!' : '❌ เพิ่มข่าวสารไม่สำเร็จ ระบบไม่ได้เก็บข้อมูลเฉพาะเครื่อง');
   } catch (err) {
     console.error('crm_adminAddNews', err);
     toast('❌ บันทึกข่าวสารไม่สำเร็จ: ' + (err && err.message ? err.message : String(err)));
   }
 }
 async function crm_renderAdminNewsList() {
-  let fromDb = [];
-  try { fromDb = await crm_dbFetchByType('news'); } catch (e) { fromDb = []; }
-  let local = [];
-  try { local = JSON.parse(localStorage.getItem(CRM_PRE + 'news') || '[]') || []; } catch (e) { local = []; }
-  const map = {};
-  (local || []).forEach(function(n) { if (n) map[String(n.db_id || n.id || n.title)] = n; });
-  (fromDb || []).forEach(function(n) {
-    if (!n) return;
-    const k = String(n.db_id || n.id || n.title);
-    const prev = map[k];
-    map[k] = prev ? Object.assign({}, prev, n, { image: crm_newsImage(n) || crm_newsImage(prev) || '' }) : Object.assign({}, n, { image: crm_newsImage(n) });
-  });
-  let news = Object.keys(map).map(function(k) { return map[k]; });
+  const news = await crm_dbFetchByType('news');
   news.sort(function(a, b) { return new Date(b.date || 0) - new Date(a.date || 0); });
-  try { localStorage.setItem(CRM_PRE + 'news', JSON.stringify(news)); } catch (e) {}
   $('adm-news-list').innerHTML = news.map(n => {
     const newsImage = crm_newsImage(n);
     const imgHtml = newsImage ? `<img src="${newsImage}" style="width:50px;height:50px;object-fit:contain;background:#171717;border-radius:8px;">` : `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#f5f5f5;border-radius:8px;">📢</div>`;
@@ -7381,17 +7342,15 @@ async function crm_renderAdminNewsList() {
 
 async function crm_deleteNews(id) {
   if(!confirm('ยืนยันการลบข่าวนี้?')) return;
-  await crm_dbDelete(id);
-  let news = JSON.parse(localStorage.getItem(CRM_PRE + 'news') || '[]');
-  news = news.filter(n => n.id !== id && n.db_id !== id);
-  localStorage.setItem(CRM_PRE + 'news', JSON.stringify(news));
+  const deleted = await crm_dbDelete(id);
+  if (!deleted) return toast('❌ ลบข่าวสารจากฐานข้อมูลไม่สำเร็จ');
   await crm_renderAdminNewsList();
   toast('ลบข่าวสารสำเร็จ');
 }
 
 function crm_newsImage(n) {
   if (!n) return '';
-  return String(n.image || n.image_url || n.news_image || n.photo || n.thumbnail || '').trim();
+  return String(n.image || n.image_url || n.imageUrl || n.news_image || n.newsImage || n.photo || n.photo_url || n.photoUrl || n.thumbnail || n.media_url || n.mediaUrl || n.cover_url || n.coverUrl || n.asset_url || n.assetUrl || '').trim();
 }
 
 let crm_rewImgData = '';
@@ -7446,10 +7405,8 @@ async function crm_renderAdminRewardList() {
 
 async function crm_deleteReward(id) {
   if(!confirm('ยืนยันการลบรางวัลนี้?')) return;
-  await crm_dbDelete(id);
-  let rewards = await crm_getRewards();
-  rewards = rewards.filter(x => x.id !== id && x.db_id !== id);
-  localStorage.setItem(CRM_PRE + 'rewards', JSON.stringify(rewards));
+  const deleted = await crm_dbDelete(id);
+  if (!deleted) return toast('❌ ลบรางวัลจากฐานข้อมูลไม่สำเร็จ');
   await crm_renderAdminRewardList();
   toast('ลบรางวัลสำเร็จ');
 }
@@ -7666,12 +7623,7 @@ window.addEventListener('hashchange', nhs_routeCustomerLink);
 
 async function crm_renderMyRewards() {
   const phone = crm_member ? crm_member.phone : null;
-  let my = await crm_dbFetchByType('my-reward', phone);
-  if (my.length === 0) {
-    my = JSON.parse(localStorage.getItem(CRM_PRE + 'my-rewards') || '[]');
-  } else {
-    localStorage.setItem(CRM_PRE + 'my-rewards', JSON.stringify(my));
-  }
+  const my = await crm_dbFetchByType('my-reward', phone);
   const el = document.getElementById('crm-my-reward-list');
   if(el) {
     el.innerHTML = my.map(r => {
@@ -7695,31 +7647,14 @@ async function crm_renderMyRewards() {
 }
 
 async function crm_renderNews() {
-  let fromDb = [];
-  try { fromDb = await crm_dbFetchByType('news'); } catch (e) { fromDb = []; }
-  let local = [];
-  try { local = JSON.parse(localStorage.getItem(CRM_PRE + 'news') || '[]') || []; } catch (e) { local = []; }
-  const map = {};
-  (local || []).forEach(function(n) {
-    if (!n) return;
-    map[String(n.db_id || n.id || n.title)] = n;
-  });
-  (fromDb || []).forEach(function(n) {
-    if (!n) return;
-    const k = String(n.db_id || n.id || n.title);
-    const prev = map[k];
-    if (!prev) map[k] = Object.assign({}, n, { image: crm_newsImage(n) });
-    else map[k] = Object.assign({}, prev, n, { image: crm_newsImage(n) || crm_newsImage(prev) || '' });
-  });
-  let news = Object.keys(map).map(function(k) { return map[k]; });
+  const news = await crm_dbFetchByType('news');
   news.sort(function(a, b) { return new Date(b.date || 0) - new Date(a.date || 0); });
-  try { localStorage.setItem(CRM_PRE + 'news', JSON.stringify(news)); } catch (e) {}
   const el = document.getElementById('crm-news-list');
   if (el) {
     el.innerHTML = news.map(n => {
       const title = crm_bookingEscape(n.title || 'ข่าวสารจาก N Hair Stylist');
       const image = crm_newsImage(n);
-      const media = image ? `<img src="${image}" alt="ภาพข่าวสาร ${title}">` : `<div class="crm-news-no-media"><span>N HAIR JOURNAL</span><b>N HAIR STYLIST</b></div>`;
+      const media = image ? `<img src="${crm_bookingEscape(image)}" alt="ภาพข่าวสาร ${title}" onerror="this.parentElement.innerHTML='<div class=&quot;crm-news-no-media&quot;><span>N HAIR JOURNAL</span><b>N HAIR STYLIST</b></div>'">` : `<div class="crm-news-no-media"><span>N HAIR JOURNAL</span><b>N HAIR STYLIST</b></div>`;
       return `<article class="crm-news-card"><div class="crm-news-media">${media}</div><div class="crm-news-body"><div class="crm-news-meta"><span class="crm-news-type">${crm_bookingEscape(n.newsType || n.type || 'ข่าวสารร้าน')}</span><span class="crm-news-date">${crm_newsDate(n.date)}</span></div><h3>${title}</h3><div class="crm-news-copy">${crm_bookingEscape(String(n.content || '').trim() || 'รายละเอียดจะอัปเดตโดยร้าน')}</div></div></article>`;
     }).join('') || '<div class="crm-news-card" style="padding:28px;text-align:center;color:#CFC7BB;">ยังไม่มีข่าวสารจากร้าน</div>';
   }
@@ -7974,6 +7909,19 @@ async function crm_prepareRewardImageForDb(imgFull) {
   }
 }
 
+async function crm_verifyRewardImage(image) {
+  const src = String(image || '').trim();
+  if (!src) return true;
+  if (!(src.indexOf('data:image/') === 0 || validateImageUrl(src))) return false;
+  return new Promise(function(resolve) {
+    const probe = new Image();
+    const timer = setTimeout(function() { resolve(false); }, 12000);
+    probe.onload = function() { clearTimeout(timer); resolve(probe.naturalWidth > 0 && probe.naturalHeight > 0); };
+    probe.onerror = function() { clearTimeout(timer); resolve(false); };
+    probe.src = src;
+  });
+}
+
 async function crm_adminAddReward() {
   const name = ($('adm-rew-name') && $('adm-rew-name').value || '').trim();
   const pts = parseInt($('adm-rew-pts') && $('adm-rew-pts').value, 10);
@@ -7981,12 +7929,6 @@ async function crm_adminAddReward() {
 
   let existing = [];
   try { existing = await crm_getRewards(); } catch (e) { existing = []; }
-  if (existing === crm_defaultRewards() || (existing.length === 3 && existing[0] && existing[0].name === 'ส่วนลด 100 บาท' && !localStorage.getItem(CRM_PRE + 'rewards'))) {
-    try {
-      const loc = JSON.parse(localStorage.getItem(CRM_PRE + 'rewards') || '[]');
-      existing = loc && loc.length ? loc : [];
-    } catch (e2) { existing = []; }
-  }
 
   const editingId = crm_rewEditingId;
   const existingItem = editingId != null
@@ -8003,6 +7945,9 @@ async function crm_adminAddReward() {
   const newId = existing.length > 0 ? Math.max.apply(null, existing.map(function(r) { return r.id || 0; })) + 1 : Date.now();
   const imgFull = crm_rewImgData || (existingItem && crm_rewardImage(existingItem)) || '';
   const imgForDb = await crm_prepareRewardImageForDb(imgFull);
+  if (imgFull && (!imgForDb || !(await crm_verifyRewardImage(imgForDb)))) {
+    return toast('❌ ตรวจภาพรางวัลไม่ผ่าน กรุณาเลือกภาพใหม่หรือตรวจลิงก์ภาพก่อนบันทึก');
+  }
   const item = {
     id: existingItem && existingItem.id ? existingItem.id : newId,
     db_id: existingItem && existingItem.db_id ? existingItem.db_id : undefined,
@@ -8031,7 +7976,7 @@ async function crm_adminAddReward() {
   let saved = null;
   let synced = false;
   if (editingId != null) {
-    const dbPayload = Object.assign({}, item, { image: imgForDb || '' });
+    const dbPayload = Object.assign({}, item, { image: imgForDb || crm_rewardImage(existingItem) || '' });
     delete dbPayload.db_id; delete dbPayload.pts; delete dbPayload.type; delete dbPayload._ts;
     if (item.db_id) {
       synced = await crm_dbUpdate(item.db_id, 'reward', dbPayload, pts);
@@ -8051,13 +7996,12 @@ async function crm_adminAddReward() {
     }
   }
 
-  try { localStorage.setItem(CRM_PRE + 'rewards', JSON.stringify(existing)); } catch (e) {}
   crm_resetRewardForm();
   await crm_renderAdminRewardList();
   if (editingId != null) {
-    toast(synced ? '✅ แก้ไขรางวัลสำเร็จ — อัปเดตแบบ real-time แล้ว' : '✅ แก้ไขในเครื่องแล้ว (ซิงค์ DB ไม่สำเร็จ)');
+    toast(synced ? '✅ แก้ไขรางวัลสำเร็จ — หน้าลูกค้าใช้ข้อมูลชุดเดียวกันแล้ว' : '❌ แก้ไขรางวัลไม่สำเร็จ ระบบไม่ได้เก็บข้อมูลเฉพาะเครื่อง');
   } else {
-    toast(synced ? '✅ เพิ่มรางวัลสำเร็จ! หน้าลูกค้าจะเห็นรูปจริงแล้ว' : '✅ บันทึกในเครื่องแล้ว (ซิงค์ DB ไม่สำเร็จ)');
+    toast(synced ? '✅ เพิ่มรางวัลสำเร็จ! หน้าลูกค้าจะเห็นรูปจริงแล้ว' : '❌ เพิ่มรางวัลไม่สำเร็จ ระบบไม่ได้เก็บข้อมูลเฉพาะเครื่อง');
   }
 }
 
